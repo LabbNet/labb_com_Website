@@ -122,11 +122,19 @@ export function clearAttempts(key: string) {
 export async function sameOrigin() {
   const h = await headers();
   const origin = h.get("origin");
-  if (!origin) return h.get("sec-fetch-site") === "same-origin";
+  const site = h.get("sec-fetch-site");
+  // Browsers send "Origin: null" when the page's referrer policy is no-referrer.
+  // Fall back to Fetch Metadata, which the browser sets and pages cannot forge.
+  if (!origin || origin === "null") {
+    if (site === "same-origin" || site === "none") return true;
+    console.warn(`[auth] blocked form post: origin=${origin ?? "missing"} sec-fetch-site=${site ?? "missing"}`);
+    return false;
+  }
   let originHost: string;
   try {
     originHost = new URL(origin).host.toLowerCase();
   } catch {
+    console.warn(`[auth] blocked form post: unparsable origin=${origin}`);
     return false;
   }
   const allowed = new Set<string>(["labb.com", "www.labb.com"]);

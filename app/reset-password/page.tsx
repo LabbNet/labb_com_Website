@@ -4,7 +4,7 @@ import { Alert, AuthCard, SetPasswordForm } from "@/components/AuthCard";
 import { findToken } from "@/lib/auth";
 import { dbConfigured } from "@/lib/db";
 
-export const metadata: Metadata = { title: "Choose a New Password", robots: { index: false, follow: false }, referrer: "no-referrer" };
+export const metadata: Metadata = { title: "Choose a New Password", robots: { index: false, follow: false }, referrer: "same-origin" };
 export const dynamic = "force-dynamic";
 
 export default async function ResetPage({ searchParams }: { searchParams: Promise<{ token?: string; error?: string }> }) {
