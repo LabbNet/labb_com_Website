@@ -116,16 +116,31 @@ export function clearAttempts(key: string) {
 }
 
 // ---- Same-origin check for form posts ----
+// Behind Render's proxy the Host header seen by the app can be the internal address, so compare the
+// browser's Origin against every known public host: forwarded host, Host, the site URL, Render's
+// external hostname, labb.com and ALLOWED_HOSTS.
 export async function sameOrigin() {
   const h = await headers();
   const origin = h.get("origin");
-  const host = h.get("x-forwarded-host") || h.get("host");
-  if (!origin || !host) return false;
+  if (!origin) return h.get("sec-fetch-site") === "same-origin";
+  let originHost: string;
   try {
-    return new URL(origin).host === host;
+    originHost = new URL(origin).host.toLowerCase();
   } catch {
     return false;
   }
+  const allowed = new Set<string>(["labb.com", "www.labb.com"]);
+  const add = (v?: string | null) => v && v.split(",").forEach((x) => x.trim() && allowed.add(x.trim().toLowerCase()));
+  add(h.get("x-forwarded-host"));
+  add(h.get("host"));
+  add(process.env.RENDER_EXTERNAL_HOSTNAME);
+  add(process.env.ALLOWED_HOSTS);
+  try {
+    if (process.env.NEXT_PUBLIC_SITE_URL) add(new URL(process.env.NEXT_PUBLIC_SITE_URL).host);
+  } catch {}
+  if (allowed.has(originHost)) return true;
+  console.warn(`[auth] blocked cross-site form post: origin=${originHost} allowed=${[...allowed].join(" ")}`);
+  return false;
 }
 
 export const USERNAME_RE = /^[a-z0-9._-]{3,40}$/;
