@@ -260,3 +260,30 @@ p { margin: 0 0 1em; }
   .utility a { white-space: nowrap; }
   .utility a:last-child { display: none; }
 }
+
+/* Comparison tables (software, kit matrix) */
+.compare-wrap { overflow-x: auto; margin-top: 24px; border: 1px solid var(--border); border-radius: var(--radius-card); background: #fff; }
+.compare { width: 100%; border-collapse: collapse; font-size: 0.95rem; }
+.compare th, .compare td { padding: 12px 16px; border-bottom: 1px solid var(--border); text-align: center; vertical-align: middle; }
+.compare thead th { font-size: 1rem; font-weight: 700; color: var(--dark); background: #fff; position: sticky; top: 0; }
+.compare tbody th { text-align: left; font-weight: 500; color: var(--dark); }
+.compare tr.group th { background: var(--bg-soft); font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: var(--dark); }
+.compare tr.group td { background: var(--bg-soft); }
+.compare .hl { background: var(--tint-10); }
+.compare thead th.hl { background: var(--dark); color: #fff; border-top: 4px solid var(--orange); }
+.compare .yes { color: var(--orange); font-weight: 800; font-size: 1.15rem; }
+.compare .no { color: var(--gray); }
+.compare .soon { font-size: 0.8rem; font-weight: 700; color: var(--dark); background: var(--tint-20); border-radius: 999px; padding: 2px 10px; }
+.matrix { font-size: 0.88rem; min-width: 860px; }
+.matrix thead th { white-space: nowrap; }
+.matrix thead th a { color: var(--dark); text-decoration: none; }
+.matrix thead th a:hover { color: var(--orange); }
+.matrix thead th .sub { display: block; font-size: 0.72rem; font-weight: 500; color: var(--muted); }
+.matrix tbody th { white-space: nowrap; position: sticky; left: 0; background: #fff; }
+.matrix tbody tr.group th { background: var(--bg-soft); }
+.matrix .code { font-size: 0.72rem; color: var(--muted); margin-left: 4px; }
+.matrix .yes-cut { font-weight: 600; color: var(--dark); }
+.matrix tbody tr:hover td, .matrix tbody tr:hover th { background: var(--tint-10); }
+.pill.soon-pill { background: var(--dark); border-color: var(--dark); color: #fff; }
+.matrix th, .matrix td { padding: 9px 8px; }
+.matrix tbody th { padding-left: 14px; }

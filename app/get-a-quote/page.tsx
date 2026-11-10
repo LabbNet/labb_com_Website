@@ -6,7 +6,7 @@ import { site } from "@/lib/site";
 
 export const metadata: Metadata = {
   title: "Get a Quote or a Free Sample",
-  description: "Request pricing or a free sample of Labb rapid drug test kits and the LabbHR reader. A Labb specialist will reply shortly.",
+  description: "Request pricing or a free sample of Labb rapid drug test kits and the Labb Station reader. A Labb specialist will reply shortly.",
   alternates: { canonical: "/get-a-quote" },
 };
 
@@ -22,7 +22,7 @@ export default async function Page({ searchParams }: { searchParams: Promise<{ s
             <h1>{sample ? "Try a Labb rapid test, free." : "Pricing built around your program."}</h1>
             <p className="lede">
               Tell us about your testing and a Labb specialist will recommend a panel, send pricing for your volume and set up a sample
-              kit with a live read on the LabbHR reader.
+              kit with a live read on Labb Station.
             </p>
             <Checks items={["Panel recommendation for your policy and state", "Pricing for your monthly volume", "Free sample kit and a walkthrough"]} />
             <p style={{ marginTop: 28 }}>

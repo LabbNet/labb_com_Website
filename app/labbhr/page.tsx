@@ -1,65 +1,69 @@
 import Image from "next/image";
 import Link from "next/link";
 import type { Metadata } from "next";
-import { Breadcrumbs, Checks, CtaBand, Faq, JsonLd, LabbHR } from "@/components/ui";
+import { Breadcrumbs, Checks, Faq, JsonLd, LabbHR } from "@/components/ui";
+import { LeadForm } from "@/components/LeadForm";
 import { site } from "@/lib/site";
 
 export const metadata: Metadata = {
-  title: "LabbHR: Digital Rapid Drug Test Reader and Screening Platform",
+  title: "LabbHR: Drug Testing and Background Screening Platform",
   description:
-    "LabbHR reads rapid drug tests on a phone or tablet, documents every result automatically and keeps donor information private. Built for employers running testing in-house.",
+    "LabbHR puts rapid tests, lab testing, confirmations, MRO results and background checks in one record per candidate. Includes the Labb Station reader. Request early access.",
   alternates: { canonical: "/labbhr" },
 };
 
-const features = [
-  { t: "Objective digital read", b: "Every device is read against the same criteria, so every person gets the same fair read." },
-  { t: "Runs on your phone or tablet", b: "No special hardware. Download the app and read devices wherever you collect." },
-  { t: "Patented True Privacy", b: "OraFlo devices show codes, not drug names, and the reader decodes them. Supervisors don't read or judge the result." },
-  { t: "Documented automatically", b: "Each result is time-stamped and stored against the donor record, ready for audits." },
-  { t: "Paperless confirmations", b: "Scannable decal sets link a non-negative screen to its lab confirmation without handwriting or typing." },
-  { t: "Guided workflows", b: "Step-by-step collection prompts catch common errors before they become a bad result." },
+const capabilities = [
+  { t: "Everything in Labb Station", b: "Objective digital reads of Labb rapid tests, True Privacy and results documented automatically." },
+  { t: "Lab testing and eCCF", b: "Order lab-based tests with an electronic chain of custody, without paper forms." },
+  { t: "Confirmations and MRO results", b: "Lab confirmations and Medical Review Officer results land in the same record as the screen." },
+  { t: "Background checks", b: "Order background checks and see them next to drug test results." },
+  { t: "One record per candidate", b: "From the first screen to the final result, everything about a candidate is in one place, ready for audit." },
+  { t: "Built for HR teams", b: "See where every candidate stands across locations, without chasing clinics or labs." },
 ];
 
 const faqs = [
-  { q: "What devices does LabbHR read?", a: "LabbHR reads Labb UA Series urine cups, OR Series and ORF Series (OraFlo) oral fluid devices. See the full list on the test kits page." },
-  { q: "Do we need to buy hardware?", a: "No. Most teams read with the phones or tablets they already have. Devices used for results should be secured with a compliant mobile device management (MDM) system." },
-  { q: "Who can get a LabbHR account?", a: "Accounts are open to employers running in-house programs, professional drug testing facilities, clinics and occupational health providers. Talk to a Labb specialist to set up your account." },
+  { q: "Is LabbHR available now?", a: "LabbHR is in early access. Request access below and a Labb specialist will tell you when your account can be set up. Labb Station is available now." },
+  { q: "Do I need Labb Station as well?", a: "No. LabbHR includes everything in Labb Station, so you get the reader as part of the platform." },
+  { q: "Can clinics use LabbHR?", a: "Yes. Clinics and collection sites get LabbHR through the Labb Channel Partner Program." },
+  { q: "What does LabbHR cost?", a: "Pricing depends on your volume and the services you use. Request access and we'll send a quote." },
 ];
 
 export default function LabbHRPage() {
   return (
     <>
-      <Breadcrumbs items={[{ name: "LabbHR", href: "/labbhr" }]} />
-      <section className="hero">
+      <Breadcrumbs items={[{ name: "Software", href: "/software" }, { name: "LabbHR", href: "/labbhr" }]} />
+      <section className="hero form-hero">
         <div className="wrap">
           <div>
-            <span className="eyebrow">The LabbHR platform</span>
+            <span className="eyebrow">LabbHR platform · Early access</span>
             <h1>
-              Rapid drug testing, read <span className="em">digitally</span> and documented automatically.
+              Drug testing and background checks, finally in <span className="em">one place</span>.
             </h1>
             <p className="lede">
-              <LabbHR /> turns a phone or tablet into a rapid drug test reader. Collect, capture and get a documented result in
-              minutes, with the same objective read for every person.
+              <LabbHR /> brings rapid tests, lab testing, confirmations, MRO results and background checks together in one record per
+              candidate, with the Labb Station reader built in.
             </p>
+            <Checks items={["Rapid results from Labb Station, live", "Lab confirmations and MRO results in the same record", "Background checks built in"]} />
             <div className="btn-row">
-              <Link href="/get-a-quote" className="btn btn-primary">Request a Demo</Link>
-              <Link href="/get-a-quote?sample=1" className="btn btn-outline">Request a Sample</Link>
+              <Link href="/software" className="btn btn-outline">Compare with Labb Station</Link>
             </div>
           </div>
-          <Image src="/img/phone-app.webp" alt="LabbHR app on a phone showing a rapid drug test result" width={1048} height={818} priority sizes="(max-width: 900px) 92vw, 540px" />
+          <div className="hero-card" id="access">
+            <LeadForm variant="early-access" title="Request early access" subtitle="Tell us about your program and we'll reach out about LabbHR access." submitLabel="Request Early Access" />
+          </div>
         </div>
       </section>
 
       <section className="section">
         <div className="wrap">
-          <span className="eyebrow">What it does</span>
-          <h2>Everything a rapid testing program needs</h2>
+          <span className="eyebrow">What LabbHR does</span>
+          <h2>The whole screening process, in one platform</h2>
           <div className="grid g3" style={{ marginTop: 28 }}>
-            {features.map((f, i) => (
-              <div key={f.t} className="card top">
+            {capabilities.map((c, i) => (
+              <div key={c.t} className="card top">
                 <div className="icon-dot" aria-hidden="true">{i + 1}</div>
-                <h3>{f.t}</h3>
-                <p>{f.b}</p>
+                <h3>{c.t}</h3>
+                <p>{c.b}</p>
               </div>
             ))}
           </div>
@@ -67,63 +71,49 @@ export default function LabbHRPage() {
       </section>
 
       <section className="section soft">
-        <div className="wrap split reverse">
+        <div className="wrap split">
           <div>
-            <span className="eyebrow">True Privacy with Real Protection™</span>
-            <h2>Protect employee privacy and dignity</h2>
+            <span className="eyebrow">For HR teams</span>
+            <h2>Stop chasing clinics, labs and screening vendors</h2>
             <p className="intro">
-              On OraFlo devices, strips are labeled with codes instead of drug names. A donor standing next to the collector can&apos;t
-              tell which drug a line belongs to, and legal prescriptions aren&apos;t exposed to coworkers. The reader decodes the
-              result privately.
+              Today a single hire can mean a clinic visit, a lab result, an MRO call and a separate background check portal. <LabbHR />{" "}
+              keeps all of it in one candidate record, so HR can see status at a glance and every result is documented.
             </p>
-            <Checks items={["Drug names masked on the device", "Results decoded by the reader, not read aloud", "Legal prescriptions kept private"]} />
+            <Checks items={["One login for drug tests and background checks", "Every result time-stamped and audit ready", "Works across all your locations"]} />
           </div>
-          <Image src="/img/oraflo-masked-names.webp" alt="OraFlo oral fluid device with masked drug codes" width={1048} height={818} sizes="(max-width: 900px) 92vw, 560px" />
+          <Image src="/img/labbhr-dashboard.webp" alt="LabbHR dashboard showing a candidate's documented screening results" width={1400} height={1400} sizes="(max-width: 900px) 92vw, 540px" />
         </div>
       </section>
 
       <section className="section">
-        <div className="wrap split">
-          <div>
-            <span className="eyebrow">How it works</span>
-            <h2>Four steps, a few minutes</h2>
-            <ol className="grid" style={{ listStyle: "none", padding: 0, gap: 14 }}>
-              {[
-                ["Collect", "Collect oral fluid or urine with a Labb device, following the guided steps in the app."],
-                ["Capture", "Scan the device with the LabbHR app at the read time."],
-                ["Result", "The result is read digitally, time-stamped and saved to the donor record."],
-                ["Confirm", "Send any non-negative to the lab for confirmation with a scannable decal, no paper forms."],
-              ].map(([t, b], i) => (
-                <li key={t} className="card rail" style={{ padding: 18 }}>
-                  <h3 style={{ fontSize: "1.05rem", marginBottom: 4 }}>{i + 1}. {t}</h3>
-                  <p>{b}</p>
-                </li>
-              ))}
-            </ol>
-          </div>
-          <Image src="/img/paperless-confirmation.webp" alt="Scannable decal set for paperless lab confirmation" width={1400} height={1400} sizes="(max-width: 900px) 92vw, 520px" />
-        </div>
-      </section>
-
-      <section className="section soft">
         <div className="wrap" style={{ maxWidth: 860 }}>
           <span className="eyebrow">Questions</span>
           <h2>About LabbHR</h2>
           <Faq items={faqs} />
-          <p className="fine" style={{ textAlign: "left", marginTop: 24 }}>The Labb Station reader app is covered by {site.patent}.</p>
         </div>
       </section>
 
-      <CtaBand title="See LabbHR in action" body="Request a demo and a free sample kit, and we'll walk your team through a live read." label="Request a Demo" />
+      <section className="cta-band">
+        <div className="wrap">
+          <div>
+            <h2>Be first on LabbHR</h2>
+            <p>Request early access and help shape which features roll out first.</p>
+          </div>
+          <div className="btn-row" style={{ marginTop: 0 }}>
+            <Link href="#access" className="btn btn-light">Request Early Access</Link>
+            <Link href="/labb-station" className="btn btn-ghost">See Labb Station</Link>
+          </div>
+        </div>
+      </section>
       <JsonLd
         data={{
           "@context": "https://schema.org",
           "@type": "SoftwareApplication",
           name: "LabbHR",
           applicationCategory: "BusinessApplication",
-          operatingSystem: "iOS, Android",
+          operatingSystem: "Web, iOS, Android",
           publisher: { "@id": `${site.url}/#org` },
-          description: "Digital rapid drug test reader and screening platform for employers.",
+          description: "Drug testing and background screening platform for employers and clinics.",
         }}
       />
     </>

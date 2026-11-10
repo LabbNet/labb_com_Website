@@ -5,7 +5,7 @@ import { site } from "@/lib/site";
 
 export const metadata: Metadata = {
   title: "Contact Labb",
-  description: "Contact Labb in Norfolk, Virginia. Call (877) 868-9967 or send a message about rapid drug testing, LabbHR or partnering.",
+  description: "Contact Labb in Norfolk, Virginia. Call (877) 868-9967 or send a message about rapid drug testing, Labb Station, LabbHR or partnering.",
   alternates: { canonical: "/contact" },
 };
 
@@ -18,7 +18,7 @@ export default function Page() {
           <div>
             <span className="eyebrow">Contact</span>
             <h1>Talk to Labb</h1>
-            <p className="lede">Questions about rapid testing, LabbHR, an existing account or partnering? Send a message or give us a call.</p>
+            <p className="lede">Questions about rapid testing, Labb Station, LabbHR, an existing account or partnering? Send a message or give us a call.</p>
             <div className="card rail" style={{ marginTop: 28 }}>
               <h2 style={{ fontSize: "1.1rem" }}>{site.legalName}</h2>
               <p>

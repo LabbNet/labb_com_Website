@@ -19,9 +19,9 @@ const kitPages: [string, string][] = [
 
 export const redirects: R[] = [
   // Pages
-  r("/pages/labb-station", "/labbhr"),
+  r("/pages/labb-station", "/labb-station"),
   r("/pages/labbhr", "/labbhr"),
-  r("/pages/platforms", "/labbhr"),
+  r("/pages/platforms", "/software"),
   r("/pages/test-kits", "/test-kits"),
   ...kitPages.map(([from, to]) => r(`/pages/${from}`, `/test-kits/${to}`)),
   r("/pages/laboratory-testing", "/oral-fluid-drug-testing"),
@@ -33,7 +33,7 @@ export const redirects: R[] = [
   r("/pages/contact-labb", "/contact"),
   r("/pages/contact-labb-1", "/contact"),
   r("/pages/thankyou", "/thank-you"),
-  r("/pages/downloads", "/resources"),
+  r("/pages/downloads", "/training"),
   r("/pages/construction-handbook", "/resources/construction-screening-handbook"),
   r("/pages/manufacturing", "/resources/manufacturing-screening-handbook"),
   r("/pages/logistics-warehousing", "/industries/logistics-warehousing"),
@@ -51,13 +51,17 @@ export const redirects: R[] = [
   r("/pages/data-sale-opt-out", "/privacy#your-choices"),
   r("/pages/:slug", "/"),
 
+  // Site restructure (Nov 2026)
+  r("/resources", "/training"),
+  r("/education", "/training"),
+  r("/compare", "/software"),
   // Old clinics page (Nov 2026) folded into the CPP page
   r("/for-clinics", "/channel-partner-program"),
   r("/cpp", "/channel-partner-program"),
 
   // Legacy Shopify short links
   r("/speedswabs", "/urine-drug-testing"),
-  r("/guidebook", "/resources"),
+  r("/guidebook", "/training"),
   r("/network", "/channel-partner-program"),
   r("/fasttrackfl", "/channel-partner-program"),
 
@@ -69,7 +73,7 @@ export const redirects: R[] = [
   r("/blogs/:blog/:slug", "/news"),
 
   // Products and collections (store is closing; kits are quote-only)
-  r("/products/labb-station-pro-drug-testing-system", "/labbhr"),
+  r("/products/labb-station-pro-drug-testing-system", "/labb-station"),
   r("/products/certification-:slug", "/certifications"),
   r("/products/labb-etest-cup-ua-23a-23-panel-forensic-urine-drug-screen-with-6-pad-specimen-validity", "/test-kits/ua-23a-svt"),
   r("/products/14a-rapid-oral-labb%C2%AE-etest-swabs-copy", "/test-kits/or-14a-etest-swab"),
@@ -77,7 +81,7 @@ export const redirects: R[] = [
   r("/collections/ua-series-urine-cups", "/urine-drug-testing"),
   r("/collections/or-series", "/oral-fluid-drug-testing"),
   r("/collections/speed-swabs", "/oral-fluid-drug-testing"),
-  r("/collections/labb-station-starter-kit", "/labbhr"),
+  r("/collections/labb-station-starter-kit", "/labb-station"),
   r("/collections/fastest-labs", "/channel-partner-program"),
   r("/collections/:slug*", "/test-kits"),
   r("/collections", "/test-kits"),

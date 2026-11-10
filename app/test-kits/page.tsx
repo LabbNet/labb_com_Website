@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Breadcrumbs, CtaBand, JsonLd, KitCard } from "@/components/ui";
+import { KitMatrix } from "@/components/KitMatrix";
 import { publishedKits } from "@/lib/kits";
 import { absoluteUrl } from "@/lib/site";
 
@@ -23,7 +24,7 @@ export default function Page() {
           <span className="eyebrow">Labb test kits</span>
           <h1>Rapid drug test kits</h1>
           <p className="lede">
-            Oral fluid and urine screens built to be read digitally. Labb kits are sold through quotes, so pricing fits your volume and
+            Oral fluid and urine screens built to be read digitally with Labb Station. Labb kits are sold through quotes, so pricing fits your volume and
             program. Ask us which panel fits your policy and your state.
           </p>
           {groups.map((g) => (
@@ -34,6 +35,9 @@ export default function Page() {
               </div>
             </div>
           ))}
+          <h2 id="compare" style={{ marginTop: 64 }}>Compare every panel</h2>
+          <p className="intro">Cutoffs in ng/mL. Oral fluid cutoffs are lower than urine cutoffs because drug levels in saliva are lower.</p>
+          <KitMatrix kits={publishedKits} />
           <div className="note" style={{ marginTop: 40 }}>
             <strong style={{ flex: "none" }}>Which kit can I use?</strong>
             <span>

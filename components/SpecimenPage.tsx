@@ -56,7 +56,7 @@ export function SpecimenPage(p: Props) {
         <div className="wrap">
           <span className="eyebrow">{p.specimen} kits</span>
           <h2>Choose a panel</h2>
-          <p className="intro">Cutoffs and full drug lists are on each kit page. Every kit reads on the LabbHR reader.</p>
+          <p className="intro">Cutoffs and full drug lists are on each kit page. Every kit reads on Labb Station.</p>
           <div className="grid g3">
             {kits.map((k) => <KitCard key={k.slug} kit={k} />)}
           </div>

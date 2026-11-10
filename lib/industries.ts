@@ -143,7 +143,7 @@ export const industries: Industry[] = [
       },
       {
         title: "Every site, every shift",
-        body: "The LabbHR reader runs on a phone or tablet, so nights, weekends and remote buildings are covered.",
+        body: "Labb Station runs on a phone or tablet, so nights, weekends and remote buildings are covered.",
       },
       {
         title: "Fully managed option",
@@ -158,7 +158,7 @@ export const industries: Industry[] = [
       },
       {
         q: "How does on-site testing work across multiple shifts?",
-        a: "Trained staff on each shift collect with a Labb device and read it with the LabbHR app on a phone or tablet. Results are stored centrally, so HR sees every location in one place.",
+        a: "Trained staff on each shift collect with a Labb device and read it with the Labb Station app on a phone or tablet. Results are stored centrally, so HR sees every location in one place.",
       },
       {
         q: "What does on-site drug testing cost?",

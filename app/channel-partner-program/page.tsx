@@ -56,7 +56,7 @@ const benefits = [
   {
     tag: "Products",
     t: "Labb rapid test kits",
-    b: <>Oral fluid and urine screens from 6 to 23 drugs, built to be read on <LabbHR />, with data sheets and package inserts for every kit.</>,
+    b: <>Oral fluid and urine screens from 6 to 23 drugs, built to be read with Labb Station, with data sheets and package inserts for every kit.</>,
   },
 ];
 

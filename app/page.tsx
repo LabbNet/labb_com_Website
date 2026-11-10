@@ -10,7 +10,7 @@ import { resources } from "@/lib/resources";
 export const metadata: Metadata = {
   title: { absolute: "Rapid Drug Testing for Employers, Read Objectively | Labb" },
   description:
-    "Run rapid drug testing in-house. Labb oral fluid and urine screens are read by the LabbHR digital reader on a phone or tablet, with results in minutes and documented automatically.",
+    "Run rapid drug testing in-house. Labb oral fluid and urine screens are read by the Labb Station digital reader on a phone or tablet, with results in minutes and documented automatically.",
   alternates: { canonical: "/" },
 };
 
@@ -19,11 +19,11 @@ const featured = ["orf-31c-oraflo", "or-14a-etest-swab", "ua-13a-svt", "ua-16c-s
 const faqs = [
   {
     q: "Can employers run their own drug tests?",
-    a: "Yes, for company (non-DOT) testing. Employers run rapid screens in-house with a written policy, trained collectors and lab confirmation of every non-negative result. Labb provides the devices, the LabbHR reader, training documents and online certification.",
+    a: "Yes, for company (non-DOT) testing. Employers run rapid screens in-house with a written policy, trained collectors and lab confirmation of every non-negative result. Labb provides the devices, the Labb Station reader, training documents and online certification.",
   },
   {
-    q: "How does the LabbHR reader work?",
-    a: "After collection, the collector captures the device with the LabbHR app on a phone or tablet. The result is read digitally, time-stamped and stored against the donor record, so every person is read against the same criteria.",
+    q: "How does the Labb Station reader work?",
+    a: "After collection, the collector captures the device with the Labb Station app on a phone or tablet. The result is read digitally, time-stamped and stored against the donor record, so every person is read against the same criteria.",
   },
   {
     q: "Oral fluid or urine: which should we use?",
@@ -46,7 +46,7 @@ export default function Home() {
               Test in-house. Get a fair, <span className="em">objective</span> read every time.
             </h1>
             <p className="lede">
-              Labb oral fluid and urine screens are read by the <LabbHR /> digital reader on a phone or tablet. Results in minutes,
+              Labb oral fluid and urine screens are read by the Labb Station digital reader on a phone or tablet. Results in minutes,
               documented automatically, with no guesswork over faint lines.
             </p>
             <div className="btn-row">
@@ -56,7 +56,7 @@ export default function Home() {
             <Checks items={["Results in 5 to 10 minutes", "Oral fluid and urine panels from 6 to 23 drugs", "Patented True Privacy with Real Protection™"]} />
           </div>
           <div className="hero-media">
-            <Image src="/img/phone-reader.webp" alt="A phone running the LabbHR app reading a rapid drug test result" width={1400} height={1400} priority sizes="(max-width: 900px) 92vw, 540px" />
+            <Image src="/img/phone-reader.webp" alt="A phone running the Labb Station app reading a rapid drug test result" width={1400} height={1400} priority sizes="(max-width: 900px) 92vw, 540px" />
           </div>
         </div>
       </section>
@@ -87,7 +87,7 @@ export default function Home() {
               </p>
               <div className="btn-row">
                 <Link href="/get-a-quote" className="btn btn-primary">Get a Quote</Link>
-                <Link href="/labbhr" className="btn btn-outline">See how it works</Link>
+                <Link href="/software" className="btn btn-outline">Compare software</Link>
               </div>
             </div>
             <div className="card top">
@@ -111,7 +111,7 @@ export default function Home() {
             <h2>The same read for every person, every time.</h2>
             <p className="intro" style={{ marginBottom: 20 }}>
               Reading a rapid test by eye invites judgment calls. What a collector has just heard, what they expect or how a day is
-              going can change how the same faint line gets called. The <LabbHR /> reader applies the same criteria to every device
+              going can change how the same faint line gets called. Labb Station applies the same criteria to every device
               and every donor.
             </p>
             <p className="intro">An objective read protects the employee, the employer and the collector.</p>
@@ -151,7 +151,7 @@ export default function Home() {
         <div className="wrap">
           <span className="eyebrow">Popular kits</span>
           <h2>Panels employers use most</h2>
-          <p className="intro">Every kit reads on the <LabbHR /> reader. We&apos;ll recommend the right panel for your policy and your state.</p>
+          <p className="intro">Every kit reads on Labb Station. We&apos;ll recommend the right panel for your policy and your state.</p>
           <div className="grid g4">
             {featured.map((s) => publishedKits.find((k) => k.slug === s)!).map((k) => <KitCard key={k.slug} kit={k} />)}
           </div>

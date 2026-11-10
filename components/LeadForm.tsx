@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 
-type Variant = "quote" | "sample" | "handbook" | "clinic" | "certification-waitlist" | "contact";
+type Variant = "quote" | "sample" | "handbook" | "clinic" | "certification-waitlist" | "contact" | "early-access";
 
 type Props = {
   variant: Variant;
@@ -162,7 +162,7 @@ export function LeadForm({ variant, title, subtitle, submitLabel, resource, indu
             ))}
           </fieldset>
         )}
-        {(variant === "contact" || variant === "quote") && (
+        {(variant === "contact" || variant === "quote" || variant === "early-access") && (
           <div className="field full">
             <label htmlFor="f-message">How can we help?</label>
             <textarea id="f-message" name="message" />

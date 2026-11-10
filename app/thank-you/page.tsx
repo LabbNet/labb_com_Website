@@ -21,7 +21,7 @@ export default async function Page({ searchParams }: { searchParams: Promise<{ t
               </p>
               <p>Questions in the meantime? Call <a href={site.phoneHref}>{site.phone}</a> or email <a href={`mailto:${site.email}`}>{site.email}</a>.</p>
               <div className="btn-row" style={{ justifyContent: "center" }}>
-                <Link href="/labbhr" className="btn btn-primary">Explore LabbHR</Link>
+                <Link href="/software" className="btn btn-primary">Explore the software</Link>
                 <Link href="/test-kits" className="btn btn-outline">See test kits</Link>
               </div>
             </>
@@ -30,7 +30,7 @@ export default async function Page({ searchParams }: { searchParams: Promise<{ t
               <h1 style={{ fontSize: "2.4rem" }}>Thanks. We&apos;ll be in touch.</h1>
               <p className="lede">A Labb specialist has your request and will reply shortly. Need it sooner? Call <a href={site.phoneHref}>{site.phone}</a>.</p>
               <div className="btn-row" style={{ justifyContent: "center" }}>
-                <Link href="/resources" className="btn btn-primary">Browse free handbooks</Link>
+                <Link href="/training" className="btn btn-primary">Browse free handbooks</Link>
                 <Link href="/test-kits" className="btn btn-outline">See test kits</Link>
               </div>
             </>

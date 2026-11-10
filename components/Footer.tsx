@@ -24,7 +24,9 @@ export function Footer() {
         <div>
           <h2>Solutions</h2>
           <ul>
-            <li><Link href="/labbhr">LabbHR platform</Link></li>
+            <li><Link href="/software">Compare software</Link></li>
+            <li><Link href="/labb-station">Labb Station</Link></li>
+            <li><Link href="/labbhr">LabbHR</Link></li>
             <li><Link href="/oral-fluid-drug-testing">Oral fluid testing</Link></li>
             <li><Link href="/urine-drug-testing">Urine testing</Link></li>
             <li><Link href="/test-kits">All test kits</Link></li>
@@ -44,7 +46,7 @@ export function Footer() {
           <ul>
             <li><Link href="/get-a-quote">Get a quote</Link></li>
             <li><Link href="/contact">Contact</Link></li>
-            <li><Link href="/resources">Resources</Link></li>
+            <li><Link href="/training">Training</Link></li>
             <li><Link href="/news">News</Link></li>
             <li><Link href="/certifications">Certifications</Link></li>
             <li><a href={site.clientLogin} rel="nofollow">Client login</a></li>

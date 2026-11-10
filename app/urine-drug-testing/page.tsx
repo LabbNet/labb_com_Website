@@ -4,7 +4,7 @@ import { SpecimenPage } from "@/components/SpecimenPage";
 export const metadata: Metadata = {
   title: "Rapid Urine Drug Test Cups for Employers",
   description:
-    "Labb eTest Cup rapid urine drug screens from 6 to 23 drugs with specimen validity testing. Results in 5 minutes, read digitally with LabbHR.",
+    "Labb eTest Cup rapid urine drug screens from 6 to 23 drugs with specimen validity testing. Results in 5 minutes, read digitally with Labb Station.",
   alternates: { canonical: "/urine-drug-testing" },
 };
 

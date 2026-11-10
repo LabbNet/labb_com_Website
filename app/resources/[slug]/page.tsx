@@ -27,7 +27,7 @@ export default async function ResourcePage({ params }: { params: Promise<{ slug:
   if (!r) notFound();
   return (
     <>
-      <Breadcrumbs items={[{ name: "Resources", href: "/resources" }, { name: r.shortTitle, href: `/resources/${r.slug}` }]} />
+      <Breadcrumbs items={[{ name: "Training", href: "/training" }, { name: r.shortTitle, href: `/resources/${r.slug}` }]} />
       <section className="hero form-hero">
         <div className="wrap">
           <div>
@@ -75,7 +75,7 @@ export default async function ResourcePage({ params }: { params: Promise<{ slug:
           </div>
         </div>
       </section>
-      <CtaBand title="Ready to take screening in-house?" body="Get the handbook, then talk to a Labb specialist about LabbHR and rapid testing." href="#get" label="Get the free handbook" />
+      <CtaBand title="Ready to take screening in-house?" body="Get the handbook, then talk to a Labb specialist about Labb Station and rapid testing." href="#get" label="Get the free handbook" />
       <JsonLd
         data={{
           "@context": "https://schema.org",

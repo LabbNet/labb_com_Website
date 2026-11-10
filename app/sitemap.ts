@@ -15,6 +15,8 @@ export default function sitemap(): MetadataRoute.Sitemap {
   });
   return [
     page("/", 1, "weekly"),
+    page("/software", 0.9),
+    page("/labb-station", 0.9),
     page("/labbhr", 0.9),
     page("/get-a-quote", 0.9),
     page("/oral-fluid-drug-testing", 0.9),
@@ -23,7 +25,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     ...publishedKits.map((k) => page(`/test-kits/${k.slug}`, 0.8)),
     ...industries.map((i) => page(`/industries/${i.slug}`, 0.8)),
     page("/channel-partner-program", 0.8),
-    page("/resources", 0.7),
+    page("/training", 0.8),
     ...resources.map((r) => page(`/resources/${r.slug}`, 0.8)),
     page("/certifications", 0.6),
     page("/news", 0.6, "weekly"),
