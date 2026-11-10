@@ -5,8 +5,10 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "start": "next start",
-    "lint": "tsc --noEmit"
+    "start": "node scripts/migrate.mjs && next start",
+    "lint": "tsc --noEmit",
+    "db:migrate": "node scripts/migrate.mjs",
+    "create-admin": "node scripts/create-admin.mjs"
   },
   "engines": {
     "node": ">=20"
@@ -14,8 +16,10 @@
   "dependencies": {
     "@fontsource/poppins": "^5.3.0",
     "next": "^16.4.6",
+    "postgres": "^4.1.0",
     "react": "^19.3.1",
     "react-dom": "^19.3.1",
+    "server-only": "^0.0.1",
     "stripe": "^23.1.0"
   },
   "devDependencies": {

@@ -80,7 +80,7 @@ export default function TrainingPage() {
           </div>
           <div className="btn-row">
             <Link href="/channel-partner-program" className="btn btn-primary">Join the Partner Program</Link>
-            <Link href="/library" className="btn btn-outline">Member library sign in</Link>
+            <Link href="/members" className="btn btn-outline">CPP member login</Link>
           </div>
         </div>
       </section>

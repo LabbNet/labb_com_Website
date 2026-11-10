@@ -23,7 +23,7 @@ export function Header() {
             Questions? Call <a href={site.phoneHref}>{site.phone}</a> or email <a href={`mailto:${site.email}`}>{site.email}</a>
           </span>
           <span className="utility-links">
-            <Link href="/library" prefetch={false}>Partner library</Link>
+            <Link href="/members" prefetch={false}>CPP member login</Link>
             <a href={site.clientLogin} rel="nofollow">Client login</a>
           </span>
         </div>

@@ -64,7 +64,7 @@ const steps = [
   { t: "Apply", b: "Fill out the short application below. It tells us about your clinic, your services and who will sign." },
   { t: "Discovery call", b: "A Labb partner manager reviews your application and walks you through the program, pricing and your questions." },
   { t: "Sign the agreement", b: "We email the Channel Partner Program Agreement for electronic signature. Review it with your advisors before you sign." },
-  { t: "Onboard", b: "We set up your LabbHR account, ship starter kits, give you library and certification access, and add you to member meetings." },
+  { t: "Onboard", b: "You get your own CPP member login. We set up your LabbHR account, ship starter kits and add you to member meetings." },
 ];
 
 const faqs = [
@@ -160,7 +160,8 @@ export default function CppPage() {
               Apply below. Check the box to have the Channel Partner Program Agreement emailed to you for review and electronic
               signature after your discovery call.
             </p>
-            <div className="banner-rule">Membership starts only when both you and Labb sign the Channel Partner Program Agreement.</div>
+            <div className="banner-rule">Membership starts only when both you and Labb sign the Channel Partner Program Agreement. You then get your own member login.</div>
+            <p style={{ marginTop: 14 }}>Already a member? <Link href="/login">Sign in to the member area</Link>.</p>
             <div style={{ marginTop: 36 }}>
               <h2 style={{ fontSize: "1.5rem" }}>Questions</h2>
               <Faq items={faqs} />

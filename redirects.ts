@@ -51,6 +51,10 @@ export const redirects: R[] = [
   r("/pages/data-sale-opt-out", "/privacy#your-choices"),
   r("/pages/:slug", "/"),
 
+  // Member accounts replaced the shared library password (Nov 2026)
+  r("/library", "/members"),
+  r("/library/login", "/login"),
+  r("/partners", "/login"),
   // Site restructure (Nov 2026)
   r("/resources", "/training"),
   r("/education", "/training"),
@@ -96,8 +100,8 @@ export const redirects: R[] = [
   // Shopify system routes
   r("/cart", "/get-a-quote"),
   r("/cart/:path*", "/get-a-quote"),
-  r("/account", "/library/login"),
-  r("/account/:path*", "/library/login"),
+  r("/account", "/login"),
+  r("/account/login", "/login"),
   r("/search", "/"),
-  r("/customer_authentication/:path*", "/library/login"),
+  r("/customer_authentication/:path*", "/login"),
 ];

@@ -27,12 +27,25 @@ Without `RESEND_API_KEY` or `LEAD_WEBHOOK_URL`, leads are printed to the server 
 | Industries | `/industries/construction`, `/manufacturing`, `/logistics-warehousing` | Lead form in the hero |
 | Channel Partner Program | `/channel-partner-program` | Benefits, 4-step path to join, CPP application (lead email flags "SEND AGREEMENT") |
 | Handbooks (gated) | `/resources/[slug]` | Public, indexable landing page. Download link is returned only after the form is submitted |
-| Partner library (gated) | `/library` | Member cookie required (enforced in `proxy.ts`). Interim shared password, same as Shopify today |
+| CPP member area | `/login`, `/members` | Individual username/password accounts for CPP members (Postgres). Replaces the shared library password |
+| Member admin | `/admin/members` | Labb admins add members, send invites, reset links, disable/re-enable |
 | Certifications | `/certifications` | Waitlist now; Stripe checkout and LMS enrollment hooks ready |
 | News | `/news`, `/news/[slug]` | All 8 Shopify blog posts migrated, images moved off the Shopify CDN |
 | Legal | `/privacy`, `/terms` | **Drafts for attorney review** |
 
 Edit content in `lib/` (kits, industries, resources, site settings) and `content/articles.json`.
+
+## CPP member accounts
+
+Each CPP member gets their own login. Accounts live in Postgres (`DATABASE_URL`); migrations in `db/migrations` run automatically on `npm start`.
+
+- **Adding a member:** a Labb admin signs in, opens **Manage members** (`/admin/members`), enters name, email, clinic and (optionally) a username. The member gets an email with a one-time setup link (7 days) to choose their password. If email isn't configured, the admin page shows the link to send by hand.
+- **Signing in:** username or email plus password at `/login`. Forgot password emails a 1-hour reset link.
+- **Disabling:** signs the member out everywhere immediately. Changing or resetting a password also signs out other devices.
+- **First admin:** after the database exists, run once:
+  `DATABASE_URL=... SITE_URL=https://labb.com npm run create-admin -- james@labb.net "James Ramsey" james`
+  and open the printed setup link.
+- **Security:** scrypt password hashing, single-use hashed tokens, login rate limiting, same-origin checks on every form, HttpOnly/Secure cookies, an audit log in `member_events`.
 
 ## SEO built in
 
@@ -57,5 +70,5 @@ Edit content in `lib/` (kits, industries, resources, site settings) and `content
 
 - **Stripe:** set `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET` and a Price ID per product. `POST /api/checkout {sku}` returns a Checkout URL; `/api/stripe/webhook` handles fulfillment.
 - **Learning platform:** set `LMS_API_URL` / `LMS_API_KEY`; `enrollInLms()` in `lib/commerce.ts` is called after payment. `NEXT_PUBLIC_LMS_URL` adds an "Open Labb Learning" card in the library.
-- **Real member accounts:** replace `verifyMemberLogin()` in `lib/session.ts` with the LMS or identity provider sign-in. The cookie, proxy gate and pages stay the same.
+- **LMS single sign-on:** member accounts can be the identity for the learning platform later (same email/username).
 - **Hard-gated files:** handbook and library links are Google Drive share links, so anyone who has the link can open it. For true protection, move the PDFs to private storage and serve them through a signed `/api/download` route.

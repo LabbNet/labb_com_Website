@@ -1,14 +1,13 @@
 // Signed-cookie access control. Works in the proxy (edge) and in route handlers.
-// Two levels today:
+// Levels:
 //   lead   - visitor submitted a lead form; unlocks gated downloads
-//   member - CPP member / client; unlocks /library (and later the LMS and member pricing)
-// When the learning platform and Stripe accounts go live, swap verifyMemberLogin()
-// for the real identity provider and keep this cookie as the site session.
+//   member - signed in to a CPP member account (mid = member id, sv = session version, role)
+// Member pages re-check the database on every request (lib/auth.ts currentMember).
 
 export const COOKIE = "labb_access";
-const MAX_AGE = 60 * 60 * 24 * 90; // 90 days
+const MAX_AGE = 60 * 60 * 24 * 30; // 30 days
 
-export type Access = { email?: string; lead?: boolean; member?: boolean; exp: number };
+export type Access = { email?: string; lead?: boolean; member?: boolean; mid?: string; sv?: number; role?: "member" | "admin"; exp: number };
 
 const enc = new TextEncoder();
 
@@ -65,14 +64,3 @@ export const cookieOptions = {
   path: "/",
   maxAge: MAX_AGE,
 };
-
-// Interim member check: a shared library password (same model as the current Shopify library).
-// Replace with LMS / identity provider lookups when available.
-export function verifyMemberLogin(password: string) {
-  const expected = process.env.LIBRARY_PASSWORD;
-  if (!expected) return false;
-  if (password.length !== expected.length) return false;
-  let diff = 0;
-  for (let i = 0; i < password.length; i++) diff |= password.charCodeAt(i) ^ expected.charCodeAt(i);
-  return diff === 0;
-}

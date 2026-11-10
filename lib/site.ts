@@ -35,7 +35,7 @@ export const nav = [
       { href: "/training", label: "Training and education" },
       { href: "/certifications", label: "Certifications" },
       { href: "/news", label: "News and insights" },
-      { href: "/library", label: "Partner library" },
+      { href: "/members", label: "CPP member login" },
     ],
   },
   {
