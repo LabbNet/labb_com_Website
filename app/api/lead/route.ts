@@ -47,6 +47,11 @@ export async function POST(req: Request) {
     interest: str(body.interest, 80),
     message: str(body.message, 3000),
     resource: str(body.resource, 120),
+    legalName: str(body.legalName, 160),
+    signer: str(body.signer, 160),
+    services: str(body.services, 400),
+    affiliation: str(body.affiliation, 160),
+    wantsAgreement: body.wantsAgreement === true,
     newsletter: body.newsletter === true,
     page: str(body.page, 300),
     referrer: str(body.referrer, 300),
@@ -61,6 +66,13 @@ export async function POST(req: Request) {
   if (!EMAIL.test(lead.email)) errors.email = "Enter a valid email address, like name@company.com.";
   if (lead.type !== "certification-waitlist" && lead.phone && lead.phone.replace(/\D/g, "").length < 10)
     errors.phone = "Enter a 10 digit phone number.";
+  if (lead.type === "cpp-application") {
+    if (!lead.company) errors.company = "Enter your clinic or business name.";
+    if (!lead.legalName) errors.legalName = "Enter the legal business name for the agreement.";
+    if (!lead.city) errors.city = "Enter your city.";
+    if (!lead.state) errors.state = "Enter your state.";
+    if (!lead.phone) errors.phone = "Enter a 10 digit phone number.";
+  }
   if (Object.keys(errors).length) return NextResponse.json({ errors }, { status: 422 });
 
   const resource = lead.resource ? getResource(lead.resource) : undefined;

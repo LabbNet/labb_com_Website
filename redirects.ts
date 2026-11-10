@@ -42,20 +42,24 @@ export const redirects: R[] = [
   r("/pages/or-series", "/certifications"),
   r("/pages/certifications", "/certifications"),
   r("/pages/certification-exam-:slug", "/certifications"),
-  r("/pages/network", "/for-clinics"),
-  r("/pages/fasttrackfl", "/for-clinics"),
-  r("/pages/labb-affiliate-terms", "/for-clinics"),
-  r("/pages/labb-pass-qr-code-form", "/for-clinics"),
+  r("/pages/network", "/channel-partner-program"),
+  r("/pages/fasttrackfl", "/channel-partner-program"),
+  r("/pages/labb-affiliate-terms", "/channel-partner-program"),
+  r("/pages/labb-pass-qr-code-form", "/channel-partner-program"),
   r("/pages/sfec-welcome", "/"),
   r("/pages/treatment", "/"),
   r("/pages/data-sale-opt-out", "/privacy#your-choices"),
   r("/pages/:slug", "/"),
 
+  // Old clinics page (Nov 2026) folded into the CPP page
+  r("/for-clinics", "/channel-partner-program"),
+  r("/cpp", "/channel-partner-program"),
+
   // Legacy Shopify short links
   r("/speedswabs", "/urine-drug-testing"),
   r("/guidebook", "/resources"),
-  r("/network", "/for-clinics"),
-  r("/fasttrackfl", "/for-clinics"),
+  r("/network", "/channel-partner-program"),
+  r("/fasttrackfl", "/channel-partner-program"),
 
   // Blog
   r("/blogs/news", "/news"),
@@ -74,7 +78,7 @@ export const redirects: R[] = [
   r("/collections/or-series", "/oral-fluid-drug-testing"),
   r("/collections/speed-swabs", "/oral-fluid-drug-testing"),
   r("/collections/labb-station-starter-kit", "/labbhr"),
-  r("/collections/fastest-labs", "/for-clinics"),
+  r("/collections/fastest-labs", "/channel-partner-program"),
   r("/collections/:slug*", "/test-kits"),
   r("/collections", "/test-kits"),
 

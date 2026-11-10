@@ -30,7 +30,7 @@ export const nav = [
       { href: "/industries/logistics-warehousing", label: "Logistics and warehousing" },
     ],
   },
-  { href: "/for-clinics", label: "For clinics" },
+  { href: "/channel-partner-program", label: "Partner program" },
   {
     label: "Resources",
     children: [

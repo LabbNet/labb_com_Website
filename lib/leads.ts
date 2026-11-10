@@ -17,6 +17,11 @@ export type Lead = {
   interest?: string;
   message?: string;
   resource?: string;
+  legalName?: string;
+  signer?: string;
+  services?: string;
+  affiliation?: string;
+  wantsAgreement?: boolean;
   newsletter?: boolean;
   page?: string;
   referrer?: string;
@@ -40,6 +45,11 @@ function render(lead: Lead) {
     ["Monthly volume", lead.volume],
     ["Interest level", lead.interest],
     ["Resource", lead.resource],
+    ["Legal business name", lead.legalName],
+    ["Agreement signer", lead.signer],
+    ["Services offered", lead.services],
+    ["Affiliation", lead.affiliation],
+    ["Send CPP agreement", lead.type === "cpp-application" ? (lead.wantsAgreement ? "YES, send the agreement" : "No, wants a call first") : undefined],
     ["Newsletter", lead.newsletter ? "Yes" : "No"],
     ["Message", lead.message],
     ["Page", lead.page],
@@ -57,7 +67,9 @@ function render(lead: Lead) {
 
 export async function deliverLead(lead: Lead) {
   const results: string[] = [];
-  const to = (process.env.LEAD_TO_EMAIL || "kelly.ramsey@labb.com").split(",").map((s) => s.trim());
+  // CPP applications can go to a different inbox (CPP_LEAD_TO_EMAIL); everything else uses LEAD_TO_EMAIL.
+  const toList = (lead.type === "cpp-application" && process.env.CPP_LEAD_TO_EMAIL) || process.env.LEAD_TO_EMAIL || "kelly.ramsey@labb.com";
+  const to = toList.split(",").map((s) => s.trim());
   const from = process.env.LEAD_FROM_EMAIL || "Labb Website <leads@labb.com>";
 
   if (process.env.RESEND_API_KEY) {
@@ -69,7 +81,10 @@ export async function deliverLead(lead: Lead) {
         from,
         to,
         reply_to: lead.email,
-        subject: `New ${lead.type} lead: ${lead.company || `${lead.firstName} ${lead.lastName}`}`,
+        subject:
+          lead.type === "cpp-application"
+            ? `CPP application${lead.wantsAgreement ? " (SEND AGREEMENT)" : ""}: ${lead.company} (${[lead.city, lead.state].filter(Boolean).join(", ")})`
+            : `New ${lead.type} lead: ${lead.company || `${lead.firstName} ${lead.lastName}`}`,
         html,
         text,
       }),

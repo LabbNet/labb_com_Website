@@ -28,7 +28,7 @@ export function Footer() {
             <li><Link href="/oral-fluid-drug-testing">Oral fluid testing</Link></li>
             <li><Link href="/urine-drug-testing">Urine testing</Link></li>
             <li><Link href="/test-kits">All test kits</Link></li>
-            <li><Link href="/for-clinics">For clinics</Link></li>
+            <li><Link href="/channel-partner-program">Channel Partner Program</Link></li>
           </ul>
         </div>
         <div>

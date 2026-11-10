@@ -97,7 +97,7 @@ export default function Home() {
                 Labb Channel Partner Program.
               </p>
               <div className="btn-row">
-                <Link href="/for-clinics" className="btn btn-primary">Partner with Labb</Link>
+                <Link href="/channel-partner-program" className="btn btn-primary">Partner with Labb</Link>
               </div>
             </div>
           </div>

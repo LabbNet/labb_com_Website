@@ -25,7 +25,7 @@ Without `RESEND_API_KEY` or `LEAD_WEBHOOK_URL`, leads are printed to the server 
 | Specimen pages | `/oral-fluid-drug-testing`, `/urine-drug-testing` | Target the main search terms |
 | Test kits | `/test-kits`, `/test-kits/[slug]` | 8 kits with full panels and cutoffs from the v3.01 data sheets (`lib/kits.ts`) |
 | Industries | `/industries/construction`, `/manufacturing`, `/logistics-warehousing` | Lead form in the hero |
-| Clinics / CPP | `/for-clinics` | Partner lead form (second lead type) |
+| Channel Partner Program | `/channel-partner-program` | Benefits, 4-step path to join, CPP application (lead email flags "SEND AGREEMENT") |
 | Handbooks (gated) | `/resources/[slug]` | Public, indexable landing page. Download link is returned only after the form is submitted |
 | Partner library (gated) | `/library` | Member cookie required (enforced in `proxy.ts`). Interim shared password, same as Shopify today |
 | Certifications | `/certifications` | Waitlist now; Stripe checkout and LMS enrollment hooks ready |

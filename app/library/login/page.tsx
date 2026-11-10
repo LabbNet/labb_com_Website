@@ -25,7 +25,7 @@ export default async function LibraryLogin({ searchParams }: { searchParams: Pro
             <button className="btn btn-primary btn-block" style={{ marginTop: 18 }} type="submit">Open the library</button>
           </form>
           <p className="fine">
-            Need access? Email <a href="mailto:info@labb.com">info@labb.com</a>. Clinics can <Link href="/for-clinics">join the partner program</Link>.
+            Need access? Email <a href="mailto:info@labb.com">info@labb.com</a>. Clinics can <Link href="/channel-partner-program">join the partner program</Link>.
           </p>
         </div>
       </div>

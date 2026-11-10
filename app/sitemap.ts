@@ -22,7 +22,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     page("/test-kits", 0.9),
     ...publishedKits.map((k) => page(`/test-kits/${k.slug}`, 0.8)),
     ...industries.map((i) => page(`/industries/${i.slug}`, 0.8)),
-    page("/for-clinics", 0.8),
+    page("/channel-partner-program", 0.8),
     page("/resources", 0.7),
     ...resources.map((r) => page(`/resources/${r.slug}`, 0.8)),
     page("/certifications", 0.6),
