@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Breadcrumbs, CtaBand, LabbHR } from "@/components/ui";
 import { LeadForm } from "@/components/LeadForm";
+import { PageHero } from "@/components/PageHero";
 import { catalog } from "@/lib/commerce";
 
 export const metadata: Metadata = {
@@ -13,23 +14,17 @@ export const metadata: Metadata = {
 export default function Page() {
   return (
     <>
-      <Breadcrumbs items={[{ name: "Certifications", href: "/certifications" }]} />
-      <section className="hero form-hero">
-        <div className="wrap">
-          <div>
-            <span className="eyebrow">Online certification</span>
-            <h1>Certify your team to run screening <span className="em">in-house</span>.</h1>
-            <p className="lede">
-              <LabbHR /> certifications pair Labb training documents with an online course and exam, so your collectors, HR team and
-              program administrators can show they know the process.
-            </p>
-            <p><strong>Enrollment opens soon.</strong> Join the waitlist and we&apos;ll email you when it does.</p>
-          </div>
-          <div className="hero-card">
+      <PageHero
+        eyebrow="Online certification"
+        title="Certify your team to run screening in-house."
+        lede={<><LabbHR /> certifications pair Labb training documents with an online course and exam, so your collectors, HR team and program administrators can show they know the process. Enrollment opens soon.</>}
+        aside={
+          <div className="hero-card" style={{ color: "var(--dark)" }}>
             <LeadForm variant="certification-waitlist" title="Join the waitlist" subtitle="Be first to know when enrollment opens." submitLabel="Join the Waitlist" />
           </div>
-        </div>
-      </section>
+        }
+      />
+      <Breadcrumbs items={[{ name: "Training", href: "/training" }, { name: "Certifications", href: "/certifications" }]} />
       <section className="section">
         <div className="wrap">
           <span className="eyebrow">Programs</span>

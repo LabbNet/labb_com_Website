@@ -1,8 +1,8 @@
-import Image from "next/image";
 import Link from "next/link";
 import type { Metadata } from "next";
 import { Breadcrumbs, Checks, Faq, LabbHR } from "@/components/ui";
 import { CppApplication } from "@/components/CppApplication";
+import { PageHero } from "@/components/PageHero";
 
 export const metadata: Metadata = {
   title: "Labb Channel Partner Program for Clinics and Collection Sites",
@@ -101,25 +101,18 @@ const faqs = [
 export default function CppPage() {
   return (
     <>
+      <PageHero
+        eyebrow="Labb Channel Partner Program"
+        title={<>Grow your clinic with <LabbHR /> and employer accounts.</>}
+        lede={<>The CPP gives independent clinics and collection sites the <LabbHR /> platform, Labb rapid testing, lower processing costs and the marketing support to win employer business.</>}
+        primary={{ href: "#apply", label: "Apply to join" }}
+        secondary={{ href: "#how", label: "How it works" }}
+        image={{ src: "/img/clinic-owners-handbook.webp", alt: "Labb Clinic Owners Handbook for CPP members", w: 1400, h: 1263 }}
+      />
       <Breadcrumbs items={[{ name: "Channel Partner Program", href: "/channel-partner-program" }]} />
-      <section className="hero">
+      <section className="section tight">
         <div className="wrap">
-          <div>
-            <span className="eyebrow">Labb Channel Partner Program</span>
-            <h1>
-              Grow your clinic with <LabbHR /> and <span className="em">employer accounts</span>.
-            </h1>
-            <p className="lede">
-              The CPP gives independent clinics and collection sites the <LabbHR /> platform, Labb rapid testing, lower processing costs
-              and the marketing support to win employer business.
-            </p>
-            <div className="btn-row">
-              <Link href="#apply" className="btn btn-primary">Apply to Join</Link>
-              <Link href="#how" className="btn btn-outline">How it works</Link>
-            </div>
-            <Checks items={["Commission on the Labb accounts you serve", "1.75% member card processing rate", "Handbooks, guidebooks and certifications"]} />
-          </div>
-          <Image src="/img/clinic-owners-handbook.webp" alt="Labb Clinic Owners Handbook for CPP members" width={1400} height={1263} priority sizes="(max-width: 900px) 90vw, 520px" />
+          <Checks items={["Commission on the Labb accounts you serve", "1.75% member card processing rate", "Handbooks, guidebooks and certifications"]} />
         </div>
       </section>
 

@@ -13,13 +13,14 @@ type Props = {
   resource?: string; // resource slug for gated downloads
   industry?: string;
   compact?: boolean;
+  defaultMessage?: string;
 };
 
 const AUDIENCE = ["Employer testing my own employees", "Clinic or collection site", "Third party administrator (TPA)", "Other"];
 const VOLUME = ["Under 25 tests a month", "25 to 100", "100 to 500", "500+"];
 const INDUSTRY = ["Construction", "Manufacturing", "Logistics and warehousing", "Staffing", "Healthcare", "Other"];
 
-export function LeadForm({ variant, title, subtitle, submitLabel, resource, industry, compact }: Props) {
+export function LeadForm({ variant, title, subtitle, submitLabel, resource, industry, compact, defaultMessage }: Props) {
   const router = useRouter();
   const started = useRef(Date.now());
   const [state, setState] = useState<"idle" | "sending" | "done">("idle");
@@ -162,10 +163,10 @@ export function LeadForm({ variant, title, subtitle, submitLabel, resource, indu
             ))}
           </fieldset>
         )}
-        {(variant === "contact" || variant === "quote" || variant === "early-access") && (
+        {(variant === "contact" || variant === "quote" || variant === "early-access" || (variant === "sample" && !compact)) && (
           <div className="field full">
             <label htmlFor="f-message">How can we help?</label>
-            <textarea id="f-message" name="message" />
+            <textarea id="f-message" name="message" defaultValue={defaultMessage} />
           </div>
         )}
         <label className="check full"><input type="checkbox" name="newsletter" defaultChecked /> Send me the Labb newsletter</label>

@@ -1,6 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
-import { industries } from "@/lib/industries";
+import { Newsletter } from "@/components/Newsletter";
 import { site } from "@/lib/site";
 
 export function Footer() {
@@ -9,8 +9,7 @@ export function Footer() {
     <footer className="site-footer">
       <div className="wrap footer-top">
         <div>
-          <Image src="/brand/labb-logo-white.png" alt="Labb" width={600} height={225} style={{ width: "auto" }} />
-          <p>Rapid drug testing for employers, with an objective digital read and results documented automatically.</p>
+          <Image src="/brand/labb-logo-white.png" alt="Labb" width={600} height={225} style={{ width: "auto", height: 56 }} />
           <p>
             {site.address.street}
             <br />
@@ -22,40 +21,35 @@ export function Footer() {
           </p>
         </div>
         <div>
-          <h2>Solutions</h2>
+          <h2>Products</h2>
           <ul>
-            <li><Link href="/software">Compare software</Link></li>
+            <li><Link href="/test-kits#urine">Urine cups</Link></li>
+            <li><Link href="/test-kits#oral">Oral fluid kits</Link></li>
+            <li><Link href="/test-kits#compare">Compare panels</Link></li>
             <li><Link href="/labb-station">Labb Station</Link></li>
             <li><Link href="/labbhr">LabbHR</Link></li>
-            <li><Link href="/oral-fluid-drug-testing">Oral fluid testing</Link></li>
-            <li><Link href="/urine-drug-testing">Urine testing</Link></li>
-            <li><Link href="/test-kits">All test kits</Link></li>
+            <li><Link href="/software">Compare software</Link></li>
+          </ul>
+        </div>
+        <div>
+          <h2>Resources</h2>
+          <ul>
+            <li><Link href="/certifications">Get certified</Link></li>
+            <li><Link href="/training">Training and handbooks</Link></li>
+            <li><Link href="/training#data-sheets">Data sheets</Link></li>
             <li><Link href="/channel-partner-program">Channel Partner Program</Link></li>
-          </ul>
-        </div>
-        <div>
-          <h2>Industries</h2>
-          <ul>
-            {industries.map((i) => (
-              <li key={i.slug}><Link href={`/industries/${i.slug}`}>{i.name}</Link></li>
-            ))}
-          </ul>
-        </div>
-        <div>
-          <h2>Company</h2>
-          <ul>
-            <li><Link href="/get-a-quote">Get a quote</Link></li>
-            <li><Link href="/contact">Contact</Link></li>
-            <li><Link href="/training">Training</Link></li>
             <li><Link href="/news">News</Link></li>
-            <li><Link href="/certifications">Certifications</Link></li>
-            <li><a href={site.clientLogin} rel="nofollow">Client login</a></li>
+            <li><Link href="/get-a-quote">Get a quote</Link></li>
           </ul>
+        </div>
+        <div>
+          <h2>Labb updates</h2>
+          <Newsletter />
         </div>
       </div>
       <div className="footer-bottom">
         <div className="wrap">
-          <span>© {year} {site.legalName}. All rights reserved.</span>
+          <span>© {year} {site.legalName}</span>
           <span>
             <Link href="/privacy">Privacy</Link> · <Link href="/terms">Terms</Link> · <Link href="/privacy#your-choices">Do not sell or share my personal information</Link>
           </span>

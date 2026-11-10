@@ -369,5 +369,28 @@ export const getKit = (slug: string) => publishedKits.find((k) => k.slug === slu
 export const badgeLabel: Record<Kit["badge"], string> = {
   EUO: "Workplace",
   FUO: "Forensic",
-  OTC: "OTC",
+  OTC: "Diagnostic",
 };
+
+// Short card blurbs (from the draft theme kit cards).
+export const kitShort: Record<string, string> = {
+  "ua-06b-svt": "The six drugs most often tested in the workplace.",
+  "ua-13a-svt": "A 13 drug workplace panel with prescription opioids.",
+  "ua-15a": "For at home collection and CLIA waived sites.",
+  "ua-16c-svt": "Sixteen drugs, with a DOT look-alike screen in Labb Station.",
+  "ua-18c-svt": "Eighteen drugs plus EtG alcohol for forensic programs.",
+  "ua-23a-svt": "The widest panel in the UA Series, with fentanyl at 1 ng/mL.",
+  "orf-31c-oraflo": "Masked drug names to protect donor privacy.",
+  "or-14a-etest-swab": "Thirteen drugs plus alcohol from one oral fluid swab.",
+};
+
+// Drug classes for the comparison chart, in display order.
+export const drugClasses: { name: string; codes: string[] }[] = [
+  { name: "Opioids and opioid-like", codes: ["6-MAM", "BUP", "FEN", "HMO", "KRA", "MTD", "EDDP", "OPI", "OXY", "PPX", "TRA"] },
+  { name: "Stimulants", codes: ["AMP", "COC", "MDMA", "MET"] },
+  { name: "Sedatives", codes: ["BAR", "BZO", "MQL", "XYL"] },
+  { name: "Cannabinoids", codes: ["THC", "K3"] },
+  { name: "Hallucinogens and dissociatives", codes: ["KET", "LSD", "PCP"] },
+  { name: "Antidepressants", codes: ["TCA"] },
+  { name: "Alcohol", codes: ["ETG", "ALC"] },
+];

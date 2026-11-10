@@ -10,8 +10,10 @@ export const metadata: Metadata = {
   alternates: { canonical: "/get-a-quote" },
 };
 
-export default async function Page({ searchParams }: { searchParams: Promise<{ sample?: string }> }) {
-  const sample = (await searchParams).sample === "1";
+export default async function Page({ searchParams }: { searchParams: Promise<{ sample?: string; kit?: string }> }) {
+  const sp = await searchParams;
+  const sample = sp.sample === "1";
+  const kit = sp.kit?.replace(/[^A-Za-z0-9: ]/g, "").slice(0, 12);
   return (
     <>
       <Breadcrumbs items={[{ name: "Get a quote", href: "/get-a-quote" }]} />
@@ -31,7 +33,7 @@ export default async function Page({ searchParams }: { searchParams: Promise<{ s
             <Image src="/img/oraflo-devices.webp" alt="OraFlo oral fluid drug test devices" width={856} height={860} sizes="320px" style={{ maxWidth: 300, marginTop: 20 }} />
           </div>
           <div className="hero-card">
-            <LeadForm variant={sample ? "sample" : "quote"} title={sample ? "Request a free sample" : "Request a quote"} submitLabel={sample ? "Request a Sample" : "Get a Quote"} />
+            <LeadForm variant={sample ? "sample" : "quote"} title={sample ? "Request a free sample" : kit ? `Request a quote for ${kit}` : "Request a quote"} submitLabel={sample ? "Request a Sample" : "Get a Quote"} defaultMessage={kit ? `I would like pricing for the ${kit}.` : undefined} />
           </div>
         </div>
       </section>

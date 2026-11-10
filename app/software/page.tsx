@@ -1,6 +1,7 @@
 import Link from "next/link";
 import type { Metadata } from "next";
 import { Breadcrumbs, CtaBand, Faq } from "@/components/ui";
+import { PageHero } from "@/components/PageHero";
 import { comparison, software, type Cell } from "@/lib/software";
 
 export const metadata: Metadata = {
@@ -27,16 +28,17 @@ export default function SoftwarePage() {
   const cols = [software.station, software.hr];
   return (
     <>
+      <PageHero
+        eyebrow="Labb software"
+        title="Labb Station or LabbHR?"
+        lede="Two ways to run screening with Labb. Start with the reader, or manage the whole process in one platform."
+        primary={{ href: "/get-a-quote", label: "Get a quote" }}
+        secondary={{ href: "#compare", label: "Compare features" }}
+      />
       <Breadcrumbs items={[{ name: "Software", href: "/software" }]} />
-      <section className="section" style={{ paddingTop: 40 }}>
+      <section className="section" style={{ paddingTop: 32 }}>
         <div className="wrap">
-          <div className="center">
-            <span className="eyebrow">Labb software</span>
-            <h1>Labb Station or LabbHR?</h1>
-            <p className="lede">Two ways to run screening with Labb. Start with the reader, or manage the whole process in one platform.</p>
-          </div>
-
-          <div className="grid g2" style={{ marginTop: 40 }}>
+          <div className="grid g2">
             {cols.map((s, i) => (
               <div key={s.name} className="card top" style={{ display: "flex", flexDirection: "column", ...(i === 1 ? { borderColor: "var(--orange)", borderWidth: 2, borderTopWidth: 4 } : {}) }}>
                 <span className={`pill${i === 0 ? "" : " soon-pill"}`}>{s.status}</span>
@@ -63,7 +65,7 @@ export default function SoftwarePage() {
         </div>
       </section>
 
-      <section className="section soft">
+      <section className="section soft" id="compare">
         <div className="wrap">
           <span className="eyebrow">Side by side</span>
           <h2>Compare features</h2>

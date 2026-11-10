@@ -1,7 +1,6 @@
-import Image from "next/image";
-import Link from "next/link";
 import { Breadcrumbs, Checks, CtaBand, Faq, KitCard } from "@/components/ui";
 import { publishedKits, type Kit } from "@/lib/kits";
+import { PageHero } from "@/components/PageHero";
 
 type Props = {
   specimen: Kit["specimen"];
@@ -20,21 +19,17 @@ export function SpecimenPage(p: Props) {
   const kits = publishedKits.filter((k) => k.specimen === p.specimen);
   return (
     <>
-      <Breadcrumbs items={[{ name: p.crumb, href: p.path }]} />
-      <section className="hero">
-        <div className="wrap">
-          <div>
-            <span className="eyebrow">{p.eyebrow}</span>
-            <h1>{p.h1}</h1>
-            <p className="lede">{p.lede}</p>
-            <div className="btn-row">
-              <Link href="/get-a-quote" className="btn btn-primary">Get a Quote</Link>
-              <Link href="/get-a-quote?sample=1" className="btn btn-outline">Request a Sample</Link>
-            </div>
-            <Checks items={p.checks} />
-          </div>
-          <Image src={p.image.src} alt={p.image.alt} width={p.image.w} height={p.image.h} priority sizes="(max-width: 900px) 92vw, 540px" />
-        </div>
+      <PageHero
+        eyebrow={p.eyebrow}
+        title={p.h1}
+        lede={p.lede}
+        primary={{ href: "/get-a-quote", label: "Get a quote" }}
+        secondary={{ href: "/get-a-quote?sample=1", label: "Request a free sample" }}
+        image={p.image}
+      />
+      <Breadcrumbs items={[{ name: "Test kits", href: "/test-kits" }, { name: p.crumb, href: p.path }]} />
+      <section className="section tight">
+        <div className="wrap"><Checks items={p.checks} /></div>
       </section>
 
       <section className="section">

@@ -19,9 +19,13 @@ export function Header() {
     <header className="site-header">
       <div className="utility">
         <div className="wrap">
-          <a href={site.phoneHref}>{site.phone}</a>
-          <a href={site.clientLogin} rel="nofollow">Client login</a>
-          <Link href="/library" prefetch={false}>Partner library</Link>
+          <span className="utility-msg">
+            Questions? Call <a href={site.phoneHref}>{site.phone}</a> or email <a href={`mailto:${site.email}`}>{site.email}</a>
+          </span>
+          <span className="utility-links">
+            <Link href="/library" prefetch={false}>Partner library</Link>
+            <a href={site.clientLogin} rel="nofollow">Client login</a>
+          </span>
         </div>
       </div>
       <div className="wrap header-row">
@@ -54,7 +58,7 @@ export function Header() {
               ),
             )}
           </ul>
-          <Link href="/get-a-quote" className="btn btn-primary nav-cta">Get a Quote</Link>
+          <Link href="/get-a-quote" className="btn btn-primary btn-lg nav-cta">Get a Quote</Link>
         </nav>
       </div>
     </header>

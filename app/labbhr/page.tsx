@@ -3,6 +3,7 @@ import Link from "next/link";
 import type { Metadata } from "next";
 import { Breadcrumbs, Checks, Faq, JsonLd, LabbHR } from "@/components/ui";
 import { LeadForm } from "@/components/LeadForm";
+import { PageHero } from "@/components/PageHero";
 import { site } from "@/lib/site";
 
 export const metadata: Metadata = {
@@ -31,26 +32,21 @@ const faqs = [
 export default function LabbHRPage() {
   return (
     <>
-      <Breadcrumbs items={[{ name: "Software", href: "/software" }, { name: "LabbHR", href: "/labbhr" }]} />
-      <section className="hero form-hero">
-        <div className="wrap">
-          <div>
-            <span className="eyebrow">LabbHR platform · Early access</span>
-            <h1>
-              Drug testing and background checks, finally in <span className="em">one place</span>.
-            </h1>
-            <p className="lede">
-              <LabbHR /> brings rapid tests, lab testing, confirmations, MRO results and background checks together in one record per
-              candidate, with the Labb Station reader built in.
-            </p>
-            <Checks items={["Rapid results from Labb Station, live", "Lab confirmations and MRO results in the same record", "Background checks built in"]} />
-            <div className="btn-row">
-              <Link href="/software" className="btn btn-outline">Compare with Labb Station</Link>
-            </div>
-          </div>
-          <div className="hero-card" id="access">
+      <PageHero
+        eyebrow="LabbHR platform · Early access"
+        title={<>Drug testing and background checks, finally in one place.</>}
+        lede={<><LabbHR /> brings rapid tests, lab testing, confirmations, MRO results and background checks together in one record per candidate, with the Labb Station reader built in.</>}
+        aside={
+          <div className="hero-card" id="access" style={{ color: "var(--dark)" }}>
             <LeadForm variant="early-access" title="Request early access" subtitle="Tell us about your program and we'll reach out about LabbHR access." submitLabel="Request Early Access" />
           </div>
+        }
+      />
+      <Breadcrumbs items={[{ name: "Software", href: "/software" }, { name: "LabbHR", href: "/labbhr" }]} />
+      <section className="section tight">
+        <div className="wrap">
+          <Checks items={["Rapid results from Labb Station, live", "Lab confirmations and MRO results in the same record", "Background checks built in"]} />
+          <div className="btn-row"><Link href="/software" className="btn btn-outline">Compare with Labb Station</Link></div>
         </div>
       </section>
 

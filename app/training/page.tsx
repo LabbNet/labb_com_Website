@@ -2,6 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import type { Metadata } from "next";
 import { Breadcrumbs, CtaBand, Faq } from "@/components/ui";
+import { PageHero } from "@/components/PageHero";
 import { publishedKits } from "@/lib/kits";
 import { resources } from "@/lib/resources";
 import { articles } from "@/lib/articles";
@@ -34,26 +35,15 @@ const faqs = [
 export default function TrainingPage() {
   return (
     <>
+      <PageHero
+        eyebrow="Training and education"
+        title={<>Run screening in-house, and know you&apos;re doing it right.</>}
+        lede="Practical handbooks written for the people who run testing programs, each with an online certification so your team can prove what it knows."
+        primary={{ href: "#handbooks", label: "Get a free handbook" }}
+        secondary={{ href: "/certifications", label: "Certifications" }}
+        image={{ src: "/img/clinic-owners-handbook.webp", alt: "Labb Clinic Owners Handbook", w: 1400, h: 1263 }}
+      />
       <Breadcrumbs items={[{ name: "Training", href: "/training" }]} />
-      <section className="hero">
-        <div className="wrap">
-          <div>
-            <span className="eyebrow">Training and education</span>
-            <h1>
-              Run screening in-house, and <span className="em">know</span> you&apos;re doing it right.
-            </h1>
-            <p className="lede">
-              Practical handbooks written for the people who run testing programs, each with an online certification so your team can
-              prove what it knows.
-            </p>
-            <div className="btn-row">
-              <Link href="#handbooks" className="btn btn-primary">Get a Free Handbook</Link>
-              <Link href="/certifications" className="btn btn-outline">Certifications</Link>
-            </div>
-          </div>
-          <Image src="/img/clinic-owners-handbook.webp" alt="Labb Clinic Owners Handbook" width={1400} height={1263} priority sizes="(max-width: 900px) 90vw, 520px" />
-        </div>
-      </section>
 
       <section className="section" id="handbooks">
         <div className="wrap">
@@ -114,7 +104,7 @@ export default function TrainingPage() {
         </div>
       </section>
 
-      <section className="section soft">
+      <section className="section soft" id="data-sheets">
         <div className="wrap">
           <span className="eyebrow">Technical reference</span>
           <h2>Product data sheets</h2>

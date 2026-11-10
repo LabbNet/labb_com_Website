@@ -61,8 +61,8 @@ export async function POST(req: Request) {
   };
 
   const errors: Record<string, string> = {};
-  if (!lead.firstName) errors.firstName = "Enter your first name.";
-  if (!lead.lastName) errors.lastName = "Enter your last name.";
+  if (lead.type !== "newsletter" && !lead.firstName) errors.firstName = "Enter your first name.";
+  if (lead.type !== "newsletter" && !lead.lastName) errors.lastName = "Enter your last name.";
   if (!EMAIL.test(lead.email)) errors.email = "Enter a valid email address, like name@company.com.";
   if (lead.type !== "certification-waitlist" && lead.phone && lead.phone.replace(/\D/g, "").length < 10)
     errors.phone = "Enter a 10 digit phone number.";
