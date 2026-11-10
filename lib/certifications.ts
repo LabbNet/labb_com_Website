@@ -1,10 +1,11 @@
-// Labb certifications come in three separate types (Nov 2026):
+// Labb certifications are separate by type (Nov 2026):
 //   product   - how a specific product works (product specific)
+//   specimen  - collecting a specimen type for the 2027 readers (e.g. hair)
 //   software  - how to use a specific Labb software (software specific)
 //   position  - general knowledge for a role or industry (e.g. clinic owner)
-// Each certification is an online exam: 90% to pass, valid one year.
+// Every certification is paid. Online exam: 90% to pass, valid one year.
 
-export type CertType = "product" | "software" | "position";
+export type CertType = "product" | "specimen" | "software" | "position";
 
 export type Cert = {
   sku: string;
@@ -14,6 +15,7 @@ export type Cert = {
   forWho: string;
   priceEnv: string; // Stripe Price ID env var, used when checkout launches
   lmsCourse: string;
+  status?: string; // e.g. "Coming 2027"
 };
 
 export const certTypes: Record<CertType, { title: string; label: string; summary: string }> = {
@@ -21,6 +23,11 @@ export const certTypes: Record<CertType, { title: string; label: string; summary
     title: "Product certifications",
     label: "Product",
     summary: "How a specific Labb product works: collection, reading the device, validity checks and what a result means. One certification per product series.",
+  },
+  specimen: {
+    title: "Specimen collection certifications",
+    label: "Specimen",
+    summary: "How to collect a specimen type correctly for the new LabbHR readers, starting with hair. One certification per specimen.",
   },
   software: {
     title: "Software certifications",
@@ -39,6 +46,8 @@ export const certs: Cert[] = [
   { sku: "cert-product-ua", type: "product", name: "UA Series urine cups", covers: "eTest Cup collection, temperature and validity checks, reading each side, and lab confirmation.", forWho: "Collectors", priceEnv: "STRIPE_PRICE_CERT_PRODUCT_UA", lmsCourse: "product-ua" },
   { sku: "cert-product-or", type: "product", name: "OR Series oral fluid (eTest Swab)", covers: "Observed oral fluid collection, saturation, alcohol pad and reading the device.", forWho: "Collectors", priceEnv: "STRIPE_PRICE_CERT_PRODUCT_OR", lmsCourse: "product-or" },
   { sku: "cert-product-orf", type: "product", name: "ORF Series oral fluid (OraFlo)", covers: "OraFlo collection, masked drug codes, read times and lab confirmation.", forWho: "Collectors", priceEnv: "STRIPE_PRICE_CERT_PRODUCT_ORF", lmsCourse: "product-orf" },
+  // Specimen collection (for the 2027 LabbHR readers)
+  { sku: "cert-specimen-hair", type: "specimen", name: "Hair collection", covers: "Collecting, labeling and handling hair specimens for the LabbHR Reader and Pro Reader.", forWho: "Collectors", priceEnv: "STRIPE_PRICE_CERT_SPECIMEN_HAIR", lmsCourse: "specimen-hair", status: "Coming 2027" },
   // Software
   { sku: "cert-software-station", type: "software", name: "Labb Station", covers: "Setting up a test, guided collection, capturing and reading the device, and sending non-negatives to the lab.", forWho: "Collectors", priceEnv: "STRIPE_PRICE_CERT_SOFTWARE_STATION", lmsCourse: "software-labb-station" },
   { sku: "cert-software-labbhr", type: "software", name: "LabbHR", covers: "Candidate records, lab orders and eCCF, confirmations and MRO results, and background checks.", forWho: "Collectors, HR teams and program administrators", priceEnv: "STRIPE_PRICE_CERT_SOFTWARE_LABBHR", lmsCourse: "software-labbhr" },
@@ -54,7 +63,7 @@ export const certs: Cert[] = [
 // Who takes what. Position certifications are separate from product and software certifications.
 export const paths: { role: string; position: string; product: string; software: string }[] = [
   { role: "Clinic owner", position: "Clinic Owner (plus Background Screening if you offer checks)", product: "Not required", software: "Not required" },
-  { role: "Collector at a clinic", position: "Not required", product: "Each product series you collect", software: "Labb Station or LabbHR, whichever your clinic uses" },
+  { role: "Collector at a clinic", position: "Not required", product: "Each product series you collect, plus specimen collection (such as hair) when offered", software: "Labb Station or LabbHR, whichever your clinic uses" },
   { role: "Employer HR or safety manager", position: "Your industry: Construction, Manufacturing or Logistics", product: "Not required", software: "LabbHR, if your team uses it" },
   { role: "Employer staff who collect in-house", position: "Not required", product: "Each product series you collect", software: "Labb Station or LabbHR, whichever you use" },
 ];

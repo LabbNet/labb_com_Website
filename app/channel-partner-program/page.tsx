@@ -46,7 +46,7 @@ const benefits = [
   {
     tag: "Training",
     t: "Handbooks and certifications",
-    b: <>Member access to the Clinic Owners Handbooks, industry guidebooks and Labb online certification programs, with DOT certification being added.</>,
+    b: <>Member access to the Clinic Owners Handbooks, industry guidebooks and Labb's paid online certification programs, with DOT certification being added.</>,
   },
   {
     tag: "Testing",

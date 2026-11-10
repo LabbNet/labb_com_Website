@@ -254,7 +254,7 @@ export default function Home() {
         </div>
       </section>
 
-      <section className="section soft">
+      <section className="section soft" id="readers">
         <div className="wrap">
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "end", flexWrap: "wrap", gap: 16 }}>
             <div>

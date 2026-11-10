@@ -27,8 +27,8 @@ const memberBooks = [
 
 const faqs = [
   { q: "What format is Labb training?", a: "Labb training is written handbooks and guidebooks (PDF), each paired with an online certification exam. There are no videos to sit through, so your team can learn at its own pace." },
-  { q: "How does certification work?", a: "Labb has three kinds of certification: product, software and position. Each is an online exam built on Labb training documents, takes a 90% score to pass, and is valid for one year. Collectors take product and software certifications; owners and managers take the position certification for their role or industry." },
-  { q: "Who gets the Clinic Owners Handbook?", a: "The Clinic Owners Handbook and Background Screening Guidebook are included for Labb Channel Partner Program members, along with the Clinic Owner and Background Screening certifications." },
+  { q: "How does certification work?", a: "Labb has separate paid certifications: product, specimen collection, software and position. Each is an online exam built on Labb training documents, takes a 90% score to pass, and is valid for one year. Collectors take product, specimen and software certifications; owners and managers take the position certification for their role or industry." },
+  { q: "Who gets the Clinic Owners Handbook?", a: "The Clinic Owners Handbook and Background Screening Guidebook are available to Labb Channel Partner Program members. The Clinic Owner and Background Screening certifications are paid, like every Labb certification." },
   { q: "Is this DOT training?", a: "No. Labb handbooks cover company (non-DOT) testing. DOT certification is being added as a benefit for Channel Partner Program members." },
 ];
 
@@ -69,7 +69,7 @@ export default function TrainingPage() {
         <div className="wrap">
           <span className="eyebrow">For clinics · CPP members</span>
           <h2>Clinic training library</h2>
-          <p className="intro">Included for Labb Channel Partner Program members, with certification for each book.</p>
+          <p className="intro">Available to Labb Channel Partner Program members. Each book has its own paid certification.</p>
           <div className="grid g2">
             {memberBooks.map((m) => (
               <div key={m.t} className="card top">
@@ -89,13 +89,14 @@ export default function TrainingPage() {
         <div className="wrap split">
           <div>
             <span className="eyebrow">Certification</span>
-            <h2>Product, software and position certifications</h2>
+            <h2>Product, specimen, software and position certifications</h2>
             <p className="intro" style={{ marginBottom: 20 }}>
-              Three separate kinds of certification: product (how each test kit series works), software (Labb Station or LabbHR) and
-              position (such as Clinic Owner or Construction Screening). Owners take their position certification; collectors take the
-              product and software certifications.
+              Separate paid certifications: product (how each test kit series works), specimen collection (such as hair), software
+              (Labb Station or LabbHR) and position (such as Clinic Owner or Construction Screening). Owners take their position
+              certification; collectors take the product, specimen and software certifications.
             </p>
             <div className="stats" style={{ marginBottom: 24 }}>
+              <div><strong>Paid</strong><span>Priced per certification</span></div>
               <div><strong>90%</strong><span>Score to pass</span></div>
               <div><strong>1 year</strong><span>Certification valid</span></div>
             </div>
