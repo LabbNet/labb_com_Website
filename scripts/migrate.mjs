@@ -10,7 +10,8 @@ if (!url) {
   console.log("[migrate] DATABASE_URL not set, skipping (member accounts disabled).");
   process.exit(0);
 }
-const local = /localhost|127\.0\.0\.1/.test(url);
+const host = new URL(url).hostname;
+const local = host === "localhost" || host === "127.0.0.1" || !host.includes(".");
 const sql = postgres(url, { max: 1, ssl: local ? false : "require", onnotice: () => {} });
 const dir = join(dirname(fileURLToPath(import.meta.url)), "..", "db", "migrations");
 

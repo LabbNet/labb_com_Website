@@ -8,7 +8,8 @@ if (!process.env.DATABASE_URL || !email || !name) {
   console.error('Usage: DATABASE_URL=... node scripts/create-admin.mjs email "Full Name" [username]');
   process.exit(1);
 }
-const local = /localhost|127\.0\.0\.1/.test(process.env.DATABASE_URL);
+const host = new URL(process.env.DATABASE_URL).hostname;
+const local = host === "localhost" || host === "127.0.0.1" || !host.includes(".");
 const sql = postgres(process.env.DATABASE_URL, { max: 1, ssl: local ? false : "require" });
 const username = (usernameArg || email.split("@")[0]).toLowerCase().replace(/[^a-z0-9._-]/g, "");
 const base = (process.env.SITE_URL || process.env.NEXT_PUBLIC_SITE_URL || "https://labb.com").replace(/\/$/, "");
