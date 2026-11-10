@@ -104,13 +104,14 @@ export default function LabbStationPage() {
           <div>
             <span className="eyebrow">Get certified</span>
             <h2>Become a certified Labb collector</h2>
-            <p>Study the PDF training guides at your own pace, then pass the online certification for each device series.</p>
+            <p>Collectors take a product certification for each device series they use, plus the Labb Station software certification. Study the PDF training guides at your own pace, then pass each online exam.</p>
             <div className="btn-row"><Link href="/certifications" className="btn btn-primary btn-lg">Start certification</Link></div>
           </div>
           <div className="cert-rows">
-            <div><strong>Oral fluid (OR and ORF series)</strong><span>Online exam</span></div>
-            <div><strong>Urine (UA series)</strong><span>Online exam</span></div>
-            <div><strong>Training guides</strong><span>PDF download</span></div>
+            <div><strong>UA Series urine cups</strong><span>Product certification</span></div>
+            <div><strong>OR Series oral fluid (eTest Swab)</strong><span>Product certification</span></div>
+            <div><strong>ORF Series oral fluid (OraFlo)</strong><span>Product certification</span></div>
+            <div><strong>Labb Station</strong><span>Software certification</span></div>
           </div>
         </div>
       </section>

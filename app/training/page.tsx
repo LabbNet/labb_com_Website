@@ -27,8 +27,8 @@ const memberBooks = [
 
 const faqs = [
   { q: "What format is Labb training?", a: "Labb training is written handbooks and guidebooks (PDF), each paired with an online certification exam. There are no videos to sit through, so your team can learn at its own pace." },
-  { q: "How does certification work?", a: "Each handbook has its own online certification. The exam draws on the handbook's chapter reviews and practice exam, takes a 90% score to pass, and the certification is valid for one year." },
-  { q: "Who gets the Clinic Owners Handbook?", a: "The Clinic Owners Handbook and Background Screening Guidebook are included for Labb Channel Partner Program members, along with their certifications." },
+  { q: "How does certification work?", a: "Labb has three kinds of certification: product, software and position. Each is an online exam built on Labb training documents, takes a 90% score to pass, and is valid for one year. Collectors take product and software certifications; owners and managers take the position certification for their role or industry." },
+  { q: "Who gets the Clinic Owners Handbook?", a: "The Clinic Owners Handbook and Background Screening Guidebook are included for Labb Channel Partner Program members, along with the Clinic Owner and Background Screening certifications." },
   { q: "Is this DOT training?", a: "No. Labb handbooks cover company (non-DOT) testing. DOT certification is being added as a benefit for Channel Partner Program members." },
 ];
 
@@ -89,10 +89,11 @@ export default function TrainingPage() {
         <div className="wrap split">
           <div>
             <span className="eyebrow">Certification</span>
-            <h2>Online certification for every handbook</h2>
+            <h2>Product, software and position certifications</h2>
             <p className="intro" style={{ marginBottom: 20 }}>
-              Show customers, auditors and insurers that your team knows the process. Each certification is an online exam built on its
-              handbook.
+              Three separate kinds of certification: product (how each test kit series works), software (Labb Station or LabbHR) and
+              position (such as Clinic Owner or Construction Screening). Owners take their position certification; collectors take the
+              product and software certifications.
             </p>
             <div className="stats" style={{ marginBottom: 24 }}>
               <div><strong>90%</strong><span>Score to pass</span></div>

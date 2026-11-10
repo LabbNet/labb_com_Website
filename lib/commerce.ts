@@ -2,6 +2,7 @@
 // Both are off until their environment variables are set, so the site ships without them.
 
 import Stripe from "stripe";
+import { certs } from "@/lib/certifications";
 
 export const stripeEnabled = Boolean(process.env.STRIPE_SECRET_KEY);
 export const lmsUrl = process.env.NEXT_PUBLIC_LMS_URL || "";
@@ -13,16 +14,11 @@ export function stripe() {
   return client;
 }
 
-// Products are priced in Stripe (Dashboard > Products). Reference them by Price ID here
+// Products are priced in Stripe (Dashboard > Products). Reference them by Price ID env var
 // so the website never hardcodes amounts. Certifications are the first planned items.
-export const catalog: Record<string, { name: string; priceEnv: string; lmsCourse?: string }> = {
-  "cert-clinic-owners": { name: "LabbHR Clinic Owners Certification", priceEnv: "STRIPE_PRICE_CERT_CLINIC_OWNERS", lmsCourse: "clinic-owners" },
-  "cert-construction": { name: "LabbHR Construction Screening Certification", priceEnv: "STRIPE_PRICE_CERT_CONSTRUCTION", lmsCourse: "construction" },
-  "cert-manufacturing": { name: "LabbHR Manufacturing Screening Certification", priceEnv: "STRIPE_PRICE_CERT_MANUFACTURING", lmsCourse: "manufacturing" },
-  "cert-logistics": { name: "LabbHR Logistics Screening Certification", priceEnv: "STRIPE_PRICE_CERT_LOGISTICS", lmsCourse: "logistics" },
-  "cert-background": { name: "LabbHR Background Screening Certification", priceEnv: "STRIPE_PRICE_CERT_BACKGROUND", lmsCourse: "background-screening" },
-  "cert-drug-testing-cost": { name: "LabbHR Drug Testing Cost Certification", priceEnv: "STRIPE_PRICE_CERT_COST", lmsCourse: "drug-testing-cost" },
-};
+export const catalog: Record<string, { name: string; priceEnv: string; lmsCourse?: string }> = Object.fromEntries(
+  certs.map((c) => [c.sku, { name: `${c.name} Certification`, priceEnv: c.priceEnv, lmsCourse: c.lmsCourse }]),
+);
 
 // Called from the Stripe webhook after payment. Wire this to the LMS enrollment API.
 export async function enrollInLms(email: string, course: string) {

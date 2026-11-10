@@ -1,23 +1,33 @@
+import Link from "next/link";
 import type { Metadata } from "next";
-import { Breadcrumbs, CtaBand, LabbHR } from "@/components/ui";
+import { Breadcrumbs, CtaBand, Faq } from "@/components/ui";
 import { LeadForm } from "@/components/LeadForm";
 import { PageHero } from "@/components/PageHero";
-import { catalog } from "@/lib/commerce";
+import { certs, certTypes, paths, type CertType } from "@/lib/certifications";
 
 export const metadata: Metadata = {
-  title: "LabbHR Drug and Background Screening Certifications",
+  title: "Labb Certifications: Product, Software and Position",
   description:
-    "Online LabbHR certifications for clinic owners, HR teams and collectors: construction, manufacturing, logistics, background screening and drug testing cost. Join the waitlist.",
+    "Labb offers three kinds of online certification: product certifications for each test kit series, software certifications for Labb Station and LabbHR, and position certifications such as Clinic Owner.",
   alternates: { canonical: "/certifications" },
 };
+
+const order: CertType[] = ["product", "software", "position"];
+
+const faqs = [
+  { q: "Why are the certifications separate?", a: "Each one covers a different thing. A product certification proves someone knows how a specific device works. A software certification proves they can use Labb Station or LabbHR. A position certification covers drug testing knowledge for a role, such as clinic owner, regardless of product or software." },
+  { q: "Which certifications do my collectors need?", a: "Collectors take a product certification for each product series they collect with, plus the software certification for the Labb software your site uses. The clinic owner certification is for the owner, not the collectors." },
+  { q: "How do the exams work?", a: "Each certification is an online exam built on Labb's written training documents. You need 90% to pass, and the certification is valid for one year." },
+  { q: "Is any of this DOT training?", a: "No. Labb certifications cover company (non-DOT) testing. DOT certification is being added as a benefit for Channel Partner Program members." },
+];
 
 export default function Page() {
   return (
     <>
       <PageHero
-        eyebrow="Online certification"
-        title="Certify your team to run screening in-house."
-        lede={<><LabbHR /> certifications pair Labb training documents with an online course and exam, so your collectors, HR team and program administrators can show they know the process. Enrollment opens soon.</>}
+        eyebrow="Labb certifications"
+        title="The right certification for every role."
+        lede="Three kinds of online certification: one for each product, one for each software, and one for each position or industry. Your team takes the ones that match its work. Enrollment opens soon."
         aside={
           <div className="hero-card" style={{ color: "var(--dark)" }}>
             <LeadForm variant="certification-waitlist" title="Join the waitlist" subtitle="Be first to know when enrollment opens." submitLabel="Join the Waitlist" />
@@ -25,21 +35,90 @@ export default function Page() {
         }
       />
       <Breadcrumbs items={[{ name: "Training", href: "/training" }, { name: "Certifications", href: "/certifications" }]} />
-      <section className="section">
+
+      <section className="section" style={{ paddingTop: 32 }}>
         <div className="wrap">
-          <span className="eyebrow">Programs</span>
-          <h2>Certifications planned</h2>
+          <span className="eyebrow">Three types</span>
+          <h2>Separate certifications for separate skills</h2>
           <div className="grid g3" style={{ marginTop: 28 }}>
-            {Object.entries(catalog).map(([sku, c]) => (
-              <div key={sku} className="card top">
-                <h3>{c.name.replace("LabbHR ", "")}</h3>
-                <p>Online course and exam, built on the matching Labb handbook.</p>
-              </div>
+            {order.map((t, i) => (
+              <a key={t} href={`#${t}`} className="card card-link top">
+                <div className="icon-dot" aria-hidden="true">{i + 1}</div>
+                <h3>{certTypes[t].title}</h3>
+                <p>{certTypes[t].summary}</p>
+                <span className="more-row">See {certTypes[t].label.toLowerCase()} certifications →</span>
+              </a>
             ))}
+          </div>
+          <div className="stats" style={{ marginTop: 28 }}>
+            <div><strong>Online</strong><span>Exam built on Labb training documents</span></div>
+            <div><strong>90%</strong><span>Score to pass</span></div>
+            <div><strong>1 year</strong><span>Certification valid</span></div>
           </div>
         </div>
       </section>
-      <CtaBand />
+
+      <section className="section soft">
+        <div className="wrap">
+          <span className="eyebrow">Who takes what</span>
+          <h2>Find your certifications by role</h2>
+          <p className="intro">For example: a clinic owner takes the Clinic Owner certification. That clinic&apos;s collectors take the product and software certifications. They are separate.</p>
+          <div className="compare-wrap">
+            <table className="compare paths">
+              <thead>
+                <tr>
+                  <th scope="col" style={{ textAlign: "left" }}>Your role</th>
+                  <th scope="col">Position</th>
+                  <th scope="col">Product</th>
+                  <th scope="col">Software</th>
+                </tr>
+              </thead>
+              <tbody>
+                {paths.map((p) => (
+                  <tr key={p.role}>
+                    <th scope="row">{p.role}</th>
+                    {[p.position, p.product, p.software].map((v, i) => (
+                      <td key={i} className={v === "Not required" ? "" : "on"}>{v === "Not required" ? <span className="no">Not required</span> : v}</td>
+                    ))}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      {order.map((t, idx) => (
+        <section key={t} id={t} className={`section${idx % 2 ? " soft" : ""}`} style={{ scrollMarginTop: 110 }}>
+          <div className="wrap">
+            <span className="eyebrow">{certTypes[t].label} certifications</span>
+            <h2>{certTypes[t].title}</h2>
+            <p className="intro">{certTypes[t].summary}</p>
+            <div className="grid g3">
+              {certs.filter((c) => c.type === t).map((c) => (
+                <div key={c.sku} className="card top" style={{ background: "#fff", border: "1px solid var(--border)", borderTop: "4px solid var(--orange)" }}>
+                  <span className="mini">{certTypes[t].label}</span>
+                  <h3>{c.name}</h3>
+                  <p>{c.covers}</p>
+                  <p style={{ marginTop: 12, fontSize: "0.88rem" }}><strong style={{ color: "var(--dark)" }}>For:</strong> {c.forWho}</p>
+                </div>
+              ))}
+            </div>
+            {t === "product" && <p style={{ marginTop: 20 }}><Link href="/test-kits" className="text-link" style={{ textDecoration: "underline" }}>See the products →</Link></p>}
+            {t === "software" && <p style={{ marginTop: 20 }}><Link href="/software" className="text-link" style={{ textDecoration: "underline" }}>Compare Labb Station and LabbHR →</Link></p>}
+            {t === "position" && <p style={{ marginTop: 20 }}><Link href="/training" className="text-link" style={{ textDecoration: "underline" }}>See the handbooks behind these certifications →</Link></p>}
+          </div>
+        </section>
+      ))}
+
+      <section className="section">
+        <div className="wrap" style={{ maxWidth: 860 }}>
+          <span className="eyebrow">Questions</span>
+          <h2>About Labb certifications</h2>
+          <Faq items={faqs} />
+        </div>
+      </section>
+      <CtaBand title="Certifying a whole team?" body="Ask about certification for every collector and location, bundled with your testing program." />
     </>
   );
 }
