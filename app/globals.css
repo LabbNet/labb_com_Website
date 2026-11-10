@@ -113,7 +113,7 @@ p { margin: 0 0 1em; }
 }
 
 /* Hero */
-.hero { background: linear-gradient(180deg, var(--tint-10) 0%, #fff 100%); border-bottom: 1px solid var(--border); }
+.hero { background: linear-gradient(180deg, var(--bg-soft) 0%, #fff 100%); border-bottom: 1px solid var(--border); }
 .hero .wrap { display: grid; grid-template-columns: 1.05fr 0.95fr; gap: 56px; align-items: center; padding-top: 72px; padding-bottom: 80px; }
 .hero-media { position: relative; }
 .hero-media img { border-radius: 20px; }
