@@ -18,7 +18,7 @@ export const metadata: Metadata = {
   robots: process.env.NEXT_PUBLIC_NOINDEX === "true" ? { index: false, follow: false } : { index: true, follow: true },
 };
 
-export const viewport: Viewport = { themeColor: "#36689f", width: "device-width", initialScale: 1 };
+export const viewport: Viewport = { themeColor: "#cf743c", width: "device-width", initialScale: 1 };
 
 const gtm = process.env.NEXT_PUBLIC_GTM_ID;
 
