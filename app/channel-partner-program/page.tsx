@@ -187,7 +187,7 @@ export default function CppPage() {
           </div>
           <div className="btn-row" style={{ marginTop: 0 }}>
             <Link href="#apply" className="btn btn-primary">Apply to Join</Link>
-            <a href="tel:+18778689967" className="btn btn-light">Call Labb</a>
+            <a href="tel:+18778689967" className="btn btn-ghost">Call (877) 868-9967</a>
           </div>
         </div>
       </section>

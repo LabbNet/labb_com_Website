@@ -55,8 +55,8 @@ export function CtaBand({
           <p>{body}</p>
         </div>
         <div className="btn-row" style={{ marginTop: 0 }}>
-          <Link href={href} className="btn btn-primary">{label}</Link>
-          <Link href="/get-a-quote?sample=1" className="btn btn-light">Request a Sample</Link>
+          <Link href={href} className="btn btn-light">{label}</Link>
+          <Link href="/get-a-quote?sample=1" className="btn btn-ghost">Request a free sample</Link>
         </div>
       </div>
     </section>

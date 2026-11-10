@@ -26,8 +26,7 @@ export function Header() {
       </div>
       <div className="wrap header-row">
         <Link href="/" className="logo" aria-label="Labb home">
-          <Image src="/brand/labb-logo.png" alt="Labb" width={600} height={245} priority style={{ width: "auto" }} />
-          <Image src="/brand/labbhr-logo.png" alt="LabbHR" width={247} height={300} className="sub" style={{ width: "auto" }} />
+          <Image src="/brand/labb-logo-white.png" alt="Labb" width={600} height={225} priority style={{ width: "auto" }} />
         </Link>
         <button className="menu-toggle" aria-expanded={open} aria-controls="main-nav" onClick={() => setOpen(!open)}>
           {open ? "Close" : "Menu"}
