@@ -75,6 +75,15 @@ export async function POST(req: Request) {
       await logEvent(m.id, "disabled", undefined, admin.id);
       await flash(`${m.name} is disabled and signed out everywhere.`);
     }
+  } else if (action === "promote" || action === "demote") {
+    if (m.id === admin.id) {
+      await flash("You can't change your own admin access.", undefined, "error");
+    } else {
+      const role = action === "promote" ? "admin" : "member";
+      await db`update members set role = ${role}, session_version = session_version + 1, updated_at = now() where id = ${m.id}`;
+      await logEvent(m.id, role === "admin" ? "made_admin" : "admin_removed", undefined, admin.id);
+      await flash(role === "admin" ? `${m.name} is now a Labb admin.` : `${m.name} is no longer an admin.`);
+    }
   } else if (action === "enable") {
     const [row] = await db<{ password_hash: string | null }[]>`select password_hash from members where id = ${m.id}`;
     const status = row.password_hash ? "active" : "invited";

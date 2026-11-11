@@ -42,7 +42,7 @@ export function CppApplication() {
       signer: fd.get("signer"),
       city: fd.get("city"),
       state: fd.get("state"),
-      audience: fd.get("clinicType"),
+      clinicType: fd.get("clinicType"),
       volume: fd.get("volume"),
       services: fd.getAll("services").join(", "),
       affiliation: fd.get("affiliation"),

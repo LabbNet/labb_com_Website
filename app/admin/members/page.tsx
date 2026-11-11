@@ -1,9 +1,9 @@
-import Link from "next/link";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import type { Metadata } from "next";
 import { currentMember, type Member } from "@/lib/auth";
 import { dbConfigured, sql } from "@/lib/db";
+import { AdminBar } from "@/components/AdminBar";
 
 export const metadata: Metadata = { title: "Manage CPP Members", robots: { index: false, follow: false } };
 export const dynamic = "force-dynamic";
@@ -42,18 +42,7 @@ export default async function AdminMembers({ searchParams }: { searchParams: Pro
 
   return (
     <>
-      <section className="member-bar">
-        <div className="wrap">
-          <div>
-            <span className="eyebrow">Admin</span>
-            <strong>CPP member accounts</strong>
-          </div>
-          <nav aria-label="Admin">
-            <Link href="/members">Member area</Link>
-            <form action="/api/auth/logout" method="post"><button type="submit" className="linkish">Sign out</button></form>
-          </nav>
-        </div>
-      </section>
+      <AdminBar title="CPP member accounts" current="/admin/members" />
       <section className="section" style={{ paddingTop: 32 }}>
         <div className="wrap">
           {flash && (
@@ -124,6 +113,7 @@ export default async function AdminMembers({ searchParams }: { searchParams: Pro
                           {m.status === "active" && act(m.id, "reset", "Reset link")}
                           {m.status !== "disabled" && m.id !== admin.id && act(m.id, "disable", "Disable", true)}
                           {m.status === "disabled" && act(m.id, "enable", "Re-enable")}
+                          {m.id !== admin.id && m.status !== "disabled" && (m.role === "admin" ? act(m.id, "demote", "Remove admin", true) : act(m.id, "promote", "Make admin"))}
                         </td>
                       </tr>
                     ))}

@@ -1,10 +1,28 @@
 import { NextResponse } from "next/server";
 import { deliverLead, type Lead } from "@/lib/leads";
+import { isSegment, PRODUCTS, type Segment } from "@/lib/segments";
 import { getResource } from "@/lib/resources";
 import { COOKIE, cookieOptions, sign, verify } from "@/lib/session";
 
 const str = (v: unknown, max = 200) => (typeof v === "string" ? v.trim().slice(0, max) : "");
 const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
+
+// Segment from the form, or inferred from the form type and page when the form doesn't ask.
+function segmentOf(body: Record<string, unknown>): Segment {
+  if (isSegment(body.segment)) return body.segment;
+  const type = String(body.type || "");
+  const page = String(body.page || "");
+  if (type === "clinic" || type === "cpp-application" || page.startsWith("/collection-sites")) return "collection-site";
+  if (page.startsWith("/corrections") || page.startsWith("/labbpo")) return "corrections";
+  if (page.startsWith("/drug-testing-businesses") || page.startsWith("/one")) return "drug-testing-business";
+  if (body.industry || page.startsWith("/employers") || page.startsWith("/industries")) return "employer";
+  return "other";
+}
+
+function productsOf(v: unknown) {
+  const list = Array.isArray(v) ? v : typeof v === "string" && v ? v.split(",") : [];
+  return list.map((p) => String(p).trim()).filter((p) => (PRODUCTS as readonly string[]).includes(p)).join(", ");
+}
 
 // Basic per-instance rate limit. Use a shared store (Upstash, Vercel KV) for multi-region.
 const hits = new Map<string, number[]>();
@@ -34,6 +52,8 @@ export async function POST(req: Request) {
 
   const lead: Lead = {
     type: str(body.type, 40) || "contact",
+    segment: segmentOf(body),
+    products: productsOf(body.products),
     firstName: str(body.firstName, 80),
     lastName: str(body.lastName, 80),
     email: str(body.email, 160).toLowerCase(),
@@ -41,7 +61,6 @@ export async function POST(req: Request) {
     company: str(body.company, 160),
     city: str(body.city, 80),
     state: str(body.state, 80),
-    audience: str(body.audience, 80),
     industry: str(body.industry, 80),
     volume: str(body.volume, 80),
     interest: str(body.interest, 80),
@@ -51,6 +70,7 @@ export async function POST(req: Request) {
     signer: str(body.signer, 160),
     services: str(body.services, 400),
     affiliation: str(body.affiliation, 160),
+    clinicType: str(body.clinicType, 120),
     wantsAgreement: body.wantsAgreement === true,
     newsletter: body.newsletter === true,
     page: str(body.page, 300),

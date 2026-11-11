@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
+import { PRODUCTS, SEGMENTS, VOLUME, type Segment } from "@/lib/segments";
 
 type Variant = "quote" | "sample" | "handbook" | "clinic" | "certification-waitlist" | "contact" | "early-access";
 
@@ -14,13 +15,13 @@ type Props = {
   industry?: string;
   compact?: boolean;
   defaultMessage?: string;
+  segment?: Segment; // set on segment pages so the visitor isn't asked again
+  products?: string[]; // products pre-checked on product pages
 };
 
-const AUDIENCE = ["Employer testing my own employees", "Clinic or collection site", "Third party administrator (TPA)", "Other"];
-const VOLUME = ["Under 25 tests a month", "25 to 100", "100 to 500", "500+"];
 const INDUSTRY = ["Construction", "Manufacturing", "Logistics and warehousing", "Staffing", "Healthcare", "Other"];
 
-export function LeadForm({ variant, title, subtitle, submitLabel, resource, industry, compact, defaultMessage }: Props) {
+export function LeadForm({ variant, title, subtitle, submitLabel, resource, industry, compact, defaultMessage, segment: fixedSegment, products: preChecked = [] }: Props) {
   const router = useRouter();
   const started = useRef(Date.now());
   const [state, setState] = useState<"idle" | "sending" | "done">("idle");
@@ -28,6 +29,8 @@ export function LeadForm({ variant, title, subtitle, submitLabel, resource, indu
   const [error, setError] = useState("");
   const [download, setDownload] = useState<string>();
   const [utm, setUtm] = useState<Record<string, string>>({});
+  const isClinicVariant = variant === "clinic";
+  const [segment, setSegment] = useState<string>(fixedSegment || (isClinicVariant ? "collection-site" : industry ? "employer" : ""));
 
   useEffect(() => {
     const p = new URLSearchParams(window.location.search);
@@ -54,6 +57,8 @@ export function LeadForm({ variant, title, subtitle, submitLabel, resource, indu
     const fd = new FormData(e.currentTarget);
     const body: Record<string, unknown> = Object.fromEntries(fd.entries());
     body.newsletter = fd.get("newsletter") === "on";
+    body.products = fd.getAll("products").map(String);
+    body.segment = segment || undefined;
     body.type = variant;
     body.resource = resource;
     body.page = window.location.pathname;
@@ -152,9 +157,26 @@ export function LeadForm({ variant, title, subtitle, submitLabel, resource, indu
         {!isWaitlist && f("phone", "Phone", { type: "tel", required: true, auto: "tel-national" })}
         {!isWaitlist && f("company", isClinic ? "Clinic name" : "Company", { required: true, auto: "organization", full: compact })}
         {!compact && !isWaitlist && f("state", "State", { auto: "address-level1" })}
-        {!isWaitlist && !isClinic && !compact && select("audience", "I am a", AUDIENCE)}
-        {!isWaitlist && !industry && !isClinic && !compact && select("industry", "Industry", INDUSTRY)}
-        {!isWaitlist && select("volume", isClinic ? "Tests per month at your site" : "Tests per month", VOLUME, true)}
+        {!fixedSegment && !isClinic && !industry && (
+          <div className="field full" data-error={errors.segment ? "" : undefined}>
+            <label htmlFor="f-segment">I am a<span className="req" aria-hidden="true">*</span></label>
+            <select id="f-segment" name="segment" required value={segment} onChange={(e) => setSegment(e.target.value)}>
+              <option value="" disabled>Select one</option>
+              {SEGMENTS.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
+            </select>
+            {errors.segment && <span className="err">{errors.segment}</span>}
+          </div>
+        )}
+        {!isWaitlist && !industry && !isClinic && !compact && segment === "employer" && select("industry", "Industry", INDUSTRY)}
+        {!isWaitlist && select("volume", isClinic ? "Tests per month at your site" : segment === "corrections" ? "Offenders tested per month" : "Tests per month", VOLUME, true)}
+        {!isWaitlist && !isHandbook && !compact && (
+          <fieldset className="field full checks">
+            <legend>Interested in</legend>
+            {PRODUCTS.map((p) => (
+              <label key={p}><input type="checkbox" name="products" value={p} defaultChecked={preChecked.includes(p)} /> {p}</label>
+            ))}
+          </fieldset>
+        )}
         {!isWaitlist && !compact && (
           <fieldset className="field full radios">
             <legend>Interest level</legend>

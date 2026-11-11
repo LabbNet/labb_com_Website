@@ -37,7 +37,7 @@ export default async function IndustryPage({ params }: { params: Promise<{ slug:
             <Checks items={ind.facts} />
           </div>
           <div className="hero-card" id="quote">
-            <LeadForm variant="quote" industry={ind.name} title="Get a quote or a free sample" subtitle="Fill out the form and a Labb specialist will reply shortly." />
+            <LeadForm variant="quote" segment="employer" industry={ind.name} title="Get a quote or a free sample" subtitle="Fill out the form and a Labb specialist will reply shortly." />
           </div>
         </div>
       </section>

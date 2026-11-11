@@ -38,7 +38,7 @@ export default function LabbHRPage() {
         lede={<><LabbHR /> brings rapid tests, lab testing, confirmations, MRO results and background checks together in one record per candidate, with the Labb Station reader built in.</>}
         aside={
           <div className="hero-card" id="access" style={{ color: "var(--dark)" }}>
-            <LeadForm variant="early-access" title="Request early access" subtitle="Tell us about your program and we'll reach out about LabbHR access." submitLabel="Request Early Access" />
+            <LeadForm variant="early-access" products={["LabbHR"]} title="Request early access" subtitle="Tell us about your program and we'll reach out about LabbHR access." submitLabel="Request Early Access" />
           </div>
         }
       />

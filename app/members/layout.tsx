@@ -22,8 +22,9 @@ export default async function MembersLayout({ children }: { children: React.Reac
           </div>
           <nav aria-label="Member">
             <Link href="/members">Resources</Link>
+            <Link href="/members/leads">My leads</Link>
             <Link href="/members/account">My account</Link>
-            {m.role === "admin" && <Link href="/admin/members">Manage members</Link>}
+            {m.role === "admin" && <Link href="/admin/leads">Labb admin</Link>}
             <form action="/api/auth/logout" method="post">
               <button type="submit" className="linkish">Sign out</button>
             </form>
