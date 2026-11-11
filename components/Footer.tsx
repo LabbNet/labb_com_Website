@@ -28,7 +28,9 @@ export function Footer() {
             <li><Link href="/test-kits#compare">Compare panels</Link></li>
             <li><Link href="/labb-station">Labb Station</Link></li>
             <li><Link href="/labbhr">LabbHR</Link></li>
-            <li><Link href="/software">Compare software</Link></li>
+            <li><Link href="/labbpo">LabbPO</Link></li>
+            <li><Link href="/one">One by Labb</Link></li>
+            <li><Link href="/platforms">All platforms</Link></li>
           </ul>
         </div>
         <div>

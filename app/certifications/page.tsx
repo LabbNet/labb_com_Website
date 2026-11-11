@@ -108,7 +108,7 @@ export default function Page() {
             </div>
             {t === "product" && <p style={{ marginTop: 20 }}><Link href="/test-kits" className="text-link" style={{ textDecoration: "underline" }}>See the products →</Link></p>}
             {t === "specimen" && <p style={{ marginTop: 20 }}><Link href="/#readers" className="text-link" style={{ textDecoration: "underline" }}>About the 2027 readers →</Link></p>}
-            {t === "software" && <p style={{ marginTop: 20 }}><Link href="/software" className="text-link" style={{ textDecoration: "underline" }}>Compare Labb Station and LabbHR →</Link></p>}
+            {t === "software" && <p style={{ marginTop: 20 }}><Link href="/compare" className="text-link" style={{ textDecoration: "underline" }}>Compare Labb Station and LabbHR →</Link></p>}
             {t === "position" && <p style={{ marginTop: 20 }}><Link href="/training" className="text-link" style={{ textDecoration: "underline" }}>See the handbooks behind these certifications →</Link></p>}
           </div>
         </section>

@@ -38,7 +38,7 @@ export default function LabbStationPage() {
         secondary={{ href: "/test-kits", label: "See compatible kits" }}
         image={{ src: "/img/phone-app.webp", alt: "Labb Station app on a phone showing a rapid test result", w: 1048, h: 818 }}
       />
-      <Breadcrumbs items={[{ name: "Software", href: "/software" }, { name: "Labb Station", href: "/labb-station" }]} />
+      <Breadcrumbs items={[{ name: "Platforms", href: "/platforms" }, { name: "Labb Station", href: "/labb-station" }]} />
 
       <section className="section" style={{ paddingTop: 40 }}>
         <div className="wrap">
@@ -121,7 +121,7 @@ export default function LabbStationPage() {
           <span className="eyebrow">Questions</span>
           <h2>About Labb Station</h2>
           <Faq items={faqs} />
-          <p style={{ marginTop: 24 }}><Link href="/software" className="text-link" style={{ textDecoration: "underline" }}>Compare Labb Station and LabbHR →</Link></p>
+          <p style={{ marginTop: 24 }}><Link href="/compare" className="text-link" style={{ textDecoration: "underline" }}>Compare Labb Station and LabbHR →</Link></p>
         </div>
       </section>
 

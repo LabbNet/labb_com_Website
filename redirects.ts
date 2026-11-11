@@ -21,7 +21,7 @@ export const redirects: R[] = [
   // Pages
   r("/pages/labb-station", "/labb-station"),
   r("/pages/labbhr", "/labbhr"),
-  r("/pages/platforms", "/software"),
+  r("/pages/platforms", "/platforms"),
   r("/pages/test-kits", "/test-kits"),
   ...kitPages.map(([from, to]) => r(`/pages/${from}`, `/test-kits/${to}`)),
   r("/pages/laboratory-testing", "/oral-fluid-drug-testing"),
@@ -58,7 +58,9 @@ export const redirects: R[] = [
   // Site restructure (Nov 2026)
   r("/resources", "/training"),
   r("/education", "/training"),
-  r("/compare", "/software"),
+  r("/software", "/platforms"),
+  r("/po", "/labbpo"),
+  r("/probation", "/corrections"),
   // Old clinics page (Nov 2026) folded into the CPP page
   r("/for-clinics", "/channel-partner-program"),
   r("/cpp", "/channel-partner-program"),

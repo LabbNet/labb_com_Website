@@ -7,59 +7,59 @@ import { PageHero } from "@/components/PageHero";
 import { site } from "@/lib/site";
 
 export const metadata: Metadata = {
-  title: "LabbHR: Drug Testing and Background Screening Platform",
+  title: "LabbHR: Business Software for Drug Testing Companies",
   description:
-    "LabbHR puts rapid tests, lab testing, confirmations, MRO results and background checks in one record per candidate. Includes the Labb Station reader. Request early access.",
+    "LabbHR is the business development platform for drug testing companies: sales, marketing, contracting and accounting, plus every Labb Station tool, connected through One by Labb. Now in beta.",
   alternates: { canonical: "/labbhr" },
 };
 
-const capabilities = [
-  { t: "Everything in Labb Station", b: "Objective digital reads of Labb rapid tests, True Privacy and results documented automatically." },
-  { t: "Lab testing and eCCF", b: "Order lab-based tests with an electronic chain of custody, without paper forms." },
-  { t: "Confirmations and MRO results", b: "Lab confirmations and Medical Review Officer results land in the same record as the screen." },
-  { t: "Background checks", b: "Order background checks and see them next to drug test results." },
-  { t: "One record per candidate", b: "From the first screen to the final result, everything about a candidate is in one place, ready for audit." },
-  { t: "Built for HR teams", b: "See where every candidate stands across locations, without chasing clinics or labs." },
+const audiences = [
+  { t: "National accounts", b: "Coordinate testing across sites and partners from one platform." },
+  { t: "TPAs", b: "Sell, contract and bill programs without stitching tools together." },
+  { t: "Laboratories", b: "Connect with the sites and businesses that send you specimens." },
+  { t: "MROs", b: "Work with the TPAs, sites and employers you serve in one network." },
+  { t: "Collection sites ready to grow", b: "Go beyond running tests and build a bigger testing business." },
+];
+
+const modules = [
+  { t: "Sales", b: "Find, track and close new clients and programs." },
+  { t: "Marketing", b: "Reach employers and partners with campaigns built for drug testing businesses." },
+  { t: "Contracting", b: "Send, sign and manage client agreements in the same platform." },
+  { t: "Accounting", b: "Bill clients and track what's owed without a separate system." },
 ];
 
 const faqs = [
-  { q: "Is LabbHR available now?", a: "LabbHR is in early access. Request access below and a Labb specialist will tell you when your account can be set up. Labb Station is available now." },
-  { q: "Do I need Labb Station as well?", a: "No. LabbHR includes everything in Labb Station, so you get the reader as part of the platform." },
-  { q: "Can clinics use LabbHR?", a: "Yes. Clinics and collection sites get LabbHR through the Labb Channel Partner Program." },
-  { q: "What does LabbHR cost?", a: "Pricing depends on your volume and the services you use. Request access and we'll send a quote." },
+  { q: "Is LabbHR available now?", a: "LabbHR is in beta. Join the beta below and a Labb specialist will set up your access and help decide which features roll out first." },
+  { q: "How is LabbHR different from Labb Station?", a: "Labb Station runs the test: objective reads, documentation, Flex Testing and lab ordering. LabbHR runs the business: sales, marketing, contracting and accounting, plus everything in Labb Station, expanded connectivity and access to One by Labb." },
+  { q: "I'm already on Labb Station. Can I upgrade?", a: "Yes. LabbHR includes everything in Labb Station. Compare the two and talk to us about upgrading." },
+  { q: "What is One by Labb?", a: "One by Labb is the ecosystem every LabbHR user connects to, so collection sites, national accounts, TPAs, laboratories, MROs and employers can find and work with each other." },
+  { q: "What does LabbHR cost?", a: "Pricing depends on your business and the services you use. Join the beta and we'll walk you through it." },
 ];
 
 export default function LabbHRPage() {
   return (
     <>
       <PageHero
-        eyebrow="LabbHR platform · Early access"
-        title={<>Drug testing and background checks, finally in one place.</>}
-        lede={<><LabbHR /> brings rapid tests, lab testing, confirmations, MRO results and background checks together in one record per candidate, with the Labb Station reader built in.</>}
+        eyebrow="LabbHR · Now in beta"
+        title={<>Grow your drug testing business on one platform.</>}
+        lede={<>Sales, marketing, contracting and accounting, plus every Labb Station tool, connected to the rest of the industry through One by Labb.</>}
         aside={
-          <div className="hero-card" id="access" style={{ color: "var(--dark)" }}>
-            <LeadForm variant="early-access" products={["LabbHR"]} title="Request early access" subtitle="Tell us about your program and we'll reach out about LabbHR access." submitLabel="Request Early Access" />
+          <div className="hero-card" id="beta" style={{ color: "var(--dark)" }}>
+            <LeadForm variant="early-access" segment="drug-testing-business" products={["LabbHR"]} title="Join the LabbHR beta" subtitle="Tell us about your business and we'll set up your access." submitLabel="Join the Beta" />
           </div>
         }
       />
-      <Breadcrumbs items={[{ name: "Software", href: "/software" }, { name: "LabbHR", href: "/labbhr" }]} />
-      <section className="section tight">
-        <div className="wrap">
-          <Checks items={["Rapid results from Labb Station, live", "Lab confirmations and MRO results in the same record", "Background checks built in"]} />
-          <div className="btn-row"><Link href="/software" className="btn btn-outline">Compare with Labb Station</Link></div>
-        </div>
-      </section>
+      <Breadcrumbs items={[{ name: "Platforms", href: "/platforms" }, { name: "LabbHR", href: "/labbhr" }]} />
 
       <section className="section">
         <div className="wrap">
-          <span className="eyebrow">What LabbHR does</span>
-          <h2>The whole screening process, in one platform</h2>
+          <span className="eyebrow">Who it&apos;s for</span>
+          <h2>Built for the businesses that sell and deliver testing</h2>
           <div className="grid g3" style={{ marginTop: 28 }}>
-            {capabilities.map((c, i) => (
-              <div key={c.t} className="card top">
-                <div className="icon-dot" aria-hidden="true">{i + 1}</div>
-                <h3>{c.t}</h3>
-                <p>{c.b}</p>
+            {audiences.map((a) => (
+              <div key={a.t} className="card rail">
+                <h3>{a.t}</h3>
+                <p>{a.b}</p>
               </div>
             ))}
           </div>
@@ -67,17 +67,57 @@ export default function LabbHRPage() {
       </section>
 
       <section className="section soft">
+        <div className="wrap">
+          <span className="eyebrow">Run the business</span>
+          <h2>Software that sells, contracts and bills, not just tests</h2>
+          <div className="grid g4" style={{ marginTop: 28 }}>
+            {modules.map((m, i) => (
+              <div key={m.t} className="card top">
+                <div className="icon-dot" aria-hidden="true">{i + 1}</div>
+                <h3>{m.t}</h3>
+                <p>{m.b}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section className="section">
         <div className="wrap split">
           <div>
-            <span className="eyebrow">For HR teams</span>
-            <h2>Stop chasing clinics, labs and screening vendors</h2>
-            <p className="intro">
-              Today a single hire can mean a clinic visit, a lab result, an MRO call and a separate background check portal. <LabbHR />{" "}
-              keeps all of it in one candidate record, so HR can see status at a glance and every result is documented.
+            <span className="eyebrow">Run the testing</span>
+            <h2>Everything in Labb Station, and more</h2>
+            <p className="intro" style={{ marginBottom: 20 }}>
+              <LabbHR /> includes every Labb Station tool, with expanded connectivity and more technology.
             </p>
-            <Checks items={["One login for drug tests and background checks", "Every result time-stamped and audit ready", "Works across all your locations"]} />
+            <Checks items={[
+              "Objective reads of Labb rapid tests on a phone or tablet",
+              "Every collection documented",
+              "Flex Testing: custom rapid and lab panels from one kit",
+              "Lab ordering and one-button send to lab",
+              "Background checks in the same platform",
+            ]} />
+            <div className="btn-row"><Link href="/compare" className="btn btn-outline">Compare with Labb Station</Link></div>
           </div>
-          <Image src="/img/labbhr-dashboard.webp" alt="LabbHR dashboard showing a candidate's documented screening results" width={1400} height={1400} sizes="(max-width: 900px) 92vw, 540px" />
+          <Image src="/img/labbhr-dashboard.webp" alt="LabbHR dashboard" width={1400} height={1400} sizes="(max-width: 900px) 92vw, 540px" />
+        </div>
+      </section>
+
+      <section className="section soft">
+        <div className="wrap split" style={{ alignItems: "start" }}>
+          <div>
+            <span className="eyebrow">Connected through One by Labb</span>
+            <h2>One industry, connected</h2>
+            <p>
+              Every <LabbHR /> user joins One by Labb, the ecosystem where collection sites, national accounts, TPAs, laboratories, MROs and
+              employers find and work with each other.
+            </p>
+            <div className="btn-row"><Link href="/one" className="btn btn-outline-dark">About One by Labb</Link></div>
+          </div>
+          <div className="card rail">
+            <h3>Already on Labb Station?</h3>
+            <p>Keep the reader your team knows and add the tools to grow. <Link href="/compare">See what changes when you upgrade</Link>.</p>
+          </div>
         </div>
       </section>
 
@@ -92,12 +132,12 @@ export default function LabbHRPage() {
       <section className="cta-band">
         <div className="wrap">
           <div>
-            <h2>Be first on LabbHR</h2>
-            <p>Request early access and help shape which features roll out first.</p>
+            <h2>Join the LabbHR beta</h2>
+            <p>Get early access and help decide which features roll out first.</p>
           </div>
           <div className="btn-row" style={{ marginTop: 0 }}>
-            <Link href="#access" className="btn btn-light">Request Early Access</Link>
-            <Link href="/labb-station" className="btn btn-ghost">See Labb Station</Link>
+            <Link href="#beta" className="btn btn-light">Join the Beta</Link>
+            <Link href="/one" className="btn btn-ghost">About One by Labb</Link>
           </div>
         </div>
       </section>
@@ -109,7 +149,7 @@ export default function LabbHRPage() {
           applicationCategory: "BusinessApplication",
           operatingSystem: "Web, iOS, Android",
           publisher: { "@id": `${site.url}/#org` },
-          description: "Drug testing and background screening platform for employers and clinics.",
+          description: "Business development platform for drug testing companies: sales, marketing, contracting and accounting, plus Labb Station tools.",
         }}
       />
     </>

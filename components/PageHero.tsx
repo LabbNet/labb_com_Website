@@ -12,6 +12,7 @@ export function PageHero({
   secondary,
   image,
   aside,
+  tone,
 }: {
   eyebrow: string;
   title: React.ReactNode;
@@ -20,10 +21,11 @@ export function PageHero({
   secondary?: Btn;
   image?: { src: string; alt: string; w: number; h: number };
   aside?: React.ReactNode;
+  tone?: "po";
 }) {
   const side = aside || image;
   return (
-    <section className="page-hero">
+    <section className={`page-hero${tone ? ` tone-${tone}` : ""}`}>
       <div className={`wrap${side ? " with-side" : ""}`}>
         <div>
           <span className="eyebrow">{eyebrow}</span>

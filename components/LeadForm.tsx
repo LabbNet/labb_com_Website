@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { PRODUCTS, SEGMENTS, VOLUME, type Segment } from "@/lib/segments";
 
-type Variant = "quote" | "sample" | "handbook" | "clinic" | "certification-waitlist" | "contact" | "early-access";
+type Variant = "quote" | "sample" | "handbook" | "clinic" | "certification-waitlist" | "contact" | "early-access" | "demo";
 
 type Props = {
   variant: Variant;
@@ -170,7 +170,7 @@ export function LeadForm({ variant, title, subtitle, submitLabel, resource, indu
         {!isWaitlist && !industry && !isClinic && !compact && segment === "employer" && select("industry", "Industry", INDUSTRY)}
         {!isWaitlist && select("volume", isClinic ? "Tests per month at your site" : segment === "corrections" ? "Offenders tested per month" : "Tests per month", VOLUME, true)}
         {!isWaitlist && !isHandbook && !compact && (
-          <fieldset className="field full checks">
+          <fieldset className="field full check-grid">
             <legend>Interested in</legend>
             {PRODUCTS.map((p) => (
               <label key={p}><input type="checkbox" name="products" value={p} defaultChecked={preChecked.includes(p)} /> {p}</label>
@@ -185,7 +185,7 @@ export function LeadForm({ variant, title, subtitle, submitLabel, resource, indu
             ))}
           </fieldset>
         )}
-        {(variant === "contact" || variant === "quote" || variant === "early-access" || (variant === "sample" && !compact)) && (
+        {(variant === "contact" || variant === "quote" || variant === "early-access" || variant === "demo" || (variant === "sample" && !compact)) && (
           <div className="field full">
             <label htmlFor="f-message">How can we help?</label>
             <textarea id="f-message" name="message" defaultValue={defaultMessage} />

@@ -15,9 +15,14 @@ export default function sitemap(): MetadataRoute.Sitemap {
   });
   return [
     page("/", 1, "weekly"),
-    page("/software", 0.9),
+    page("/platforms", 0.9),
     page("/labb-station", 0.9),
     page("/labbhr", 0.9),
+    page("/labbpo", 0.9),
+    page("/corrections", 0.9),
+    page("/drug-testing-businesses", 0.8),
+    page("/one", 0.7),
+    page("/compare", 0.7),
     page("/get-a-quote", 0.9),
     page("/oral-fluid-drug-testing", 0.9),
     page("/urine-drug-testing", 0.9),

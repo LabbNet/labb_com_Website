@@ -38,7 +38,7 @@ export default function Home() {
         <div className="wrap">
           <div>
             <Link href="/labbhr" className="announce">
-              <b>New:</b> LabbHR drug testing and background checks in one place
+              <b>New:</b> LabbHR, the platform for growing a drug testing business, now in beta
             </Link>
             <h1>An objective read, controlled by software.</h1>
             <p className="lede">
@@ -72,7 +72,7 @@ export default function Home() {
         <div className="wrap">
           <span className="eyebrow">Start here</span>
           <h2>What do you need today?</h2>
-          <div className="grid g3" style={{ marginTop: 28 }}>
+          <div className="grid g4" style={{ marginTop: 28 }}>
             <Link href="/test-kits" className="card card-link">
               <div className="ico"><Icon name="box" size={22} /></div>
               <h3>Explore test kits</h3>
@@ -87,9 +87,15 @@ export default function Home() {
             </Link>
             <Link href="/labbhr" className="card card-link">
               <div className="ico"><Icon name="chart" size={22} /></div>
-              <h3>Manage screening in LabbHR</h3>
-              <p>Drug tests, lab confirmations and background checks, tracked in one place for your HR team.</p>
-              <span className="more-row">Request early access →</span>
+              <h3>Grow a drug testing business</h3>
+              <p>LabbHR gives TPAs, labs, MROs and collection sites one platform to sell, market, contract and bill.</p>
+              <span className="more-row">Join the beta →</span>
+            </Link>
+            <Link href="/corrections" className="card card-link">
+              <div className="ico"><Icon name="shield" size={22} /></div>
+              <h3>Run a corrections caseload</h3>
+              <p>LabbPO handles random selection, notification, fee collection and test tracking for probation and parole.</p>
+              <span className="more-row">See LabbPO →</span>
             </Link>
           </div>
         </div>
@@ -221,17 +227,17 @@ export default function Home() {
       <section className="section band-dark">
         <div className="wrap split">
           <div>
-            <span className="status-pill">Early access</span>
-            <h2>LabbHR: drug testing and background checks, finally in one place.</h2>
-            <p>Order tests, see results the moment they are read, send non-negatives to the lab, and run background checks without switching systems.</p>
-            <Checks items={["Rapid results from Labb Station, live", "Background checks built in", "One record per candidate, ready for audit"]} />
+            <span className="status-pill">Three platforms</span>
+            <h2>Labb Station runs the test. LabbHR runs the business. LabbPO runs the caseload.</h2>
+            <p>One platform for every part of drug testing, from the rapid read to growing a testing business to managing a probation caseload.</p>
+            <Checks items={["Labb Station: objective reads and a documented record for every rapid test", "LabbHR: sales, marketing, contracting and accounting, now in beta", "LabbPO: random selection, notification and fee collection for corrections"]} />
             <div className="btn-row">
-              <Link href="/labbhr#access" className="btn btn-primary btn-lg">Request early access</Link>
-              <Link href="/software" className="btn btn-ghost btn-lg">Compare software</Link>
+              <Link href="/platforms" className="btn btn-primary btn-lg">Pick your platform</Link>
+              <Link href="/compare" className="btn btn-ghost btn-lg">Labb Station vs LabbHR</Link>
             </div>
           </div>
           <div className="media-white">
-            <Image src="/img/phone-app.webp" alt="LabbHR on a phone" width={1048} height={818} sizes="(max-width: 900px) 90vw, 520px" />
+            <Image src="/img/phone-app.webp" alt="The Labb app on a phone" width={1048} height={818} sizes="(max-width: 900px) 90vw, 520px" />
           </div>
         </div>
       </section>

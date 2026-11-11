@@ -21,7 +21,7 @@ export default async function Page({ searchParams }: { searchParams: Promise<{ t
               </p>
               <p>Questions in the meantime? Call <a href={site.phoneHref}>{site.phone}</a> or email <a href={`mailto:${site.email}`}>{site.email}</a>.</p>
               <div className="btn-row" style={{ justifyContent: "center" }}>
-                <Link href="/software" className="btn btn-primary">Explore the software</Link>
+                <Link href="/platforms" className="btn btn-primary">Explore the platforms</Link>
                 <Link href="/test-kits" className="btn btn-outline">See test kits</Link>
               </div>
             </>
