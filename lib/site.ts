@@ -23,11 +23,12 @@ export const nav = [
   {
     label: "Who we serve",
     children: [
-      { href: "/corrections", label: "Corrections and probation" },
-      { href: "/drug-testing-businesses", label: "Drug testing businesses" },
-      { href: "/industries/construction", label: "Employers: construction" },
-      { href: "/industries/manufacturing", label: "Employers: manufacturing" },
-      { href: "/industries/logistics-warehousing", label: "Employers: logistics and warehousing" },
+      { href: "/laboratories", label: "Laboratories" },
+      { href: "/tpas", label: "TPAs" },
+      { href: "/collection-sites", label: "Collection Sites" },
+      { href: "/employers", label: "Employers" },
+      { href: "/treatment-recovery", label: "Treatment & Recovery" },
+      { href: "/corrections", label: "Corrections" },
     ],
   },
   {

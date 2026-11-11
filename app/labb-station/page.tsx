@@ -24,7 +24,7 @@ const faqs = [
   { q: "What devices does Labb Station read?", a: "Labb Station reads Labb UA Series urine cups and OR Series and ORF Series (OraFlo) oral fluid devices. See every kit on the test kits page." },
   { q: "Do we need to buy hardware?", a: "No. Most teams read with the phones or tablets they already have. Devices used for results should be secured with a compliant mobile device management (MDM) system." },
   { q: "Who can get a Labb Station account?", a: "Accounts are open to professional drug testing facilities, clinics, occupational health providers and in-house programs running at least 25 tests a month." },
-  { q: "How is Labb Station different from LabbHR?", a: "Labb Station is the rapid test reader. LabbHR includes everything in Labb Station and adds lab testing, confirmations, MRO results and background checks in one record per candidate." },
+  { q: "How is Labb Station different from LabbHR?", a: "Labb Station runs the test. LabbHR runs the business: it includes everything in Labb Station and adds sales, marketing, contracting and accounting, background checks and access to One by Labb." },
 ];
 
 export default function LabbStationPage() {

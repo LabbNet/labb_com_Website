@@ -14,6 +14,9 @@ function segmentOf(body: Record<string, unknown>): Segment {
   const page = String(body.page || "");
   if (type === "clinic" || type === "cpp-application" || page.startsWith("/collection-sites")) return "collection-site";
   if (page.startsWith("/corrections") || page.startsWith("/labbpo")) return "corrections";
+  if (page.startsWith("/laboratories")) return "laboratory";
+  if (page.startsWith("/tpas")) return "tpa";
+  if (page.startsWith("/treatment-recovery")) return "treatment";
   if (page.startsWith("/drug-testing-businesses") || page.startsWith("/one")) return "drug-testing-business";
   if (body.industry || page.startsWith("/employers") || page.startsWith("/industries")) return "employer";
   return "other";
