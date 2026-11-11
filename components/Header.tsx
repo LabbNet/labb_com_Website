@@ -7,13 +7,34 @@ import { useEffect, useState } from "react";
 import { nav, site } from "@/lib/site";
 
 export function Header() {
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState(false); // mobile menu
+  const [menu, setMenu] = useState<string | null>(null); // which dropdown is open (only one at a time)
   const pathname = usePathname();
+  const isCurrent = (href: string) => pathname === href || (href !== "/" && pathname.startsWith(href + "/"));
 
+  // Close everything on navigation.
   useEffect(() => {
     setOpen(false);
-    document.querySelectorAll<HTMLDetailsElement>(".main-nav details[open]").forEach((d) => (d.open = false));
+    setMenu(null);
   }, [pathname]);
+
+  // Close the open dropdown on a click anywhere outside it, or on Escape.
+  useEffect(() => {
+    if (!menu) return;
+    const onDown = (e: MouseEvent | TouchEvent) => {
+      const el = (e.target as HTMLElement).closest?.(".dd");
+      if (!el || el.getAttribute("data-menu") !== menu) setMenu(null);
+    };
+    const onKey = (e: KeyboardEvent) => e.key === "Escape" && setMenu(null);
+    document.addEventListener("mousedown", onDown);
+    document.addEventListener("touchstart", onDown);
+    document.addEventListener("keydown", onKey);
+    return () => {
+      document.removeEventListener("mousedown", onDown);
+      document.removeEventListener("touchstart", onDown);
+      document.removeEventListener("keydown", onKey);
+    };
+  }, [menu]);
 
   return (
     <header className="site-header">
@@ -39,21 +60,27 @@ export function Header() {
           <ul>
             {nav.map((item) =>
               "children" in item ? (
-                <li key={item.label}>
-                  <details>
-                    <summary>{item.label}</summary>
-                    <ul>
-                      {item.children.map((c) => (
-                        <li key={c.href}>
-                          <Link href={c.href} aria-current={pathname === c.href ? "page" : undefined}>{c.label}</Link>
-                        </li>
-                      ))}
-                    </ul>
-                  </details>
+                <li key={item.label} className={`dd${menu === item.label ? " open" : ""}`} data-menu={item.label}>
+                  <button
+                    type="button"
+                    className={item.children.some((c) => isCurrent(c.href)) ? "current" : undefined}
+                    aria-expanded={menu === item.label}
+                    aria-controls={`menu-${item.label.replace(/\s+/g, "-").toLowerCase()}`}
+                    onClick={() => setMenu(menu === item.label ? null : item.label)}
+                  >
+                    {item.label}
+                  </button>
+                  <ul id={`menu-${item.label.replace(/\s+/g, "-").toLowerCase()}`} hidden={menu !== item.label}>
+                    {item.children.map((c) => (
+                      <li key={c.href}>
+                        <Link href={c.href} aria-current={isCurrent(c.href) ? "page" : undefined} onClick={() => setMenu(null)}>{c.label}</Link>
+                      </li>
+                    ))}
+                  </ul>
                 </li>
               ) : (
                 <li key={item.href}>
-                  <Link href={item.href} aria-current={pathname.startsWith(item.href) ? "page" : undefined}>{item.label}</Link>
+                  <Link href={item.href} aria-current={isCurrent(item.href) ? "page" : undefined}>{item.label}</Link>
                 </li>
               ),
             )}
