@@ -29,6 +29,7 @@ export type Lead = {
   services?: string;
   affiliation?: string;
   clinicType?: string;
+  details?: Record<string, string>;
   wantsAgreement?: boolean;
   newsletter?: boolean;
   page?: string;
@@ -106,6 +107,14 @@ export async function logLeadEvent(leadId: string | number, event: string, detai
 }
 
 // ---- Rendering ----
+export const DETAIL_LABELS: Record<string, string> = {
+  testType: "Test type", observation: "Collection", reason: "Reason for test", panel: "Drugs to test", reportTo: "Send report to",
+  reportEmail: "Report recipient email", address1: "Ship to", address2: "Ship to (line 2)", city: "City", state: "State", zip: "ZIP",
+  deliverBy: "Needed by",
+};
+export function detailRows(d?: Record<string, string> | null): [string, string | undefined][] {
+  return d ? Object.entries(d).map(([k, v]) => [DETAIL_LABELS[k] || k, v]) : [];
+}
 function rows(lead: Lead): [string, string | undefined][] {
   return [
     ["Segment", segmentLabel(lead.segment)],
@@ -126,6 +135,7 @@ function rows(lead: Lead): [string, string | undefined][] {
     ["Services offered", lead.services],
     ["Affiliation", lead.affiliation],
     ["Business type", lead.clinicType],
+    ...detailRows(lead.details),
     ["Send CPP agreement", lead.type === "cpp-application" ? (lead.wantsAgreement ? "YES, send the agreement" : "No, wants a call first") : undefined],
     ["Newsletter", lead.newsletter ? "Yes" : "No"],
     ["Message", lead.message],
@@ -151,6 +161,7 @@ async function saveLead(lead: Lead): Promise<string> {
     services: lead.services || undefined,
     affiliation: lead.affiliation || undefined,
     clinicType: lead.clinicType || undefined,
+    details: lead.details,
     wantsAgreement: lead.type === "cpp-application" ? lead.wantsAgreement : undefined,
     newsletter: lead.newsletter,
     ip: lead.ip,
@@ -179,8 +190,9 @@ export async function deliverLead(lead: Lead) {
   }
 
   const name = lead.company || `${lead.firstName} ${lead.lastName}`.trim() || lead.email;
-  const subject =
-    lead.type === "cpp-application"
+  const subject = lead.type === "quick-test"
+      ? `Quick Test order: ${`${lead.firstName} ${lead.lastName}`.trim()} (${lead.details?.testType || "test"}, ${lead.details?.state || ""})`
+      : lead.type === "cpp-application"
       ? `CPP application${lead.wantsAgreement ? " (SEND AGREEMENT)" : ""}: ${lead.company} (${[lead.city, lead.state].filter(Boolean).join(", ")})`
       : `New ${segmentLabel(lead.segment).toLowerCase()} lead: ${name}`;
   const r = rows(lead);

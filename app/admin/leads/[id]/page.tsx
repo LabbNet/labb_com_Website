@@ -5,7 +5,7 @@ import { AdminBar, Flash } from "@/components/AdminBar";
 import { fmtDate, readFlash, requireAdmin } from "@/lib/admin";
 import { sql } from "@/lib/db";
 import { partnerOptions } from "@/lib/leadQuery";
-import { leadName, type LeadRow } from "@/lib/leads";
+import { detailRows, leadName, type LeadRow } from "@/lib/leads";
 import { LEAD_STATUSES, SEGMENT_PATH, SEGMENTS, isSegment, segmentLabel, statusLabel } from "@/lib/segments";
 
 export const metadata: Metadata = { title: "Lead", robots: { index: false, follow: false } };
@@ -58,6 +58,7 @@ export default async function AdminLead({ params }: { params: Promise<{ id: stri
     ["Legal business name", d.legalName],
     ["Agreement signer", d.signer],
     ["Business type", d.clinicType],
+    ...detailRows(d.details as Record<string, string> | undefined),
     ["Services offered", d.services],
     ["Affiliation", d.affiliation],
     ["Send CPP agreement", lead.type === "cpp-application" ? (d.wantsAgreement ? "Yes, send the agreement" : "No, wants a call first") : ""],

@@ -9,6 +9,7 @@ export const SEGMENTS = [
   { value: "treatment", label: "Treatment or recovery program", short: "Treatment and recovery" },
   { value: "corrections", label: "Corrections agency (probation, parole, jail)", short: "Corrections" },
   { value: "drug-testing-business", label: "MRO, national account or other drug testing business", short: "Other drug testing business" },
+  { value: "individual", label: "Individual ordering a test for myself", short: "Individual (Quick Test)" },
   { value: "other", label: "Other", short: "Other" },
 ] as const;
 
@@ -22,6 +23,7 @@ export const SEGMENT_PATH: Record<Segment, string> = {
   laboratory: "LabbHR and One by Labb demo (laboratory)",
   tpa: "LabbHR and One by Labb demo (TPA)",
   treatment: "Treatment and recovery inquiry",
+  individual: "Quick Test order: ship kit overnight and schedule proctoring",
   "collection-site": "Clinic wants Labb technology in its facility",
   employer: "CPP lead generation (company needs drug testing)",
   corrections: "LabbPO and Labb Station demo",

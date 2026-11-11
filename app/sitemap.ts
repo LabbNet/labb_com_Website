@@ -29,6 +29,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     page("/one", 0.7),
     page("/compare", 0.7),
     page("/get-a-quote", 0.9),
+    page("/quick-test", 0.9),
     page("/oral-fluid-drug-testing", 0.9),
     page("/urine-drug-testing", 0.9),
     page("/test-kits", 0.9),

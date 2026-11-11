@@ -14,12 +14,25 @@ function segmentOf(body: Record<string, unknown>): Segment {
   const page = String(body.page || "");
   if (type === "clinic" || type === "cpp-application" || page.startsWith("/collection-sites")) return "collection-site";
   if (page.startsWith("/corrections") || page.startsWith("/labbpo")) return "corrections";
+  if (type === "quick-test" || page.startsWith("/quick-test")) return "individual";
   if (page.startsWith("/laboratories")) return "laboratory";
   if (page.startsWith("/tpas")) return "tpa";
   if (page.startsWith("/treatment-recovery")) return "treatment";
   if (page.startsWith("/drug-testing-businesses") || page.startsWith("/one")) return "drug-testing-business";
   if (body.industry || page.startsWith("/employers") || page.startsWith("/industries")) return "employer";
   return "other";
+}
+
+// Extra structured answers from specialized forms (for example Quick Test). Only known keys are kept.
+const DETAIL_KEYS = ["testType", "observation", "reason", "panel", "reportTo", "reportEmail", "address1", "address2", "city", "state", "zip", "deliverBy"] as const;
+function detailsOf(v: unknown) {
+  if (!v || typeof v !== "object") return undefined;
+  const out: Record<string, string> = {};
+  for (const k of DETAIL_KEYS) {
+    const val = (v as Record<string, unknown>)[k];
+    if (typeof val === "string" && val.trim()) out[k] = val.trim().slice(0, 300);
+  }
+  return Object.keys(out).length ? out : undefined;
 }
 
 function productsOf(v: unknown) {
@@ -74,6 +87,7 @@ export async function POST(req: Request) {
     services: str(body.services, 400),
     affiliation: str(body.affiliation, 160),
     clinicType: str(body.clinicType, 120),
+    details: detailsOf(body.details),
     wantsAgreement: body.wantsAgreement === true,
     newsletter: body.newsletter === true,
     page: str(body.page, 300),
@@ -95,6 +109,14 @@ export async function POST(req: Request) {
     if (!lead.city) errors.city = "Enter your city.";
     if (!lead.state) errors.state = "Enter your state.";
     if (!lead.phone) errors.phone = "Enter a 10 digit phone number.";
+  }
+  if (lead.type === "quick-test") {
+    const d = lead.details || {};
+    if (!lead.phone) errors.phone = "Enter a 10 digit phone number.";
+    if (!d.testType) errors.testType = "Choose a test type.";
+    if (!d.observation) errors.observation = "Choose observed or non-observed.";
+    if (!d.reason) errors.reason = "Choose the reason for the test.";
+    if (!d.address1 || !d.city || !d.state || !d.zip) errors.address1 = "Enter the full shipping address.";
   }
   if (Object.keys(errors).length) return NextResponse.json({ errors }, { status: 422 });
 

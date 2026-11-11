@@ -7,12 +7,19 @@ export const metadata: Metadata = { title: "Thank You", robots: { index: false, 
 export default async function Page({ searchParams }: { searchParams: Promise<{ type?: string; agreement?: string }> }) {
   const { type, agreement } = await searchParams;
   const cpp = type === "cpp";
+  const quick = type === "quick-test";
   return (
     <section className="section">
       <div className="wrap center" style={{ maxWidth: 700 }}>
         <div className="done">
           <div className="ok" aria-hidden="true">✓</div>
-          {cpp ? (
+          {quick ? (
+            <>
+              <h1 style={{ fontSize: "2.4rem" }}>Quick Test request received.</h1>
+              <p className="lede">A Labb specialist will contact you to confirm your test, the price and who receives the report. Once confirmed, we ship overnight and schedule your proctored video session.</p>
+              <p>Questions? Call <a href={site.phoneHref}>{site.phone}</a> or email <a href={`mailto:${site.email}`}>{site.email}</a>.</p>
+            </>
+          ) : cpp ? (
             <>
               <h1 style={{ fontSize: "2.4rem" }}>Application received.</h1>
               <p className="lede">

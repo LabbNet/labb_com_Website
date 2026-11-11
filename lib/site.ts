@@ -71,6 +71,7 @@ export const nav = [
       { href: "/login?next=/members", label: "Login" },
     ],
   },
+  { href: "/quick-test", label: "Quick Test" },
 ] as const;
 
 export function absoluteUrl(path = "/") {
