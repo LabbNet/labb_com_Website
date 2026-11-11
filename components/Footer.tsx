@@ -23,12 +23,14 @@ export function Footer() {
         <div>
           <h2>Products</h2>
           <ul>
-            <li><Link href="/test-kits#urine">Urine cups</Link></li>
-            <li><Link href="/test-kits#oral">Oral fluid kits</Link></li>
+            <li><Link href="/test-kits/oral-etest">Oral eTest</Link></li>
+            <li><Link href="/test-kits/urine-etest">Urine eTest</Link></li>
+            <li><Link href="/test-kits/oraflo">OraFlo</Link></li>
             <li><Link href="/test-kits#compare">Compare panels</Link></li>
             <li><Link href="/labb-station">Labb Station</Link></li>
             <li><Link href="/labbhr">LabbHR</Link></li>
             <li><Link href="/labbpo">LabbPO</Link></li>
+            <li><Link href="/labbmd">LabbMD</Link></li>
             <li><Link href="/one">One by Labb</Link></li>
             <li><Link href="/platforms">All platforms</Link></li>
           </ul>

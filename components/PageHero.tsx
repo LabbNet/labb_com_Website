@@ -21,7 +21,7 @@ export function PageHero({
   secondary?: Btn;
   image?: { src: string; alt: string; w: number; h: number };
   aside?: React.ReactNode;
-  tone?: "po";
+  tone?: "po" | "md";
 }) {
   const side = aside || image;
   return (

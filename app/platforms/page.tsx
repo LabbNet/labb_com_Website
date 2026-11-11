@@ -2,7 +2,7 @@ import Link from "next/link";
 import type { Metadata } from "next";
 import { Breadcrumbs, Faq } from "@/components/ui";
 import { PageHero } from "@/components/PageHero";
-import { LABBPO_LICENSE, platforms } from "@/lib/platforms";
+import { LABBMD_LICENSE, LABBPO_LICENSE, platforms } from "@/lib/platforms";
 
 export const metadata: Metadata = {
   title: "Labb Software Platforms: Labb Station, LabbHR and LabbPO",
@@ -18,12 +18,12 @@ const faqs = [
 ];
 
 export default function Platforms() {
-  const list = [platforms.station, platforms.hr, platforms.po];
+  const list = [platforms.hr, platforms.po, platforms.md, platforms.station];
   return (
     <>
       <PageHero
         eyebrow="Labb software"
-        title="Three platforms. One for every part of drug testing."
+        title="Labb platforms. One for every part of drug testing."
         lede={<>Labb Station runs the test. LabbHR runs the business. LabbPO runs the caseload.</>}
         primary={{ href: "#platforms", label: "Pick your platform" }}
         secondary={{ href: "/compare", label: "Labb Station vs LabbHR" }}
@@ -32,15 +32,15 @@ export default function Platforms() {
 
       <section className="section" id="platforms" style={{ paddingTop: 32 }}>
         <div className="wrap">
-          <div className="grid g3">
+          <div className="grid g4">
             {list.map((p) => (
-              <div key={p.key} className={`card top platform-card${p.key === "po" ? " po" : ""}`}>
+              <div key={p.key} className={`card top platform-card${p.key === "po" || p.key === "md" ? ` ${p.key}` : ""}`}>
                 <span className="rule">{p.rule}</span>
                 <h2 style={{ fontSize: "1.7rem" }}>{p.name}</h2>
                 <p style={{ fontWeight: 600, color: "var(--dark)" }}>{p.tagline}</p>
                 <p style={{ marginTop: 10 }}>{p.summary}</p>
                 <p style={{ marginTop: 12 }}><strong style={{ color: "var(--dark)" }}>Built for:</strong> {p.builtFor}</p>
-                <p style={{ marginTop: 8 }}><span className={`tag${p.key === "po" ? " po" : ""}`}>{p.status}</span></p>
+                <p style={{ marginTop: 8 }}><span className={`tag${p.key === "po" || p.key === "md" ? ` ${p.key}` : ""}`}>{p.status}</span></p>
                 <div className="btn-row">
                   <Link href={p.cta.href} className="btn btn-primary">{p.cta.label}</Link>
                   <Link href={p.href} className="btn btn-outline">About {p.name}</Link>
@@ -70,7 +70,7 @@ export default function Platforms() {
         </div>
       </section>
 
-      <div className="wrap"><p className="license-line">{LABBPO_LICENSE}</p></div>
+      <div className="wrap"><p className="license-line">{LABBPO_LICENSE} {LABBMD_LICENSE}</p></div>
     </>
   );
 }

@@ -4,13 +4,18 @@ import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
-import { nav, site } from "@/lib/site";
+import { nav as navItems, site } from "@/lib/site";
+
+type NavItem = { label: string; href?: string; base?: readonly string[]; children?: readonly { href: string; label: string }[] };
+const nav = navItems as readonly NavItem[];
 
 export function Header() {
   const [open, setOpen] = useState(false); // mobile menu
   const [menu, setMenu] = useState<string | null>(null); // which dropdown is open (only one at a time)
   const pathname = usePathname();
-  const isCurrent = (href: string) => pathname === href || (href !== "/" && pathname.startsWith(href + "/"));
+  const isCurrent = (href: string) => pathname === href.split("?")[0];
+  const inSection = (item: NavItem) =>
+    (item.children || []).some((c) => isCurrent(c.href)) || (item.base || []).some((b) => pathname === b || pathname.startsWith(b + "/"));
 
   // Close everything on navigation.
   useEffect(() => {
@@ -59,11 +64,11 @@ export function Header() {
         <nav id="main-nav" className={`main-nav${open ? " open" : ""}`} aria-label="Main">
           <ul>
             {nav.map((item) =>
-              "children" in item ? (
+              item.children ? (
                 <li key={item.label} className={`dd${menu === item.label ? " open" : ""}`} data-menu={item.label}>
                   <button
                     type="button"
-                    className={item.children.some((c) => isCurrent(c.href)) ? "current" : undefined}
+                    className={inSection(item) ? "current" : undefined}
                     aria-expanded={menu === item.label}
                     aria-controls={`menu-${item.label.replace(/\s+/g, "-").toLowerCase()}`}
                     onClick={() => setMenu(menu === item.label ? null : item.label)}
@@ -80,7 +85,7 @@ export function Header() {
                 </li>
               ) : (
                 <li key={item.href}>
-                  <Link href={item.href} aria-current={isCurrent(item.href) ? "page" : undefined}>{item.label}</Link>
+                  <Link href={item.href!} aria-current={isCurrent(item.href!) ? "page" : undefined}>{item.label}</Link>
                 </li>
               ),
             )}

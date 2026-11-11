@@ -41,9 +41,21 @@ export const platforms = {
     status: "Available now",
     cta: { href: "/labbpo#demo", label: "Request a demo" },
   },
+  md: {
+    key: "md",
+    name: "LabbMD",
+    href: "/labbmd",
+    rule: "Runs the program",
+    tagline: "Platform for treatment and recovery",
+    summary: "The platform for clinical, treatment and recovery programs.",
+    builtFor: "Treatment centers and recovery programs.",
+    status: "Available now",
+    cta: { href: "/labbmd", label: "Learn more" },
+  },
 } as const;
 
 export const LABBPO_LICENSE = "LabbPO is licensed from LabbMD, Inc.";
+export const LABBMD_LICENSE = "LabbMD is licensed from LabbMD, Inc.";
 
 // /compare: Labb Station vs LabbHR, feature by feature (from the website strategy, Nov 11, 2026).
 export const stationVsHr: { group: string; rows: { feature: string; station: Cell; hr: Cell }[] }[] = [

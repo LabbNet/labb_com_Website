@@ -9,6 +9,7 @@
   --orange: #cf743c;
   --po: #55749e;
   --po-tint: #eef2f7;
+  --md: #4da091;
   --orange-hover: #b8622f;
   --tint-20: #f5e3d8;
   --tint-10: #faf1ec;
@@ -581,3 +582,19 @@ p { margin: 0 0 1em; }
   .main-nav .dd > ul a:hover { background: rgba(255,255,255,0.1); color: #fff; }
   .main-nav .dd > button { width: 100%; text-align: left; }
 }
+
+/* LabbMD accent (#4DA091) */
+.page-hero.tone-md { border-bottom: 6px solid var(--md); }
+.page-hero.tone-md .eyebrow, .eyebrow.md { border-left-color: var(--md); }
+.platform-card.md { border-top-color: var(--md); }
+.platform-card.md .rule { color: var(--md); }
+.tag.md::before { background: var(--md); }
+/* Section tabs (CPP pages) */
+.sub-nav { display: flex; flex-wrap: wrap; gap: 6px; padding-top: 4px; padding-bottom: 4px; border-bottom: 1px solid var(--border); }
+.sub-nav a { padding: 10px 14px; color: var(--dark); text-decoration: none; font-weight: 500; border-radius: 8px; }
+.sub-nav a:hover { background: var(--bg-soft); }
+.sub-nav a[aria-current="page"] { font-weight: 700; text-decoration: underline; text-decoration-color: var(--orange); text-decoration-thickness: 3px; text-underline-offset: 8px; }
+.contract-steps { list-style: none; padding: 0; margin: 20px 0 0; counter-reset: c; display: grid; gap: 14px; }
+.contract-steps li { counter-increment: c; display: grid; grid-template-columns: 36px 1fr; column-gap: 12px; }
+.contract-steps li::before { content: counter(c); grid-row: span 2; width: 32px; height: 32px; border-radius: 50%; background: var(--tint-20); color: var(--orange); font-weight: 800; display: grid; place-items: center; }
+.contract-steps span { color: var(--muted); font-size: 0.95rem; }

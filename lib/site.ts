@@ -22,6 +22,7 @@ export const site = {
 export const nav = [
   {
     label: "Who we serve",
+    base: ["/industries"],
     children: [
       { href: "/laboratories", label: "Laboratories" },
       { href: "/tpas", label: "TPAs" },
@@ -33,26 +34,43 @@ export const nav = [
   },
   {
     label: "Platforms",
+    base: ["/platforms", "/compare"],
     children: [
-      { href: "/platforms", label: "All platforms" },
-      { href: "/labb-station", label: "Labb Station: runs the test" },
-      { href: "/labbhr", label: "LabbHR: runs the business" },
-      { href: "/labbpo", label: "LabbPO: runs the caseload" },
       { href: "/one", label: "One by Labb" },
-      { href: "/compare", label: "Compare Labb Station and LabbHR" },
+      { href: "/labbhr", label: "LabbHR" },
+      { href: "/labbpo", label: "LabbPO" },
+      { href: "/labbmd", label: "LabbMD" },
+      { href: "/labb-station", label: "Labb Station" },
     ],
   },
-  { href: "/test-kits", label: "Test kits" },
+  {
+    label: "Test kits",
+    base: ["/test-kits"],
+    children: [
+      { href: "/test-kits/oral-etest", label: "Oral eTest" },
+      { href: "/test-kits/urine-etest", label: "Urine eTest" },
+      { href: "/test-kits/oraflo", label: "OraFlo" },
+    ],
+  },
   {
     label: "Training",
+    base: ["/resources", "/news"],
     children: [
       { href: "/training", label: "Training and education" },
       { href: "/certifications", label: "Certifications" },
       { href: "/news", label: "News and insights" },
-      { href: "/members", label: "CPP member login" },
     ],
   },
-  { href: "/channel-partner-program", label: "Partner program" },
+  {
+    label: "Partner program",
+    base: ["/channel-partner-program", "/members"],
+    children: [
+      { href: "/channel-partner-program", label: "Overview" },
+      { href: "/channel-partner-program/program-details", label: "Program Details" },
+      { href: "/channel-partner-program/get-started", label: "Get Started" },
+      { href: "/login?next=/members", label: "Login" },
+    ],
+  },
 ] as const;
 
 export function absoluteUrl(path = "/") {
