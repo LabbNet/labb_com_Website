@@ -3,6 +3,7 @@ import Script from "next/script";
 import "./globals.css";
 import { Footer } from "@/components/Footer";
 import { Header } from "@/components/Header";
+import { ConnectDrawer } from "@/components/visual/ConnectDrawer";
 import { JsonLd } from "@/components/ui";
 import { site } from "@/lib/site";
 
@@ -35,6 +36,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <Header />
         <main id="main">{children}</main>
         <Footer />
+        <ConnectDrawer />
         <JsonLd
           data={{
             "@context": "https://schema.org",

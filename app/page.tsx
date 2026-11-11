@@ -1,311 +1,168 @@
-import Image from "next/image";
 import Link from "next/link";
 import type { Metadata } from "next";
-import { Checks } from "@/components/ui";
-import { Icon } from "@/components/Icon";
+import { GraphicSlot } from "@/components/visual/GraphicSlot";
+import { Hotspots, RevealTiles } from "@/components/visual/Reveal";
+import { ScanStory } from "@/components/visual/ScanStory";
+import { CompareSlider } from "@/components/visual/CompareSlider";
+import { KitShelf } from "@/components/visual/KitShelf";
+import { shelfKits } from "@/lib/kits";
 import { site } from "@/lib/site";
 
 export const metadata: Metadata = {
   title: { absolute: "Rapid Drug Testing Read Digitally by Labb Station | Labb" },
   description:
-    "Labb Station reads every rapid drug test digitally, documents the result and keeps donor information private. Oral fluid or urine, at your site or anywhere your people work.",
+    "Labb Station reads every rapid drug test on a phone or tablet, documents the result and keeps donor information private. Software and test kits for labs, TPAs, collection sites, employers, treatment and corrections.",
   alternates: { canonical: "/" },
 };
 
-// Layout follows the "Labb Redesign (Draft)" Shopify theme.
-const bias = [
-  {
-    t: "Expectation",
-    b: 'An employee mentions an antibiotic, something from months ago, or "I took Tylenol and Advil." Most people don\'t know what a test detects or for how long. Once a collector expects a positive, a faint line starts to look like one.',
-  },
-  { t: "Sympathy", b: "When someone is clearly struggling, it is natural to want to give them the benefit of the doubt. A kind instinct can still produce the wrong result." },
-  { t: "First impressions", b: "Assumptions about who uses drugs can shape what a person sees on a test, usually without anyone realizing it." },
-  { t: "Outside pressure", b: "Every testing site feels cost and workload pressure. A result should never lean one way because of what comes next." },
+// Light copy, big graphics: each section is a headline, one line and a graphic. Detail sits behind plus buttons.
+// Graphics marked as placeholders show the file name to drop into /public/graphics.
+const who = [
+  { href: "/laboratories", label: "Laboratories", g: "laboratories" },
+  { href: "/tpas", label: "TPAs", g: "tpas" },
+  { href: "/collection-sites", label: "Collection Sites", g: "collection-sites" },
+  { href: "/employers", label: "Employers", g: "employers" },
+  { href: "/treatment-recovery", label: "Treatment & Recovery", g: "treatment" },
+  { href: "/corrections", label: "Corrections", g: "corrections" },
 ];
 
-const vs = [
-  ["Interpreting the result", "Shaped by what the collector heard, expects or assumes.", "The same criteria for every device, every donor."],
-  ["Faint lines", "Can look negative to one person and positive to another.", "Measured, not judged."],
-  ["Recording it", "Handwritten or typed in later.", "Saved electronically the moment it is read."],
-  ["Employee privacy", "A supervisor or coworker sees and judges the result.", "Patented True Privacy: drug names are masked on the device and decoded privately."],
-  ["If a result is challenged", "It comes down to one person's judgment.", "An objective, documented record to stand behind."],
+const story = [
+  { title: "Place the test", body: "Collect the specimen and set the Labb kit down.", g: "scan-1-place" },
+  { title: "Scan side 1", body: "Point any phone or tablet at the kit.", g: "scan-2-side1" },
+  { title: "Scan side 2", body: "The app guides you to the next side.", g: "scan-3-side2" },
+  { title: "Result on record", body: "An objective read, saved with the image.", g: "scan-4-result" },
+];
+
+const platforms = [
+  { title: "One by Labb", g: "one", body: "The network that connects labs, TPAs, MROs, collection sites and employers.", href: "/one" },
+  { title: "LabbHR", g: "labbhr", body: "Runs the business: sales, marketing, contracting and accounting for drug testing companies. Now in beta.", href: "/labbhr" },
+  { title: "LabbPO", g: "labbpo", body: "Runs the caseload: random selection, notification and fee collection for corrections.", href: "/labbpo" },
+  { title: "LabbMD", g: "labbmd", body: "The platform for treatment and recovery programs.", href: "/labbmd" },
+  { title: "Labb Station", g: "labb-station", body: "Runs the test: an objective read and a documented record on any phone or tablet.", href: "/labb-station" },
 ];
 
 export default function Home() {
   return (
     <>
-      <section className="hero">
+      <section className="hero-v2">
         <div className="wrap">
           <div>
-            <Link href="/labbhr" className="announce">
-              <b>New:</b> LabbHR, the platform for growing a drug testing business, now in beta
-            </Link>
+            <span className="eyebrow">Labb Station · {site.patent}</span>
             <h1>An objective read, controlled by software.</h1>
-            <p className="lede">
-              Labb Station reads every rapid drug test digitally, documents the result, and keeps donor information private. Oral fluid or
-              urine, at your site or anywhere your people work.
-            </p>
+            <p className="lede">Every rapid drug test read on a phone, documented and private.</p>
             <div className="btn-row">
-              <Link href="/get-a-quote?sample=1" className="btn btn-primary btn-lg">Request a free sample</Link>
-              <Link href="/test-kits" className="btn btn-outline btn-lg">Explore test kits</Link>
+              <a href="#who" className="btn btn-primary btn-lg">Who are you?</a>
+              <Link href="/get-a-quote" className="btn btn-outline btn-lg">Get a quote</Link>
             </div>
-            <p style={{ marginTop: 18, fontSize: "0.9rem", color: "var(--muted)" }}>
-              Already a customer? <a href={site.clientLogin} rel="nofollow">Log in to your account</a>
-            </p>
           </div>
-          <div className="hero-media">
-            <Image src="/img/phone-reader.webp" alt="A phone running the Labb Station app reading a rapid drug test result" width={1400} height={1400} priority sizes="(max-width: 900px) 92vw, 520px" />
-          </div>
+          <GraphicSlot src="/graphics/home/hero-phone-scan.webp" alt="A phone scanning a Labb rapid drug test" label="Hero: phone scanning a Labb kit" w={1600} h={1200} priority />
         </div>
       </section>
 
-      <section className="trust" aria-label="Why Labb">
+      <section className="band light" id="who">
         <div className="wrap">
-          <div><Icon name="shield" /><p style={{ margin: 0 }}><strong>Patented reader</strong><span>{site.patent}</span></p></div>
-          <div><Icon name="doc" /><p style={{ margin: 0 }}><strong>Every result documented</strong><span>Electronic record, no handwriting</span></p></div>
-          <div><Icon name="eye" /><p style={{ margin: 0 }}><strong>An objective read</strong><span>The same criteria for every donor</span></p></div>
-          <div><Icon name="lock" /><p style={{ margin: 0 }}><strong>True Privacy™</strong><span>Drug names masked on the device</span></p></div>
-        </div>
-      </section>
-
-      <section className="section">
-        <div className="wrap">
-          <span className="eyebrow">Start here</span>
-          <h2>What do you need today?</h2>
-          <div className="grid g4" style={{ marginTop: 28 }}>
-            <Link href="/test-kits" className="card card-link">
-              <div className="ico"><Icon name="box" size={22} /></div>
-              <h3>Explore test kits</h3>
-              <p>Compare urine and oral fluid panels, drugs and cutoffs, and download data sheets. Then ask for a quote.</p>
-              <span className="more-row">Browse kits →</span>
-            </Link>
-            <Link href="/get-a-quote?sample=1" className="card card-link hl">
-              <div className="ico solid"><Icon name="check" size={22} /></div>
-              <h3>Start a testing program</h3>
-              <p>Tell us about your workforce. We will recommend panels, send a free sample, and get you certified.</p>
-              <span className="more-row">Request a sample →</span>
-            </Link>
-            <Link href="/labbhr" className="card card-link">
-              <div className="ico"><Icon name="chart" size={22} /></div>
-              <h3>Grow a drug testing business</h3>
-              <p>LabbHR gives TPAs, labs, MROs and collection sites one platform to sell, market, contract and bill.</p>
-              <span className="more-row">Join the beta →</span>
-            </Link>
-            <Link href="/corrections" className="card card-link">
-              <div className="ico"><Icon name="shield" size={22} /></div>
-              <h3>Run a corrections caseload</h3>
-              <p>LabbPO handles random selection, notification, fee collection and test tracking for probation and parole.</p>
-              <span className="more-row">See LabbPO →</span>
-            </Link>
+          <div className="band-head center">
+            <h2>Who are you?</h2>
+            <p className="lede-sm">Pick your world. We&apos;ll show you what fits.</p>
           </div>
-        </div>
-      </section>
-
-      <section className="section soft">
-        <div className="wrap">
-          <div className="head-row">
-            <div>
-              <span className="eyebrow">Why a digital reader</span>
-              <h2 style={{ margin: 0 }}>Good collectors are still human. A reader takes human bias out of the result.</h2>
-            </div>
-            <p>
-              Faint lines are only part of the problem. The bigger one is context. What a collector has just heard, felt or assumed can
-              change how they read the same line. Labb Station reads only the device.
-            </p>
-          </div>
-          <div className="grid g4">
-            {bias.map((b) => (
-              <div key={b.t} className="card top">
-                <h3>{b.t}</h3>
-                <p>{b.b}</p>
-              </div>
+          <div className="who-grid">
+            {who.map((w) => (
+              <Link key={w.href} href={w.href} className="who">
+                <div style={{ width: 96 }}><GraphicSlot src={`/graphics/who/${w.g}.webp`} alt="" label={w.label} w={400} h={400} sizes="96px" /></div>
+                <b>{w.label}</b>
+              </Link>
             ))}
           </div>
-          <div className="callout-dark">
-            <div>
-              <h3>The reader sees the device. Nothing else.</h3>
-              <p>
-                The same criteria for every device, every time, saved electronically the moment it is read. The donor gets a fair read,
-                the collector is never second-guessed, and the employer gets a result it can stand behind.
-              </p>
-            </div>
-            <Link href="/labb-station" className="btn btn-primary btn-lg">See the reader in action</Link>
-          </div>
-          <table className="vs">
-            <caption className="visually-hidden">Reading rapid tests by eye compared with the Labb Station digital reader</caption>
-            <thead>
-              <tr>
-                <th scope="col"><span className="visually-hidden">Step</span></th>
-                <th scope="col">Reading by eye</th>
-                <th scope="col" className="reader">Labb Station digital reader</th>
-              </tr>
-            </thead>
-            <tbody>
-              {vs.map(([s, eye, reader]) => (
-                <tr key={s}>
-                  <th scope="row">{s}</th>
-                  <td>{eye}</td>
-                  <td className="reader">{reader}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-          <p className="fine" style={{ textAlign: "left" }}>Labb Station reader technology: {site.patent}</p>
         </div>
       </section>
 
-      <section className="section">
-        <div className="wrap split">
-          <div className="media-box">
-            <Image src="/img/true-privacy-screens.webp" alt="Labb urine cup and OraFlo oral fluid device read by Labb Station" width={1400} height={1400} sizes="(max-width: 900px) 90vw, 460px" />
-          </div>
-          <div>
-            <span className="eyebrow">How Labb Station works</span>
-            <h2>Four steps. No guesswork.</h2>
-            <ol className="steps" style={{ marginTop: 20 }}>
-              {[
-                ["Collect", "The app walks the collector through each step, so nothing gets skipped."],
-                ["Scan", "Scan the device barcode. The test is matched to the donor automatically."],
-                ["Read", "Labb Station interprets the result. No squinting at faint lines, no judgment calls."],
-                ["Report", "Results land in your account. Non-negatives go to the lab for confirmation in one step."],
-              ].map(([t, b], i) => (
-                <li key={t}>
-                  <span className="n">{i + 1}</span>
-                  <div><h3>{t}</h3><p>{b}</p></div>
-                </li>
-              ))}
-            </ol>
-            <p style={{ marginTop: 22 }}><Link href="/labb-station" className="text-link" style={{ textDecoration: "underline" }}>See Labb Station in detail →</Link></p>
-          </div>
-        </div>
-      </section>
-
-      <section className="section soft">
+      <section className="band">
         <div className="wrap">
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "end", flexWrap: "wrap", gap: 12 }}>
-            <div>
-              <span className="eyebrow">Test kits</span>
-              <h2 style={{ margin: 0 }}>Choose your specimen</h2>
-            </div>
-            <Link href="/test-kits#compare" className="text-link" style={{ textDecoration: "underline" }}>Compare all kits →</Link>
-          </div>
-          <div className="grid g2" style={{ marginTop: 28 }}>
-            <div className="card spec-card">
-              <div className="ph"><Image src="/img/oral-fluid-devices.webp" alt="Labb oral fluid drug test devices" width={1400} height={867} sizes="(max-width: 900px) 90vw, 520px" /></div>
-              <div className="bd">
-                <h3 style={{ fontSize: "1.5rem" }}>Oral fluid</h3>
-                <p>Detects recent use. Observed collection anywhere, no restroom needed, hard to tamper with.</p>
-                <ul>
-                  <li>Best for: post-accident, reasonable suspicion, on-site testing</li>
-                  <li>Devices: ORF:31C OraFlo, OR:14A</li>
-                </ul>
-                <div className="btn-row">
-                  <Link href="/oral-fluid-drug-testing" className="btn btn-primary">Explore oral fluid kits</Link>
-                  <Link href="/get-a-quote" className="text-link">Get a quote</Link>
-                </div>
-              </div>
-            </div>
-            <div className="card spec-card">
-              <div className="ph"><Image src="/kits/ua-series.webp" alt="Labb eTest Cup urine drug screens" width={900} height={900} sizes="(max-width: 900px) 90vw, 520px" /></div>
-              <div className="bd">
-                <h3 style={{ fontSize: "1.5rem" }}>Urine</h3>
-                <p>Longer detection window and the widest choice of panels, from 6 to 23 drugs.</p>
-                <ul>
-                  <li>Best for: pre-employment, random programs</li>
-                  <li>Devices: UA:06B, UA:13A, UA:16C, UA:23A and more</li>
-                </ul>
-                <div className="btn-row">
-                  <Link href="/urine-drug-testing" className="btn btn-primary">Explore urine cups</Link>
-                  <Link href="/get-a-quote" className="text-link">Get a quote</Link>
-                </div>
-              </div>
-            </div>
-          </div>
+          <Hotspots
+            graphic={<GraphicSlot src="/kits/or-06a/hero.webp" alt="eTest Swab OR:06A oral fluid test with its swab and cap" label="Kit render" w={1000} h={1000} />}
+            title="Better-built test kits."
+            intro="Designed to be read by a phone. Tap a plus to look closer."
+            cta="Get a quote"
+            points={[
+              { x: 38, y: 34, title: "Built for the reader", body: "Each side is labeled and scanned in order, so the app reads every strip.", topic: "Kit design: built for the reader" },
+              { x: 62, y: 58, title: "Observed oral fluid", body: "Collect anywhere in 2 to 3 minutes. No restroom needed.", topic: "Oral fluid collection" },
+              { x: 22, y: 78, title: "Panels that fit", body: "From 6 to 23 drugs, oral fluid or urine, workplace or forensic.", topic: "Panel options" },
+            ]}
+          />
         </div>
       </section>
 
-      <section className="section band-dark">
-        <div className="wrap split">
-          <div>
-            <span className="status-pill">Three platforms</span>
-            <h2>Labb Station runs the test. LabbHR runs the business. LabbPO runs the caseload.</h2>
-            <p>One platform for every part of drug testing, from the rapid read to growing a testing business to managing a probation caseload.</p>
-            <Checks items={["Labb Station: objective reads and a documented record for every rapid test", "LabbHR: sales, marketing, contracting and accounting, now in beta", "LabbPO: random selection, notification and fee collection for corrections"]} />
-            <div className="btn-row">
-              <Link href="/platforms" className="btn btn-primary btn-lg">Pick your platform</Link>
-              <Link href="/compare" className="btn btn-ghost btn-lg">Labb Station vs LabbHR</Link>
-            </div>
-          </div>
-          <div className="media-white">
-            <Image src="/img/phone-app.webp" alt="The Labb app on a phone" width={1048} height={818} sizes="(max-width: 900px) 90vw, 520px" />
-          </div>
-        </div>
-      </section>
-
-      <section className="section">
-        <div className="wrap split">
-          <div>
-            <span className="eyebrow">True Privacy with Real Protection™</span>
-            <h2>Respect for your people is built into the device.</h2>
-            <p className="intro" style={{ marginBottom: 0 }}>
-              Testing is personal. With Labb, no supervisor interprets a result by eye, and donor details are protected from collection to
-              report. Your team gets a clear answer. Your employees get dignity.
-            </p>
-          </div>
-          <div className="rails">
-            <div><strong>Objective reads</strong><span>The reader decides, using the same criteria every time.</span></div>
-            <div><strong>Protected records</strong><span>Results are stored electronically and shared only with the people who need them.</span></div>
-            <div><strong>Errors caught early</strong><span>Guided workflows stop common collection mistakes before they happen.</span></div>
-          </div>
-        </div>
-      </section>
-
-      <section className="section soft" id="readers">
+      <section className="band light">
         <div className="wrap">
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "end", flexWrap: "wrap", gap: 16 }}>
-            <div>
-              <span className="eyebrow">Coming 2027</span>
-              <h2 style={{ marginBottom: 6 }}>Two new readers are on the way.</h2>
-              <p style={{ color: "var(--muted)", margin: 0 }}>Pilot programs are forming now. Ask about joining.</p>
-            </div>
-            <Link href="/contact" className="btn btn-outline">Ask about the pilot</Link>
+          <div className="band-head">
+            <h2>Scan it. Done.</h2>
+            <p className="lede-sm">Labb Station turns a phone into a patented rapid test reader.</p>
           </div>
-          <div className="grid g2" style={{ marginTop: 28 }}>
-            <div className="card" style={{ background: "#fff", border: "1px solid var(--border)" }}>
-              <span className="mini">Mobile app</span>
-              <h3>LabbHR Reader</h3>
-              <p>Rapid screen reading for urine, oral fluid and hair, from a phone.</p>
-            </div>
-            <div className="card" style={{ background: "#fff", border: "1px solid var(--border)" }}>
-              <span className="mini">Desktop and handheld</span>
-              <h3>LabbHR Pro Reader</h3>
-              <p>Quantitative results on site for employer programs. Release pending final validation and pilot results.</p>
-            </div>
-          </div>
+          <ScanStory
+            steps={story.map((s) => ({
+              title: s.title,
+              body: s.body,
+              graphic: <GraphicSlot src={`/graphics/station/${s.g}.webp`} alt={s.title} label={`Phone: ${s.title.toLowerCase()}`} w={1200} h={1200} />,
+            }))}
+          />
         </div>
       </section>
 
-      <section className="section">
-        <div className="wrap">
-          <span className="eyebrow">Who we serve</span>
-          <h2>Built for workplaces that can&apos;t slow down.</h2>
-          <div className="serve" style={{ marginTop: 28 }}>
-            <Link href="/industries/manufacturing"><h3>Manufacturing</h3><p>Test on the floor between shifts, without sending people off site.</p></Link>
-            <Link href="/industries/logistics-warehousing"><h3>Logistics and fulfillment</h3><p>Clear high-volume hiring classes in minutes, at the warehouse.</p></Link>
-            <Link href="/industries/construction"><h3>Construction</h3><p>Test at the job site after an incident, with a documented result.</p></Link>
+      <section className="band dark">
+        <div className="wrap split" style={{ alignItems: "center" }}>
+          <div>
+            <h2>Read by eye, or read by Labb.</h2>
+            <p className="lede-sm">Anyone reading by eye is exposed to bias. Labb Station reads only the device.</p>
+            <div className="btn-row"><Link href="/labb-station" className="btn btn-light">See Labb Station</Link></div>
           </div>
+          <CompareSlider
+            leftLabel="By eye"
+            rightLabel="Labb Station"
+            left={<GraphicSlot src="/graphics/home/compare-by-eye.webp" alt="A rapid test read by eye with a faint line" label="Hand-held cup, faint line" w={1200} h={900} className="gslot-l" />}
+            right={<GraphicSlot src="/graphics/home/compare-labb.webp" alt="A phone showing a documented Labb Station result" label="Phone with documented result" w={1200} h={900} className="gslot-r" />}
+          />
+        </div>
+      </section>
+
+      <section className="band">
+        <div className="wrap">
+          <div className="band-head">
+            <h2>One platform for every part of drug testing.</h2>
+            <p className="lede-sm">Open any platform for the short version.</p>
+          </div>
+          <RevealTiles
+            cols={3}
+            items={platforms.map((p) => ({
+              title: p.title,
+              graphic: <GraphicSlot src={`/graphics/platforms/${p.g}.webp`} alt={`${p.title} logo`} label={`${p.title} logo`} w={800} h={500} sizes="320px" />,
+              body: p.body,
+              topic: p.title,
+              href: p.href,
+              hrefLabel: `About ${p.title}`,
+            }))}
+          />
+        </div>
+      </section>
+
+      <section className="band light">
+        <div className="wrap">
+          <div className="band-head">
+            <h2>The kits.</h2>
+            <p className="lede-sm">Tap any kit for the panel and a quote.</p>
+          </div>
+          <KitShelf kits={shelfKits()} />
         </div>
       </section>
 
       <section className="cta-band">
         <div className="wrap">
           <div>
-            <h2>Ready to simplify your drug testing?</h2>
-            <p>Talk to a Labb specialist. We will send a free sample and help you choose the right panels.</p>
+            <h2>Ready when you are.</h2>
+            <p>Tell us how you test today. We&apos;ll take it from there.</p>
           </div>
           <div className="btn-row" style={{ marginTop: 0 }}>
-            <Link href="/get-a-quote?sample=1" className="btn btn-light">Request a free sample</Link>
-            <a href={site.phoneHref} className="btn btn-ghost">Call {site.phone}</a>
+            <Link href="/get-a-quote" className="btn btn-light">Get a quote</Link>
+            <Link href="/quick-test" className="btn btn-ghost">Need one test? Quick Test</Link>
           </div>
         </div>
       </section>

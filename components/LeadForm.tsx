@@ -17,11 +17,12 @@ type Props = {
   defaultMessage?: string;
   segment?: Segment; // set on segment pages so the visitor isn't asked again
   products?: string[]; // products pre-checked on product pages
+  topic?: string; // the detail the visitor opened before asking to connect (slide-in form)
 };
 
 const INDUSTRY = ["Construction", "Manufacturing", "Logistics and warehousing", "Staffing", "Healthcare", "Other"];
 
-export function LeadForm({ variant, title, subtitle, submitLabel, resource, industry, compact, defaultMessage, segment: fixedSegment, products: preChecked = [] }: Props) {
+export function LeadForm({ variant, title, subtitle, submitLabel, resource, industry, compact, defaultMessage, segment: fixedSegment, products: preChecked = [], topic }: Props) {
   const router = useRouter();
   const started = useRef(Date.now());
   const [state, setState] = useState<"idle" | "sending" | "done">("idle");
@@ -59,6 +60,7 @@ export function LeadForm({ variant, title, subtitle, submitLabel, resource, indu
     body.newsletter = fd.get("newsletter") === "on";
     body.products = fd.getAll("products").map(String);
     body.segment = segment || undefined;
+    if (topic) body.details = { topic };
     body.type = variant;
     body.resource = resource;
     body.page = window.location.pathname;

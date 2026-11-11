@@ -449,3 +449,10 @@ export const drugClasses: { name: string; codes: string[] }[] = [
   { name: "Antidepressants", codes: ["TCA"] },
   { name: "Alcohol", codes: ["ETG", "ALC"] },
 ];
+
+// Minimal kit data for the client-side kit shelf and quick view.
+export const shelfKits = (list: Kit[] = publishedKits) =>
+  list.map((k) => ({
+    slug: k.slug, code: k.code, name: k.name, series: k.series, specimen: k.specimen, badge: k.badge, badgeLabel: badgeLabel[k.badge],
+    drugCount: k.drugCount, readTime: k.readTime, image: k.image, summary: k.summary, drugs: k.drugs,
+  }));
