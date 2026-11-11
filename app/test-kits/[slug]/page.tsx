@@ -1,4 +1,5 @@
 import Image from "next/image";
+import { KitGallery } from "@/components/KitGallery";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
@@ -40,9 +41,7 @@ export default async function KitPage({ params }: { params: Promise<{ slug: stri
       <section className="section" style={{ paddingTop: 36 }}>
         <div className="wrap split" style={{ alignItems: "start" }}>
           <div>
-            <div style={{ background: "var(--bg-soft)", borderRadius: 20, padding: 32 }}>
-              <Image src={kit.image} alt={`${kit.name} ${kit.specimen.toLowerCase()} drug test`} width={900} height={900} priority sizes="(max-width: 900px) 90vw, 520px" style={{ margin: "0 auto", maxHeight: 460, width: "auto" }} />
-            </div>
+            <KitGallery main={{ src: kit.image, alt: `${kit.name} ${kit.specimen.toLowerCase()} drug test`, w: 900, h: 900 }} images={kit.gallery} />
             <h2 style={{ fontSize: "1.4rem", marginTop: 40 }}>Panel and cutoffs</h2>
             <p style={{ color: "var(--muted)", fontSize: "0.95rem" }}>
               Cutoffs in ng/mL{kit.specimen === "Oral fluid" ? " of oral fluid" : ""}. The strip reads non-negative when the drug is at or above the cutoff.
@@ -84,6 +83,21 @@ export default async function KitPage({ params }: { params: Promise<{ slug: stri
           </div>
         </div>
       </section>
+
+      {kit.procedure && (
+        <section className="section" id="how-to-use">
+          <div className="wrap">
+            <span className="eyebrow">How to use</span>
+            <h2>{kit.code} procedure</h2>
+            <ol className="proc-steps">
+              {kit.procedure.steps.map((st) => <li key={st}>{st}</li>)}
+            </ol>
+            <div className="proc-card">
+              <Image src={kit.procedure.image} alt={`${kit.code} procedure card showing the five collection and reading steps and how to read positive, negative and invalid results`} width={1600} height={881} sizes="(max-width: 1240px) 94vw, 1150px" />
+            </div>
+          </div>
+        </section>
+      )}
 
       <section className="section soft">
         <div className="wrap">

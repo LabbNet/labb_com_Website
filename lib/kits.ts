@@ -20,6 +20,8 @@ export type Kit = {
   dataSheet?: string;
   goodFor: string[];
   published: boolean;
+  gallery?: { src: string; alt: string; w: number; h: number }[]; // extra views shown under the main image
+  procedure?: { image: string; steps: string[] }; // procedure card and its steps as text
 };
 
 const drive = (id: string) => `https://drive.google.com/file/d/${id}/view`;
@@ -60,6 +62,59 @@ export const kits: Kit[] = [
     image: "/kits/orf-31c.webp",
     dataSheet: drive("1wJT3vmxDFI2sl4SCxOCVLjjjyLXYCEpz"),
     goodFor: ["Post-accident", "Random", "Pre-employment", "Sites without restrooms"],
+    published: true,
+  },
+  {
+    slug: "or-06a-etest-swab",
+    code: "OR:06A",
+    name: "eTest Swab OR:06A",
+    series: "OR Series",
+    specimen: "Oral fluid",
+    use: "Workplace",
+    badge: "EUO",
+    drugCount: 6,
+    readTime: "3 to 10 minutes",
+    summary:
+      "The core six drug oral fluid screen for workplace testing. Observed collection with no restroom, a 2 to 3 minute swab, and a two-sided cup made for an objective Labb Station read.",
+    facts: [
+      { label: "Specimen", value: "Oral fluid, observed collection" },
+      { label: "Collection time", value: "2 to 3 minutes" },
+      { label: "Opiates", value: "40 ng/mL" },
+      { label: "Marijuana (THC)", value: "12 ng/mL" },
+      { label: "Pack size", value: "25 per case" },
+      { label: "Product use", value: "Workplace" },
+    ],
+    drugs: [
+      { code: "AMP", name: "Amphetamine", cutoff: "50" },
+      { code: "COC", name: "Cocaine", cutoff: "20" },
+      { code: "MET", name: "Methamphetamine", cutoff: "50" },
+      { code: "OPI", name: "Opiates", cutoff: "40" },
+      { code: "PCP", name: "Phencyclidine", cutoff: "10" },
+      { code: "THC", name: "Marijuana", cutoff: "12" },
+    ],
+    image: "/kits/or-06a.webp",
+    gallery: [
+      { src: "/kits/or-06a/hero.webp", alt: "OR:06A oral fluid cup with the swab and cap beside it", w: 1000, h: 1000 },
+      { src: "/kits/or-06a/closed.webp", alt: "OR:06A cup closed, ready to read", w: 1000, h: 1000 },
+      { src: "/kits/or-06a/insert.webp", alt: "OR:06A swab going back into the collection chamber", w: 1000, h: 1000 },
+      { src: "/kits/or-06a/side-1.webp", alt: "OR:06A side 1 with the drug panel and barcode", w: 1000, h: 1000 },
+      { src: "/kits/or-06a/side-2.webp", alt: "OR:06A side 2", w: 1000, h: 1000 },
+      { src: "/kits/or-06a/pouch-front.webp", alt: "OR:06A sealed pouch, front", w: 1400, h: 553 },
+      { src: "/kits/or-06a/pouch-back.webp", alt: "OR:06A sealed pouch, back", w: 1400, h: 553 },
+      { src: "/kits/or-06a/box-closed.webp", alt: "OR:06A case of 25, closed", w: 1000, h: 1000 },
+      { src: "/kits/or-06a/box-open.webp", alt: "OR:06A case of 25, open, showing the pouches", w: 1000, h: 1000 },
+    ],
+    procedure: {
+      image: "/kits/or-06a/procedure-card.webp",
+      steps: [
+        "Remove the collector and cup from the sealed pouch.",
+        "Insert the sponge end into the mouth. Swab around the gums on both sides and under the tongue, chew the sponge gently, then hold it under the tongue for a total of 2 to 3 minutes until it is fully saturated.",
+        "Remove the sponge from the mouth and put it back into the collection chamber.",
+        "Screw the cap on and start the timer.",
+        "Peel off the label and read the results at 3 to 10 minutes. If every line is clearly visible at 3 minutes, the test can be read as negative. If any line is not visible at 3 minutes, read it again at 10 minutes.",
+      ],
+    },
+    goodFor: ["Pre-employment", "Random", "Observed collection"],
     published: true,
   },
   {

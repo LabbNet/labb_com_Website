@@ -545,3 +545,16 @@ p { margin: 0 0 1em; }
 .net .hub { grid-column: 1 / -1; background: var(--dark); color: #fff; border-color: var(--dark); font-size: 1.1rem; }
 .notify-chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; }
 .notify-chips span { background: var(--po-tint); color: var(--dark); border-radius: 999px; padding: 5px 14px; font-weight: 600; font-size: 0.9rem; }
+
+/* Kit gallery and procedure */
+.kit-stage { background: #fff; border: 1px solid var(--border); border-radius: 20px; padding: 24px; display: grid; place-items: center; min-height: 420px; }
+.kit-stage img { max-height: 460px; width: auto; height: auto; max-width: 100%; }
+.kit-thumbs { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 14px; }
+.kit-thumbs button { width: 74px; height: 74px; padding: 4px; border: 1px solid var(--border); border-radius: 10px; background: #fff; cursor: pointer; display: grid; place-items: center; }
+.kit-thumbs button img { max-width: 100%; max-height: 100%; width: auto; height: auto; object-fit: contain; }
+.kit-thumbs button.on, .kit-thumbs button:hover { border-color: var(--orange); box-shadow: 0 0 0 1px var(--orange); }
+.proc-steps { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; padding: 0; margin: 24px 0 28px; list-style: none; counter-reset: step; }
+.proc-steps li { counter-increment: step; background: var(--bg-soft); border-radius: 12px; padding: 16px 16px 16px 16px; font-size: 0.93rem; }
+.proc-steps li::before { content: "Step " counter(step); display: block; font-weight: 800; color: var(--orange); font-size: 0.8rem; letter-spacing: 0.06em; text-transform: uppercase; margin-bottom: 6px; }
+.proc-card { border: 1px solid var(--border); border-radius: 16px; overflow: hidden; background: #fff; }
+.proc-card img { display: block; width: 100%; height: auto; }
