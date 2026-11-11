@@ -40,9 +40,9 @@ export default function Home() {
             <Link href="/labbhr" className="announce">
               <b>New:</b> LabbHR drug testing and background checks in one place
             </Link>
-            <h1>Rapid drug testing, read objectively.</h1>
+            <h1>An objective read, controlled by software.</h1>
             <p className="lede">
-              Labb Station reads every rapid test digitally, documents the result, and keeps donor information private. Oral fluid or
+              Labb Station reads every rapid drug test digitally, documents the result, and keeps donor information private. Oral fluid or
               urine, at your site or anywhere your people work.
             </p>
             <div className="btn-row">
