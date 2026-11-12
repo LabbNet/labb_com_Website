@@ -147,7 +147,7 @@ export default function TrainingPage() {
           <Faq items={faqs} />
         </div>
       </section>
-      <CtaBand title="Training your whole team?" body="Ask about handbooks and certifications for every location, bundled with your testing program." />
+      <CtaBand />
     </>
   );
 }

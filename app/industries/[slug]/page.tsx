@@ -92,7 +92,7 @@ export default async function IndustryPage({ params }: { params: Promise<{ slug:
           <Faq items={ind.faqs} />
         </div>
       </section>
-      <CtaBand title={`Ready to test on site?`} />
+      <CtaBand segment="employer" />
     </>
   );
 }

@@ -54,7 +54,7 @@ export default function Page() {
           </div>
         </div>
       </section>
-      <CtaBand title="Not sure which panel fits?" body="Tell us your policy, specimen preference and monthly volume, and we'll recommend a kit and send a quote." />
+      <CtaBand />
       <JsonLd
         data={{
           "@context": "https://schema.org",

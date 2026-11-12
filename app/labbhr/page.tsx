@@ -1,7 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import type { Metadata } from "next";
-import { Breadcrumbs, Checks, Faq, JsonLd, LabbHR } from "@/components/ui";
+import { Breadcrumbs, Checks, Faq, JsonLd, LabbHR, CtaBand } from "@/components/ui";
 import { LeadForm } from "@/components/LeadForm";
 import { PageHero } from "@/components/PageHero";
 import { site } from "@/lib/site";
@@ -129,18 +129,7 @@ export default function LabbHRPage() {
         </div>
       </section>
 
-      <section className="cta-band">
-        <div className="wrap">
-          <div>
-            <h2>Join the LabbHR beta</h2>
-            <p>Get early access and help decide which features roll out first.</p>
-          </div>
-          <div className="btn-row" style={{ marginTop: 0 }}>
-            <Link href="#beta" className="btn btn-light">Join the Beta</Link>
-            <Link href="/one" className="btn btn-ghost">About One by Labb</Link>
-          </div>
-        </div>
-      </section>
+      <CtaBand segment="drug-testing-business" products={["LabbHR"]} topic="LabbHR program and support" secondary={{ href: "#beta", label: "Join the beta" }} />
       <JsonLd
         data={{
           "@context": "https://schema.org",

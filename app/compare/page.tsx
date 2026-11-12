@@ -90,7 +90,7 @@ export default function Compare() {
           <p className="fine" style={{ marginTop: 14 }}>Running a corrections department? See <Link href="/labbpo">LabbPO</Link>.</p>
         </div>
       </section>
-      <CtaBand title="Not sure which fits?" body="Tell us how you test and what you want to grow, and we'll recommend Labb Station or LabbHR." href="/contact" label="Talk to us" />
+      <CtaBand />
     </>
   );
 }

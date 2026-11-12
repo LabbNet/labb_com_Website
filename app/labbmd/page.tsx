@@ -1,6 +1,6 @@
 import Link from "next/link";
 import type { Metadata } from "next";
-import { Breadcrumbs } from "@/components/ui";
+import { Breadcrumbs, CtaBand } from "@/components/ui";
 import { PageHero } from "@/components/PageHero";
 import { LABBMD_LICENSE } from "@/lib/platforms";
 
@@ -30,6 +30,8 @@ export default function LabbMD() {
           <p className="intro">Product details coming soon. <Link href="/platforms">See all Labb platforms</Link>.</p>
         </div>
       </section>
+      <CtaBand segment="treatment" topic="LabbMD" secondary={null} />
+
       <div className="wrap"><p className="license-line">{LABBMD_LICENSE}</p></div>
     </>
   );

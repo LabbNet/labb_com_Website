@@ -1,5 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
+import { ConnectButton } from "@/components/visual/ConnectDrawer";
 import { absoluteUrl } from "@/lib/site";
 import { badgeLabel, type Kit } from "@/lib/kits";
 
@@ -41,12 +42,23 @@ export function Breadcrumbs({ items }: { items: { name: string; href: string }[]
   );
 }
 
+// The site-wide call to action: whatever the testing need, Labb has a program and a support team
+// to help meet the goal. Primary button opens the slide-in form; secondary is page-specific.
 export function CtaBand({
-  title = "Ready to simplify your drug testing?",
-  body = "Get a quote or a free sample, and a Labb specialist will help you set up, certify your team and go live.",
-  href = "/get-a-quote",
-  label = "Get a Quote",
-}: { title?: string; body?: string; href?: string; label?: string }) {
+  title = "Whatever you test, we have a program for it.",
+  body = "Tell us your testing goals. A Labb support team builds the program around them and stays with you to keep it on track.",
+  topic = "Program and support",
+  segment,
+  products,
+  secondary = { href: "/get-a-quote", label: "Get a quote" },
+}: {
+  title?: string;
+  body?: string;
+  topic?: string;
+  segment?: string;
+  products?: string[];
+  secondary?: { href: string; label: string } | null;
+}) {
   return (
     <section className="cta-band">
       <div className="wrap">
@@ -55,8 +67,8 @@ export function CtaBand({
           <p>{body}</p>
         </div>
         <div className="btn-row" style={{ marginTop: 0 }}>
-          <Link href={href} className="btn btn-light">{label}</Link>
-          <Link href="/get-a-quote?sample=1" className="btn btn-ghost">Request a free sample</Link>
+          <ConnectButton className="btn btn-light" topic={topic} segment={segment} products={products} label="Talk to our team" title="Talk to our team" />
+          {secondary && <Link href={secondary.href} className="btn btn-ghost">{secondary.label}</Link>}
         </div>
       </div>
     </section>

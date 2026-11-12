@@ -1,3 +1,4 @@
+import { CtaBand } from "@/components/ui";
 import Link from "next/link";
 import type { Metadata } from "next";
 import { GraphicSlot } from "@/components/visual/GraphicSlot";
@@ -166,18 +167,7 @@ export default function Home() {
         </div>
       </section>
 
-      <section className="cta-band">
-        <div className="wrap">
-          <div>
-            <h2>Better outcomes start here.</h2>
-            <p>Tell us how you test today. We&apos;ll show you what Labb changes.</p>
-          </div>
-          <div className="btn-row" style={{ marginTop: 0 }}>
-            <Link href="/get-a-quote" className="btn btn-light">Get a quote</Link>
-            <Link href="/quick-test" className="btn btn-ghost">Need one test? Quick Test</Link>
-          </div>
-        </div>
-      </section>
+      <CtaBand secondary={{ href: "/quick-test", label: "Need one test? Quick Test" }} />
     </>
   );
 }

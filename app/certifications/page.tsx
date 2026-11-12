@@ -121,7 +121,7 @@ export default function Page() {
           <Faq items={faqs} />
         </div>
       </section>
-      <CtaBand title="Certifying a whole team?" body="Ask about certification for every collector and location, bundled with your testing program." />
+      <CtaBand />
     </>
   );
 }

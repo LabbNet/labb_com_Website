@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Breadcrumbs, Checks, KitCard } from "@/components/ui";
+import { Breadcrumbs, Checks, CtaBand, KitCard } from "@/components/ui";
 import { PageHero } from "@/components/PageHero";
 import { publishedKits, type Kit } from "@/lib/kits";
 
@@ -48,6 +48,7 @@ export function SeriesPage(p: {
           <div className="btn-row"><Link href="/test-kits#compare" className="btn btn-outline-dark">Compare all panels</Link></div>
         </div>
       </section>
+      <CtaBand products={["Test kits"]} topic={`${p.name} kits`} />
     </>
   );
 }

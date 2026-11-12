@@ -67,6 +67,7 @@ export default function DrugTestingBusinesses() {
             <span className="eyebrow">Request a demo</span>
             <h2>See LabbHR for your business</h2>
             <p>LabbHR is in beta now. Tell us what you run and we&apos;ll show you the platform and set up access.</p>
+            <p className="program-note">Whatever you test, Labb has a program for it, and a support team that builds it around your goals and keeps it on track.</p>
           </div>
           <div className="hero-card">
             <LeadForm variant="demo" segment="drug-testing-business" products={["LabbHR"]} title="Request a demo" submitLabel="Request a Demo" />

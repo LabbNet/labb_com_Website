@@ -1,6 +1,6 @@
 import Link from "next/link";
 import type { Metadata } from "next";
-import { Breadcrumbs, Faq } from "@/components/ui";
+import { Breadcrumbs, Faq, CtaBand } from "@/components/ui";
 import { PageHero } from "@/components/PageHero";
 import { LABBMD_LICENSE, LABBPO_LICENSE, platforms } from "@/lib/platforms";
 
@@ -69,6 +69,8 @@ export default function Platforms() {
           </div>
         </div>
       </section>
+
+      <CtaBand />
 
       <div className="wrap"><p className="license-line">{LABBPO_LICENSE} {LABBMD_LICENSE}</p></div>
     </>

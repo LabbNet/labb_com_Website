@@ -1,6 +1,6 @@
 import Link from "next/link";
 import type { Metadata } from "next";
-import { Breadcrumbs, LabbHR } from "@/components/ui";
+import { Breadcrumbs, LabbHR, CtaBand } from "@/components/ui";
 import { PageHero } from "@/components/PageHero";
 
 export const metadata: Metadata = {
@@ -50,17 +50,7 @@ export default function One() {
         </div>
       </section>
 
-      <section className="cta-band">
-        <div className="wrap">
-          <div>
-            <h2>LabbHR is the way in</h2>
-            <p>Every LabbHR user is part of One by Labb. Join the beta to connect.</p>
-          </div>
-          <div className="btn-row" style={{ marginTop: 0 }}>
-            <Link href="/labbhr#beta" className="btn btn-light">Join the LabbHR Beta</Link>
-          </div>
-        </div>
-      </section>
+      <CtaBand segment="drug-testing-business" products={["LabbHR"]} topic="One by Labb" secondary={{ href: "/labbhr#beta", label: "Join through LabbHR" }} />
     </>
   );
 }

@@ -48,7 +48,7 @@ export function ConnectDrawer() {
           products={d.products}
           topic={d.topic}
           title={d.title || "Connect with Labb"}
-          subtitle="Tell us a little about you and a Labb specialist will follow up."
+          subtitle="Tell us your testing goals. A Labb support team will build a program around them."
           submitLabel="Send"
         />
       </div>

@@ -98,6 +98,7 @@ export default function Corrections() {
             <span className="eyebrow po">Request a demo</span>
             <h2>Built around your agency, live in about 30 days</h2>
             <p>LabbPO is configured to your department after a business analysis. Tell us about your caseload and we&apos;ll set up a demo and a pricing conversation for your volume.</p>
+            <p className="program-note">Whatever you test, Labb has a program for it, and a support team that builds it around your goals and keeps it on track.</p>
           </div>
           <div className="hero-card">
             <LeadForm variant="demo" segment="corrections" products={["LabbPO", "Labb Station"]} title="Request a demo" submitLabel="Request a Demo" />

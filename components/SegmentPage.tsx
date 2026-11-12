@@ -112,6 +112,7 @@ export function SegmentPage(p: {
             <span className="eyebrow">{p.form.heading}</span>
             <h2>{p.form.title}</h2>
             <p>{p.form.intro}</p>
+            <p className="program-note">Whatever you test, Labb has a program for it, and a support team that builds it around your goals and keeps it on track.</p>
           </div>
           <div className="hero-card">
             <LeadForm variant={p.form.variant || "demo"} segment={p.form.segment} products={p.form.products} title={p.form.heading} submitLabel={p.form.submit} />

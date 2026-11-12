@@ -1,7 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import type { Metadata } from "next";
-import { Breadcrumbs, Faq, JsonLd } from "@/components/ui";
+import { Breadcrumbs, Faq, JsonLd, CtaBand } from "@/components/ui";
 import { GraphicSlot } from "@/components/visual/GraphicSlot";
 import { RevealTiles } from "@/components/visual/Reveal";
 import { ScanStory } from "@/components/visual/ScanStory";
@@ -133,6 +133,8 @@ export default function LabbStationPage() {
           <p style={{ marginTop: 24 }}><Link href="/compare">Compare Labb Station and LabbHR</Link></p>
         </div>
       </section>
+
+      <CtaBand products={["Labb Station"]} topic="Labb Station program and support" secondary={{ href: "/get-a-quote", label: "Get a quote" }} />
 
       <JsonLd
         data={{

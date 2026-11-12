@@ -75,7 +75,7 @@ export default async function ResourcePage({ params }: { params: Promise<{ slug:
           </div>
         </div>
       </section>
-      <CtaBand title="Ready to take screening in-house?" body="Get the handbook, then talk to a Labb specialist about Labb Station and rapid testing." href="#get" label="Get the free handbook" />
+      <CtaBand />
       <JsonLd
         data={{
           "@context": "https://schema.org",
