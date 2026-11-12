@@ -30,7 +30,7 @@ export default function LabbPOPage() {
         eyebrow="LabbPO · Offender management"
         title="Manage more offenders with less effort, from anywhere."
         lede="Random selection, offender notification, test tracking and fee collection in one fully remote platform for probation, parole and corrections."
-        primary={{ href: "#demo", label: "Request a demo" }}
+        primary={{ href: "#demo", label: "Request a consultation" }}
         secondary={{ href: "/corrections", label: "Solutions for corrections" }}
       />
       <Breadcrumbs items={[{ name: "Platforms", href: "/platforms" }, { name: "LabbPO", href: "/labbpo" }]} />
@@ -138,13 +138,13 @@ export default function LabbPOPage() {
       <section className="section soft" id="demo">
         <div className="wrap split" style={{ alignItems: "start" }}>
           <div>
-            <span className="eyebrow po">Request a demo</span>
+            <span className="eyebrow po">Request a consultation</span>
             <h2>See LabbPO with your caseload in mind</h2>
             <p>Tell us about your department and we&apos;ll walk you through random selection, the offender portal, fee collection and the guaranteed result system.</p>
             <p className="program-note">Your testing goals, our technology and support: Labb builds the program around your goals and keeps it on track.</p>
           </div>
           <div className="hero-card">
-            <LeadForm variant="demo" segment="corrections" products={["LabbPO"]} title="Request a LabbPO demo" submitLabel="Request a Demo" />
+            <LeadForm variant="demo" segment="corrections" products={["LabbPO"]} title="Request a LabbPO consultation" submitLabel="Request a consultation" />
           </div>
         </div>
       </section>

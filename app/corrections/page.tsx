@@ -27,7 +27,7 @@ export default function Corrections() {
         eyebrow="Corrections · Probation, parole and jails"
         title="Manage more offenders with less effort, from anywhere."
         lede="LabbPO runs the caseload: random selection, notification, test tracking and fee collection. Labb Station gives every on-site rapid test an objective read and a record that holds up."
-        primary={{ href: "#demo", label: "Request a demo" }}
+        primary={{ href: "#demo", label: "Request a consultation" }}
         secondary={{ href: "/labbpo", label: "About LabbPO" }}
       />
       <Breadcrumbs items={[{ name: "Corrections", href: "/corrections" }]} />
@@ -95,13 +95,13 @@ export default function Corrections() {
       <section className="section soft" id="demo">
         <div className="wrap split" style={{ alignItems: "start" }}>
           <div>
-            <span className="eyebrow po">Request a demo</span>
+            <span className="eyebrow po">Request a consultation</span>
             <h2>Built around your agency, live in about 30 days</h2>
-            <p>LabbPO is configured to your department after a business analysis. Tell us about your caseload and we&apos;ll set up a demo and a pricing conversation for your volume.</p>
+            <p>LabbPO is configured to your department after a business analysis. Tell us about your caseload and we&apos;ll set up a consultation and pricing for your volume.</p>
             <p className="program-note">Your testing goals, our technology and support: Labb builds the program around your goals and keeps it on track.</p>
           </div>
           <div className="hero-card">
-            <LeadForm variant="demo" segment="corrections" products={["LabbPO", "Labb Station"]} title="Request a demo" submitLabel="Request a Demo" />
+            <LeadForm variant="demo" segment="corrections" products={["LabbPO", "Labb Station"]} title="Request a consultation" submitLabel="Request a consultation" />
           </div>
         </div>
       </section>

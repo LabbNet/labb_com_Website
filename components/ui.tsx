@@ -67,7 +67,7 @@ export function CtaBand({
           <p>{body}</p>
         </div>
         <div className="btn-row" style={{ marginTop: 0 }}>
-          <ConnectButton className="btn btn-light" topic={topic} segment={segment} products={products} label="Talk to our team" title="Talk to our team" />
+          <ConnectButton className="btn btn-light" topic={topic} segment={segment} products={products} label="Request a consultation" title="Request a consultation" />
           {secondary && <Link href={secondary.href} className="btn btn-ghost">{secondary.label}</Link>}
         </div>
       </div>

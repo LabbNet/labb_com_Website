@@ -16,7 +16,7 @@ export default function Laboratories() {
       eyebrow="Laboratories"
       title="Connect with the sites and businesses that send you specimens."
       lede="LabbHR gives laboratories one platform to grow, connected to collection sites, TPAs, MROs and employers through One by Labb."
-      primary={{ href: "#contact", label: "Request a demo" }}
+      primary={{ href: "#contact", label: "Request a consultation" }}
       secondary={{ href: "/labbhr", label: "About LabbHR" }}
       problem={{
         title: "Volume depends on relationships you can't see",
@@ -42,7 +42,7 @@ export default function Laboratories() {
         ],
         link: { href: "/one", label: "About One by Labb" },
       }}
-      form={{ segment: "laboratory", products: ["LabbHR"], heading: "Request a demo", title: "See LabbHR for your laboratory", intro: "LabbHR is in beta now. Tell us about your lab and we'll show you the platform and the One by Labb network.", submit: "Request a Demo" }}
+      form={{ segment: "laboratory", products: ["LabbHR"], heading: "Request a consultation", title: "See LabbHR for your laboratory", intro: "LabbHR is in beta now. Tell us about your lab and we'll show you the platform and the One by Labb network.", submit: "Request a consultation" }}
     />
   );
 }

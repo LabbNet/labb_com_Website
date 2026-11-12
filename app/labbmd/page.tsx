@@ -19,7 +19,7 @@ export default function LabbMD() {
         eyebrow="LabbMD"
         title="LabbMD for treatment and recovery."
         lede="The platform for clinical, treatment and recovery programs."
-        primary={{ href: "/treatment-recovery#contact", label: "Talk to us" }}
+        primary={{ href: "/treatment-recovery#contact", label: "Request a consultation" }}
         secondary={{ href: "/treatment-recovery", label: "Treatment & Recovery" }}
       />
       <Breadcrumbs items={[{ name: "Platforms", href: "/platforms" }, { name: "LabbMD", href: "/labbmd" }]} />

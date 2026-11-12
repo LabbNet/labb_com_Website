@@ -20,14 +20,14 @@ export const segmentLabel = (v: string | null | undefined) => SEGMENTS.find((s) 
 
 // What each segment is routed to (shown in the admin area and the notification email).
 export const SEGMENT_PATH: Record<Segment, string> = {
-  laboratory: "LabbHR and One by Labb demo (laboratory)",
-  tpa: "LabbHR and One by Labb demo (TPA)",
+  laboratory: "LabbHR and One by Labb consultation (laboratory)",
+  tpa: "LabbHR and One by Labb consultation (TPA)",
   treatment: "Treatment and recovery inquiry",
   individual: "Quick Test order: ship kit overnight and schedule proctoring",
   "collection-site": "Clinic wants Labb technology in its facility",
   employer: "CPP lead generation (company needs drug testing)",
-  corrections: "LabbPO and Labb Station demo",
-  "drug-testing-business": "LabbHR and One by Labb demo",
+  corrections: "LabbPO and Labb Station consultation",
+  "drug-testing-business": "LabbHR and One by Labb consultation",
   other: "General inquiry",
 };
 

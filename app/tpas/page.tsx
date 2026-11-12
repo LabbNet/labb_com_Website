@@ -16,7 +16,7 @@ export default function TPAs() {
       eyebrow="Third party administrators"
       title="Sell, contract and bill programs on one platform."
       lede="LabbHR gives TPAs the tools to grow, with background checks built in and collection sites, labs and MROs connected through One by Labb."
-      primary={{ href: "#contact", label: "Request a demo" }}
+      primary={{ href: "#contact", label: "Request a consultation" }}
       secondary={{ href: "/labbhr", label: "About LabbHR" }}
       problem={{
         title: "Programs run across too many disconnected tools",
@@ -46,7 +46,7 @@ export default function TPAs() {
         ],
         link: { href: "/compare", label: "Compare Labb Station and LabbHR" },
       }}
-      form={{ segment: "tpa", products: ["LabbHR"], heading: "Request a demo", title: "See LabbHR for your TPA", intro: "LabbHR is in beta now. Tell us about your programs and we'll show you the platform and set up access.", submit: "Request a Demo" }}
+      form={{ segment: "tpa", products: ["LabbHR"], heading: "Request a consultation", title: "See LabbHR for your TPA", intro: "LabbHR is in beta now. Tell us about your programs and we'll show you the platform and set up access.", submit: "Request a consultation" }}
     />
   );
 }

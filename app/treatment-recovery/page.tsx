@@ -16,7 +16,7 @@ export default function TreatmentRecovery() {
       eyebrow="Treatment and recovery"
       title="Objective results that support recovery."
       lede="Rapid urine testing with FDA 510(k) cleared kits, an objective Labb Station read and a documented record for every test."
-      primary={{ href: "#contact", label: "Talk to us" }}
+      primary={{ href: "#contact", label: "Request a consultation" }}
       secondary={{ href: "/labb-station", label: "About Labb Station" }}
       problem={{
         title: "Results that shape care have to be read the same way every time",
@@ -42,7 +42,7 @@ export default function TreatmentRecovery() {
         intro: "Kits for treatment programs are FDA 510(k) cleared (OTC or IVD) urine screens, up to 15 drugs.",
         slugs: ["ua-15a"],
       }}
-      form={{ segment: "treatment", products: ["Labb Station", "Test kits"], heading: "Talk to us", title: "Testing for your program", intro: "Tell us about your program and the patients you serve, and a Labb specialist will reach out.", submit: "Send" , variant: "quote" }}
+      form={{ segment: "treatment", products: ["Labb Station", "Test kits"], heading: "Request a consultation", title: "Testing for your program", intro: "Tell us about your program and the patients you serve, and a Labb specialist will reach out.", submit: "Request a consultation" , variant: "quote" }}
     />
   );
 }

@@ -18,7 +18,7 @@ export default function DrugTestingBusinesses() {
         eyebrow="Drug testing businesses"
         title="Everything you need to grow a drug testing business, connected to the whole industry."
         lede="For national accounts, TPAs, laboratories, MROs and collection sites that want to grow."
-        primary={{ href: "#demo", label: "Request a demo" }}
+        primary={{ href: "#demo", label: "Request a consultation" }}
         secondary={{ href: "/labbhr", label: "About LabbHR" }}
       />
       <Breadcrumbs items={[{ name: "Drug testing businesses", href: "/drug-testing-businesses" }]} />
@@ -64,13 +64,13 @@ export default function DrugTestingBusinesses() {
       <section className="section" id="demo">
         <div className="wrap split" style={{ alignItems: "start" }}>
           <div>
-            <span className="eyebrow">Request a demo</span>
+            <span className="eyebrow">Request a consultation</span>
             <h2>See LabbHR for your business</h2>
             <p>LabbHR is in beta now. Tell us what you run and we&apos;ll show you the platform and set up access.</p>
             <p className="program-note">Your testing goals, our technology and support: Labb builds the program around your goals and keeps it on track.</p>
           </div>
           <div className="hero-card">
-            <LeadForm variant="demo" segment="drug-testing-business" products={["LabbHR"]} title="Request a demo" submitLabel="Request a Demo" />
+            <LeadForm variant="demo" segment="drug-testing-business" products={["LabbHR"]} title="Request a consultation" submitLabel="Request a consultation" />
           </div>
         </div>
       </section>

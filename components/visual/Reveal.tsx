@@ -49,7 +49,7 @@ export function RevealTiles({ items, segment, products, cols = 3 }: { items: Rev
             <div>{it.body}</div>
             <div className="reveal-actions">
               {it.href && <a className="reveal-link" href={it.href}>{it.hrefLabel || "Learn more"} <span aria-hidden="true">→</span></a>}
-              <ConnectButton topic={it.topic || it.title} segment={segment} products={products} label={it.cta || "Talk to us"} />
+              <ConnectButton topic={it.topic || it.title} segment={segment} products={products} label={it.cta || "Request a consultation"} />
             </div>
           </div>
         </div>

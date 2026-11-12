@@ -22,6 +22,11 @@ type Props = {
 
 const INDUSTRY = ["Construction", "Manufacturing", "Logistics and warehousing", "Staffing", "Healthcare", "Other"];
 
+// Consultation forms ask about the visitor's program first, then where testing happens, then contact details.
+const IMPROVE = ["Lower cost per test", "Faster results", "Fewer errors and disputed results", "Less paperwork", "Easier lab confirmations", "Compliance and documentation", "Grow my testing business", "Something else"];
+const LOCATION = ["At a clinic or collection site", "In-house, at our location", "Both", "Not sure yet"];
+const CONSULT: Variant[] = ["demo", "quote", "contact", "early-access", "clinic"];
+
 export function LeadForm({ variant, title, subtitle, submitLabel, resource, industry, compact, defaultMessage, segment: fixedSegment, products: preChecked = [], topic }: Props) {
   const router = useRouter();
   const started = useRef(Date.now());
@@ -49,6 +54,7 @@ export function LeadForm({ variant, title, subtitle, submitLabel, resource, indu
   const isHandbook = variant === "handbook";
   const isWaitlist = variant === "certification-waitlist";
   const isClinic = variant === "clinic";
+  const consult = CONSULT.includes(variant) && !compact;
 
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -58,9 +64,19 @@ export function LeadForm({ variant, title, subtitle, submitLabel, resource, indu
     const fd = new FormData(e.currentTarget);
     const body: Record<string, unknown> = Object.fromEntries(fd.entries());
     body.newsletter = fd.get("newsletter") === "on";
-    body.products = fd.getAll("products").map(String);
+    body.products = fd.getAll("products").length ? fd.getAll("products").map(String) : preChecked;
     body.segment = segment || undefined;
-    if (topic) body.details = { topic };
+    const details: Record<string, string> = {};
+    if (topic) details.topic = topic;
+    if (consult) {
+      for (const k of ["currentProgram", "costPerTest", "testingLocation"]) {
+        const v = String(fd.get(k) || "").trim();
+        if (v) details[k] = v;
+      }
+      const imp = fd.getAll("improve").map(String);
+      if (imp.length) details.improve = imp.join(", ");
+    }
+    if (Object.keys(details).length) body.details = details;
     body.type = variant;
     body.resource = resource;
     body.page = window.location.pathname;
@@ -153,6 +169,52 @@ export function LeadForm({ variant, title, subtitle, submitLabel, resource, indu
       {title && <h2 className="form-title">{title}</h2>}
       {subtitle && <p className="form-sub">{subtitle}</p>}
       <div className="fields">
+        {consult ? (
+          <>
+            <h3 className="form-group full">Your current program</h3>
+            {!fixedSegment && !isClinic && !industry && (
+              <div className="field full" data-error={errors.segment ? "" : undefined}>
+                <label htmlFor="f-segment">I am a<span className="req" aria-hidden="true">*</span></label>
+                <select id="f-segment" name="segment" required value={segment} onChange={(e) => setSegment(e.target.value)}>
+                  <option value="" disabled>Select one</option>
+                  {SEGMENTS.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
+                </select>
+                {errors.segment && <span className="err">{errors.segment}</span>}
+              </div>
+            )}
+            {!isWaitlist && !industry && !isClinic && !compact && segment === "employer" && select("industry", "Industry", INDUSTRY)}
+            <div className="field full">
+              <label htmlFor="f-currentProgram">How do you test today?</label>
+              <textarea id="f-currentProgram" name="currentProgram" placeholder={isClinic ? "Kits you use, how you read them, how you confirm" : "Who collects, which tests you use, how results reach you"} />
+            </div>
+            <fieldset className="field full check-grid">
+              <legend>What would you like to improve?</legend>
+              {IMPROVE.map((o) => <label key={o}><input type="checkbox" name="improve" value={o} /> {o}</label>)}
+            </fieldset>
+            <div className="field">
+              <label htmlFor="f-costPerTest">Current cost per test</label>
+              <input id="f-costPerTest" name="costPerTest" inputMode="decimal" placeholder="$45 or not sure" />
+            </div>
+            {select("volume", isClinic ? "Tests per month at your site" : segment === "corrections" ? "Offenders tested per month" : "Tests per month", VOLUME, true)}
+            {!isClinic && (
+              <>
+                <h3 className="form-group full">Where will testing happen?</h3>
+                <fieldset className="field full radios">
+                  <legend className="visually-hidden">Where will testing happen?</legend>
+                  {LOCATION.map((o, i) => <label key={o}><input type="radio" name="testingLocation" value={o} required={i === 0} /> {o}</label>)}
+                </fieldset>
+              </>
+            )}
+            <h3 className="form-group full">About you</h3>
+            {f("firstName", "First name", { required: true, auto: "given-name" })}
+            {f("lastName", "Last name", { required: true, auto: "family-name" })}
+            {f("email", "Work email", { type: "email", required: true, auto: "email" })}
+            {f("phone", "Phone", { type: "tel", required: true, auto: "tel-national" })}
+            {f("company", isClinic ? "Clinic name" : "Company", { required: true, auto: "organization" })}
+            {f("state", "State", { auto: "address-level1" })}
+          </>
+        ) : (
+          <>
         {f("firstName", "First name", { required: true, auto: "given-name" })}
         {f("lastName", "Last name", { required: true, auto: "family-name" })}
         {f("email", "Work email", { type: "email", required: true, auto: "email" })}
@@ -171,27 +233,13 @@ export function LeadForm({ variant, title, subtitle, submitLabel, resource, indu
         )}
         {!isWaitlist && !industry && !isClinic && !compact && segment === "employer" && select("industry", "Industry", INDUSTRY)}
         {!isWaitlist && select("volume", isClinic ? "Tests per month at your site" : segment === "corrections" ? "Offenders tested per month" : "Tests per month", VOLUME, true)}
-        {!isWaitlist && !isHandbook && !compact && (
-          <fieldset className="field full check-grid">
-            <legend>Interested in</legend>
-            {PRODUCTS.map((p) => (
-              <label key={p}><input type="checkbox" name="products" value={p} defaultChecked={preChecked.includes(p)} /> {p}</label>
-            ))}
-          </fieldset>
-        )}
-        {!isWaitlist && !compact && (
-          <fieldset className="field full radios">
-            <legend>Interest level</legend>
-            {["Just curious", "Ready for a discovery call", "Want to get started ASAP"].map((v, i) => (
-              <label key={v}><input type="radio" name="interest" value={v} defaultChecked={i === 1} /> {v}</label>
-            ))}
-          </fieldset>
-        )}
-        {(variant === "contact" || variant === "quote" || variant === "early-access" || variant === "demo" || (variant === "sample" && !compact)) && (
+        {variant === "sample" && !compact && (
           <div className="field full">
             <label htmlFor="f-message">How can we help?</label>
             <textarea id="f-message" name="message" defaultValue={defaultMessage} />
           </div>
+        )}
+          </>
         )}
         <label className="check full"><input type="checkbox" name="newsletter" defaultChecked /> Send me the Labb newsletter</label>
         <div className="hp" aria-hidden="true">
@@ -199,7 +247,7 @@ export function LeadForm({ variant, title, subtitle, submitLabel, resource, indu
         </div>
       </div>
       <button type="submit" className="btn btn-primary btn-block" style={{ marginTop: 22 }} disabled={state === "sending"}>
-        {state === "sending" ? "Sending..." : submitLabel || "Get a Quote"}
+        {state === "sending" ? "Sending..." : submitLabel || (consult ? "Request a consultation" : "Get a Quote")}
       </button>
       {error && <p className="form-error" role="alert">{error}</p>}
       <p className="fine">

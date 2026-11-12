@@ -27,13 +27,13 @@ function segmentOf(body: Record<string, unknown>): Segment {
 }
 
 // Extra structured answers from specialized forms (for example Quick Test). Only known keys are kept.
-const DETAIL_KEYS = ["topic", "fulfillment", "clinicZip", "clinicName", "testType", "observation", "reason", "panel", "reportTo", "reportEmail", "address1", "address2", "city", "state", "zip", "deliverBy", "drugs", "kit", "screenFee", "shippingFee", "proctoringFee", "total"] as const;
+const DETAIL_KEYS = ["topic", "currentProgram", "improve", "costPerTest", "testingLocation", "fulfillment", "clinicZip", "clinicName", "testType", "observation", "reason", "panel", "reportTo", "reportEmail", "address1", "address2", "city", "state", "zip", "deliverBy", "drugs", "kit", "screenFee", "shippingFee", "proctoringFee", "total"] as const;
 function detailsOf(v: unknown) {
   if (!v || typeof v !== "object") return undefined;
   const out: Record<string, string> = {};
   for (const k of DETAIL_KEYS) {
     const val = (v as Record<string, unknown>)[k];
-    if (typeof val === "string" && val.trim()) out[k] = val.trim().slice(0, 300);
+    if (typeof val === "string" && val.trim()) out[k] = val.trim().slice(0, k === "currentProgram" ? 2000 : 300);
   }
   return Object.keys(out).length ? out : undefined;
 }

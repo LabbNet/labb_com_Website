@@ -15,7 +15,7 @@ export const platforms = {
       "Read every rapid drug test objectively on a phone or tablet, document every collection, build custom panels with Flex Testing, and send to the lab with one button.",
     builtFor: "Organizations that conduct tests: collection sites, employers testing in-house and corrections.",
     status: "Available now",
-    cta: { href: "/contact", label: "Request a demo" },
+    cta: { href: "/contact", label: "Request a consultation" },
   },
   hr: {
     key: "hr",
@@ -39,7 +39,7 @@ export const platforms = {
       "Random selection, offender notification, test tracking, officer and offender coordination, online fee collection and a guaranteed result system, all fully remote.",
     builtFor: "Probation, parole, jails and other corrections departments.",
     status: "Available now",
-    cta: { href: "/labbpo#demo", label: "Request a demo" },
+    cta: { href: "/labbpo#demo", label: "Request a consultation" },
   },
   md: {
     key: "md",

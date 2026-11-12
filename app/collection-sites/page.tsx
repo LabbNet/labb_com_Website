@@ -17,7 +17,7 @@ export default function CollectionSites() {
       eyebrow="Collection sites and clinics"
       title="Every rapid result, documented and defensible."
       lede="Objective reads, a court-ready record and unlimited panel options for every client you serve."
-      primary={{ href: "#contact", label: "Request a demo" }}
+      primary={{ href: "#contact", label: "Request a consultation" }}
       secondary={{ href: "/labb-station", label: "About Labb Station" }}
       problem={{
         title: "A rapid result with no proof is a liability",
@@ -70,7 +70,7 @@ export default function CollectionSites() {
         { q: "Do I need to buy a reader?", a: "No. Labb Station runs on the phones or tablets your collectors already use." },
         { q: "Can I build panels for each client?", a: "Yes. Flex Testing lets you remove any drug from a stocked panel to fit each client, and omitted drugs are not recorded or reported." },
       ]}
-      form={{ segment: "collection-site", products: ["Labb Station"], heading: "Request a demo", title: "Want Labb technology in your facility?", intro: "Tell us about your site and the clients you serve, and we'll show you Labb Station with your workflow in mind.", submit: "Request a Demo" }}
+      form={{ segment: "collection-site", products: ["Labb Station"], heading: "Request a consultation", title: "Want Labb technology in your facility?", intro: "Tell us about your site and the clients you serve, and we'll show you Labb Station with your workflow in mind.", submit: "Request a consultation" }}
     />
   );
 }

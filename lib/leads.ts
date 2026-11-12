@@ -109,6 +109,7 @@ export async function logLeadEvent(leadId: string | number, event: string, detai
 // ---- Rendering ----
 export const DETAIL_LABELS: Record<string, string> = {
   topic: "Opened from",
+  currentProgram: "Current program", improve: "Wants to improve", costPerTest: "Current cost per test", testingLocation: "Where testing happens",
   fulfillment: "Where", clinicZip: "Clinic near ZIP", clinicName: "Preferred clinic", paid: "Payment", drugs: "Drugs", kit: "Kit to send", screenFee: "Screen fee", shippingFee: "Overnight shipping", proctoringFee: "Proctoring", total: "Total",
   testType: "Test type", observation: "Collection", reason: "Reason for test", panel: "Drugs to test", reportTo: "Send report to",
   reportEmail: "Report recipient email", address1: "Ship to", address2: "Ship to (line 2)", city: "City", state: "State", zip: "ZIP",

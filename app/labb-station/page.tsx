@@ -52,7 +52,7 @@ export default function LabbStationPage() {
             <h1>Read every rapid test objectively.</h1>
             <p className="lede">A phone, an app and a patented reader. Every collection documented.</p>
             <div className="btn-row">
-              <ConnectButton className="btn btn-primary btn-lg" topic="Labb Station demo" products={["Labb Station"]} label="Request a demo" title="Request a Labb Station demo" />
+              <ConnectButton className="btn btn-primary btn-lg" topic="Labb Station consultation" products={["Labb Station"]} label="Request a consultation" title="Request a Labb Station consultation" />
               <a href="#how" className="btn btn-outline btn-lg">See how it works</a>
             </div>
             <div style={{ display: "flex", gap: 12, marginTop: 24, alignItems: "center", flexWrap: "wrap" }}>
@@ -110,7 +110,7 @@ export default function LabbStationPage() {
               graphic: <GraphicSlot src={`/graphics/station/feature-${f.g}.webp`} alt={f.title} label={f.title} w={800} h={600} sizes="320px" />,
               body: f.body,
               topic: `Labb Station: ${f.title}`,
-              cta: "Request a demo",
+              cta: "Request a consultation",
             }))}
           />
         </div>

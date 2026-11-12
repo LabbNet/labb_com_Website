@@ -38,7 +38,7 @@ export function ConnectDrawer() {
   if (!d) return null;
   return (
     <div className="drawer-wrap" onMouseDown={(e) => e.target === e.currentTarget && setD(null)}>
-      <div className="drawer" role="dialog" aria-modal="true" aria-label={d.title || "Connect with Labb"} tabIndex={-1} ref={panel}>
+      <div className="drawer" role="dialog" aria-modal="true" aria-label={d.title || "Request a consultation"} tabIndex={-1} ref={panel}>
         <button type="button" className="drawer-x" aria-label="Close" onClick={() => setD(null)}>×</button>
         <p className="drawer-topic">About: {d.topic}</p>
         <LeadForm
@@ -47,16 +47,16 @@ export function ConnectDrawer() {
           segment={d.segment as Segment | undefined}
           products={d.products}
           topic={d.topic}
-          title={d.title || "Connect with Labb"}
-          subtitle="Tell us your testing goals. A Labb support team will build a program around them."
-          submitLabel="Send"
+          title={d.title || "Request a consultation"}
+          subtitle="Tell us about your program and what you want to improve. We will follow up with options and pricing."
+          submitLabel="Request a consultation"
         />
       </div>
     </div>
   );
 }
 
-export function ConnectButton({ topic, segment, products, label = "Talk to us", className = "reveal-link", title }: ConnectDetail & { label?: string; className?: string }) {
+export function ConnectButton({ topic, segment, products, label = "Request a consultation", className = "reveal-link", title }: ConnectDetail & { label?: string; className?: string }) {
   return (
     <button
       type="button"
