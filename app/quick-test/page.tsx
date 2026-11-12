@@ -1,80 +1,83 @@
 import type { Metadata } from "next";
-import { Breadcrumbs, Checks, Faq } from "@/components/ui";
-import { PageHero } from "@/components/PageHero";
+import { Breadcrumbs, Faq } from "@/components/ui";
 import { QuickTestForm } from "@/components/QuickTestForm";
+import { GraphicSlot } from "@/components/visual/GraphicSlot";
+import { RevealTiles } from "@/components/visual/Reveal";
+import { quickTestCheckoutReady, quickTestPrice } from "@/lib/commerce";
 
 export const metadata: Metadata = {
-  title: "Quick Test: Order an At-Home Drug Test, Proctored by Labb",
+  title: "Quick Test: Order a Drug Test at Home or at a Clinic | Labb",
   description:
-    "Order a drug test for yourself. Labb overnights the test to your home and a Labb proctor runs it with you by video, observed or non-observed, with the report sent to you.",
+    "Order a drug test online. Test at home with a Labb proctor by video, or at a clinic near you. Same price either way, with the report sent to you.",
   alternates: { canonical: "/quick-test" },
 };
 
-// Structure first: content and SEO to be written in the page-by-page pass.
-const steps = [
-  { t: "Order", b: "Choose your test type, collection and reason, and tell us where to ship." },
-  { t: "We overnight it", b: "Your test arrives at your home the next business day." },
-  { t: "Test by video", b: "A Labb proctor walks you through the test on a video call, observed or non-observed." },
-  { t: "Get your report", b: "Depending on the reason and the drugs tested, Labb sends the report to you, and to anyone you choose." },
-];
+export const revalidate = 3600; // refresh the price from Stripe hourly
 
 const faqs = [
-  { q: "What is the difference between observed and non-observed?", a: "In an observed test, a Labb proctor watches the collection by video. Non-observed tests are completed on your own, with the proctor guiding the steps." },
-  { q: "Who receives the report?", a: "It depends on the reason for the test and the drugs tested. Labb confirms who can receive your report before your test ships." },
-  { q: "How fast will I get my test?", a: "Labb ships overnight once your order is confirmed." },
-  { q: "What does it cost?", a: "Price depends on the test you choose. A Labb specialist confirms the price with you before anything ships." },
+  { q: "Is the price the same at home and at a clinic?", a: "Yes. You pay one price whichever you choose." },
+  { q: "What is the difference between observed and non-observed?", a: "At home, an observed test means a Labb proctor watches the collection by video. Non-observed tests are completed on your own, with the proctor guiding the steps." },
+  { q: "Who receives the report?", a: "It depends on the reason for the test and the drugs tested. Labb confirms who can receive your report before your test is sent." },
+  { q: "How fast will I get my test?", a: "At home, Labb ships your kit overnight. At a clinic, Labb sends the rapid test to the clinic and emails you where to go." },
 ];
 
-export default function QuickTest() {
+export default async function QuickTest() {
+  const [price, ready] = await Promise.all([quickTestPrice(), Promise.resolve(quickTestCheckoutReady())]);
   return (
     <>
-      <PageHero
-        eyebrow="Quick Test · For individuals"
-        title="A drug test at home, run by Labb."
-        lede="Order a test for yourself. We overnight it to you, a Labb proctor runs it with you by video, and the report comes to you."
-        primary={{ href: "#order", label: "Order a Quick Test" }}
-        secondary={{ href: "#how", label: "How it works" }}
-      />
+      <section className="hero-v2">
+        <div className="wrap">
+          <div>
+            <span className="eyebrow">Quick Test · For individuals</span>
+            <h1>Order a drug test. At home or at a clinic.</h1>
+            <p className="lede">{price ? `${price}, same price either way.` : "Same price either way."} Results come to you.</p>
+            <div className="btn-row">
+              <a href="#order" className="btn btn-primary btn-lg">Order now</a>
+              <a href="#options" className="btn btn-outline btn-lg">How it works</a>
+            </div>
+          </div>
+          <GraphicSlot src="/graphics/quick-test/hero.webp" alt="A Labb test kit arriving at home beside a phone" label="Hero: kit at home with a phone" w={1600} h={1200} priority />
+        </div>
+      </section>
       <Breadcrumbs items={[{ name: "Quick Test", href: "/quick-test" }]} />
 
-      <section className="section" id="how">
+      <section className="band light" id="options">
         <div className="wrap">
-          <span className="eyebrow">How it works</span>
-          <h2>Four steps, from your door to your report</h2>
-          <ol className="grid g4" style={{ listStyle: "none", padding: 0, marginTop: 28 }}>
-            {steps.map((s, i) => (
-              <li key={s.t} className="card rail">
-                <div className="icon-dot" aria-hidden="true">{i + 1}</div>
-                <h3>{s.t}</h3>
-                <p>{s.b}</p>
-              </li>
-            ))}
-          </ol>
+          <div className="band-head">
+            <h2>Two ways to test.</h2>
+            <p className="lede-sm">Pick what works for you. Tap a plus for the steps.</p>
+          </div>
+          <RevealTiles
+            cols={2}
+            segment="individual"
+            items={[
+              {
+                title: "At home",
+                graphic: <GraphicSlot src="/graphics/quick-test/at-home.webp" alt="Testing at home on a video call" label="At home: video proctored test" w={1000} h={700} sizes="520px" />,
+                body: "Order online. We overnight the kit to you. A Labb proctor runs the test with you by video, observed or non-observed. Your report comes to you.",
+                topic: "Quick Test at home",
+                cta: "Questions? Ask us",
+              },
+              {
+                title: "At a clinic",
+                graphic: <GraphicSlot src="/graphics/quick-test/at-clinic.webp" alt="Testing at a clinic" label="At a clinic: rapid test" w={1000} h={700} sizes="520px" />,
+                body: "Order online. We send the rapid test to a clinic near you and email you where to go. The clinic collects and Labb reads the result. Your report comes to you.",
+                topic: "Quick Test at a clinic",
+                cta: "Questions? Ask us",
+              },
+            ]}
+          />
         </div>
       </section>
 
-      <section className="section soft">
-        <div className="wrap grid g2" style={{ alignItems: "start" }}>
-          <div className="card top">
-            <h3>Observed</h3>
-            <Checks items={["A Labb proctor watches the collection by video", "For tests where the result must hold up for someone else"]} />
-          </div>
-          <div className="card top">
-            <h3>Non-observed</h3>
-            <Checks items={["You collect on your own with the proctor guiding the steps", "For personal peace of mind"]} />
-          </div>
-        </div>
-      </section>
-
-      <section className="section" id="order">
+      <section className="band" id="order">
         <div className="wrap split" style={{ alignItems: "start" }}>
           <div>
-            <span className="eyebrow">Questions</span>
             <h2>Before you order</h2>
             <Faq items={faqs} />
           </div>
           <div className="hero-card">
-            <QuickTestForm />
+            <QuickTestForm price={price} checkout={ready} />
           </div>
         </div>
       </section>

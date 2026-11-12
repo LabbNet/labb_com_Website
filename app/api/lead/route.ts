@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
-import { deliverLead, type Lead } from "@/lib/leads";
+import { deliverLead, saveLead, type Lead } from "@/lib/leads";
+import { quickTestCheckout, quickTestCheckoutReady } from "@/lib/commerce";
 import { isSegment, PRODUCTS, type Segment } from "@/lib/segments";
 import { getResource } from "@/lib/resources";
 import { COOKIE, cookieOptions, sign, verify } from "@/lib/session";
@@ -24,7 +25,7 @@ function segmentOf(body: Record<string, unknown>): Segment {
 }
 
 // Extra structured answers from specialized forms (for example Quick Test). Only known keys are kept.
-const DETAIL_KEYS = ["topic", "testType", "observation", "reason", "panel", "reportTo", "reportEmail", "address1", "address2", "city", "state", "zip", "deliverBy"] as const;
+const DETAIL_KEYS = ["topic", "fulfillment", "clinicZip", "clinicName", "testType", "observation", "reason", "panel", "reportTo", "reportEmail", "address1", "address2", "city", "state", "zip", "deliverBy"] as const;
 function detailsOf(v: unknown) {
   if (!v || typeof v !== "object") return undefined;
   const out: Record<string, string> = {};
@@ -112,13 +113,29 @@ export async function POST(req: Request) {
   }
   if (lead.type === "quick-test") {
     const d = lead.details || {};
+    const home = d.fulfillment === "At home";
     if (!lead.phone) errors.phone = "Enter a 10 digit phone number.";
+    if (d.fulfillment !== "At home" && d.fulfillment !== "At a clinic") errors.fulfillment = "Choose at home or at a clinic.";
     if (!d.testType) errors.testType = "Choose a test type.";
-    if (!d.observation) errors.observation = "Choose observed or non-observed.";
+    if (home && !d.observation) errors.observation = "Choose observed or non-observed.";
     if (!d.reason) errors.reason = "Choose the reason for the test.";
-    if (!d.address1 || !d.city || !d.state || !d.zip) errors.address1 = "Enter the full shipping address.";
+    if (home && (!d.address1 || !d.city || !d.state || !d.zip)) errors.address1 = "Enter the full shipping address.";
+    if (!home && !/^\d{5}$/.test(d.clinicZip || "")) errors.clinicZip = "Enter a 5 digit ZIP code.";
   }
   if (Object.keys(errors).length) return NextResponse.json({ errors }, { status: 422 });
+
+  // Quick Test: save the order, then send the buyer to Stripe Checkout. The notification goes out
+  // when Stripe confirms payment (webhook). Without Stripe it falls back to an order request.
+  if (lead.type === "quick-test" && quickTestCheckoutReady()) {
+    try {
+      const id = await saveLead(lead);
+      const url = await quickTestCheckout(id, lead);
+      return NextResponse.json({ ok: true, checkout: url });
+    } catch (e) {
+      console.error("[quick-test] checkout failed", e);
+      return NextResponse.json({ error: "We couldn't start checkout. Please call (877) 868-9967." }, { status: 502 });
+    }
+  }
 
   const resource = lead.resource ? getResource(lead.resource) : undefined;
   if (resource) lead.resource = resource.title;

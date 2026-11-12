@@ -3,55 +3,78 @@
 import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 
-// Quick Test order request for individuals. Saved as a lead (segment "individual"); payment is added later with Stripe.
+// Quick Test checkout for individuals, in four steps: where, your test, your details, review and pay.
+// The order is saved, then the buyer pays on Stripe Checkout. Same price at home or at a clinic.
+const WHERE = [
+  { v: "At home", t: "At home", b: "We overnight the kit to you. A Labb proctor runs the test with you by video." },
+  { v: "At a clinic", t: "At a clinic", b: "We send the rapid test to a clinic near you. You test there." },
+];
 const TEST_TYPES = ["Oral fluid (mouth swab)", "Urine (cup)", "Help me choose"];
 const OBSERVATION = ["Observed (a Labb proctor watches by video)", "Non-observed"];
 const REASONS = ["Personal or family", "Employer or job requirement", "Court, probation or legal", "Other"];
 const PANELS = ["Help me choose", "Standard panel (6 drugs)", "Expanded panel (10 or more drugs)", "Include alcohol"];
 const REPORT_TO = ["Only me", "Me and someone else (employer, attorney, court)"];
+const STEPS = ["Where", "Your test", "Your details", "Review"];
 
-export function QuickTestForm() {
+type F = Record<string, string>;
+
+export function QuickTestForm({ price, checkout }: { price: string | null; checkout: boolean }) {
   const router = useRouter();
   const started = useRef(Date.now());
-  const [sending, setSending] = useState(false);
-  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [step, setStep] = useState(0);
+  const [f, setF] = useState<F>({ panel: PANELS[0], reportTo: REPORT_TO[0] });
+  const [errors, setErrors] = useState<F>({});
   const [error, setError] = useState("");
-  const [reportTo, setReportTo] = useState(REPORT_TO[0]);
+  const [sending, setSending] = useState(false);
+  const home = f.fulfillment === "At home";
+  const set = (k: string, v: string) => {
+    setF((x) => ({ ...x, [k]: v }));
+    setErrors((e) => ({ ...e, [k]: "" }));
+  };
 
-  async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
-    e.preventDefault();
+  function check(n: number): F {
+    const e: F = {};
+    if (n === 0 && !f.fulfillment) e.fulfillment = "Choose at home or at a clinic.";
+    if (n === 1) {
+      if (!f.testType) e.testType = "Choose a test type.";
+      if (home && !f.observation) e.observation = "Choose observed or non-observed.";
+      if (!f.reason) e.reason = "Choose the reason for the test.";
+    }
+    if (n === 2) {
+      if (!f.firstName) e.firstName = "Enter your first name.";
+      if (!f.lastName) e.lastName = "Enter your last name.";
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(f.email || "")) e.email = "Enter a valid email address.";
+      if ((f.phone || "").replace(/\D/g, "").length < 10) e.phone = "Enter a 10 digit phone number.";
+      if (home) {
+        if (!f.address1) e.address1 = "Enter your street address.";
+        if (!f.city) e.city = "Enter your city.";
+        if (!f.state) e.state = "Enter your state.";
+        if (!/^\d{5}$/.test(f.zip || "")) e.zip = "Enter a 5 digit ZIP code.";
+      } else if (!/^\d{5}$/.test(f.clinicZip || "")) e.clinicZip = "Enter a 5 digit ZIP code.";
+    }
+    return e;
+  }
+  function next() {
+    const e = check(step);
+    setErrors(e);
+    if (!Object.values(e).some(Boolean)) setStep(step + 1);
+  }
+
+  async function submit() {
     setSending(true);
-    setErrors({});
     setError("");
-    const fd = new FormData(e.currentTarget);
-    const g = (k: string) => String(fd.get(k) || "");
     const body = {
       type: "quick-test",
       segment: "individual",
-      products: [],
-      firstName: g("firstName"),
-      lastName: g("lastName"),
-      email: g("email"),
-      phone: g("phone"),
-      state: g("state"),
-      message: g("message"),
-      website: g("website"),
-      page: window.location.pathname,
-      referrer: document.referrer,
+      firstName: f.firstName, lastName: f.lastName, email: f.email, phone: f.phone,
+      state: home ? f.state : "", city: home ? f.city : "", message: f.message || "",
+      website: f.website || "", page: window.location.pathname, referrer: document.referrer,
       elapsed: Date.now() - started.current,
       details: {
-        testType: g("testType"),
-        observation: g("observation"),
-        reason: g("reason"),
-        panel: g("panel"),
-        reportTo,
-        reportEmail: g("reportEmail"),
-        address1: g("address1"),
-        address2: g("address2"),
-        city: g("city"),
-        state: g("state"),
-        zip: g("zip"),
-        deliverBy: g("deliverBy"),
+        fulfillment: f.fulfillment, testType: f.testType, observation: home ? f.observation : "", reason: f.reason, panel: f.panel,
+        reportTo: f.reportTo, reportEmail: f.reportTo !== REPORT_TO[0] ? f.reportEmail || "" : "",
+        address1: home ? f.address1 : "", address2: home ? f.address2 || "" : "", city: home ? f.city : "", state: home ? f.state : "", zip: home ? f.zip : "",
+        clinicZip: home ? "" : f.clinicZip, clinicName: home ? "" : f.clinicName || "",
       },
     };
     try {
@@ -59,77 +82,136 @@ export function QuickTestForm() {
       const data = await res.json();
       if (res.status === 422) {
         setErrors(data.errors || {});
+        setError("Please check the highlighted fields.");
         setSending(false);
         return;
       }
       if (!res.ok) throw new Error(data.error);
-      (window as unknown as { dataLayer?: unknown[] }).dataLayer?.push({ event: "generate_lead", lead_type: "quick-test" });
-      router.push("/thank-you?type=quick-test");
+      (window as unknown as { dataLayer?: unknown[] }).dataLayer?.push({ event: "begin_checkout", item: "quick-test", fulfillment: f.fulfillment });
+      if (data.checkout) window.location.href = data.checkout;
+      else router.push("/thank-you?type=quick-test");
     } catch (err) {
       setError(err instanceof Error && err.message ? err.message : "Something went wrong. Please call (877) 868-9967.");
       setSending(false);
     }
   }
 
-  const input = (name: string, label: string, o: { type?: string; required?: boolean; auto?: string; full?: boolean } = {}) => (
-    <div className={`field${o.full ? " full" : ""}`} data-error={errors[name] ? "" : undefined}>
-      <label htmlFor={`q-${name}`}>{label}{o.required && <span className="req" aria-hidden="true">*</span>}</label>
-      <input id={`q-${name}`} name={name} type={o.type || "text"} required={o.required} autoComplete={o.auto} />
-      {errors[name] && <span className="err">{errors[name]}</span>}
+  const err = (k: string) => errors[k] && <span className="err">{errors[k]}</span>;
+  const input = (k: string, label: string, o: { type?: string; auto?: string; full?: boolean; optional?: boolean; inputMode?: "numeric" } = {}) => (
+    <div className={`field${o.full ? " full" : ""}`} data-error={errors[k] ? "" : undefined}>
+      <label htmlFor={`q-${k}`}>{label}{!o.optional && <span className="req" aria-hidden="true">*</span>}</label>
+      <input id={`q-${k}`} type={o.type || "text"} autoComplete={o.auto} inputMode={o.inputMode} value={f[k] || ""} onChange={(e) => set(k, e.target.value)} />
+      {err(k)}
     </div>
   );
-  const radios = (name: string, legend: string, options: string[], controlled?: { value: string; set: (v: string) => void }) => (
-    <fieldset className="field full radios" data-error={errors[name] ? "" : undefined}>
+  const radios = (k: string, legend: string, options: string[]) => (
+    <fieldset className="field full radios" data-error={errors[k] ? "" : undefined}>
       <legend>{legend}<span className="req" aria-hidden="true">*</span></legend>
-      {options.map((o, i) => (
-        <label key={o}>
-          {controlled ? (
-            <input type="radio" name={name} value={o} checked={controlled.value === o} onChange={() => controlled.set(o)} />
-          ) : (
-            <input type="radio" name={name} value={o} required defaultChecked={name === "panel" && i === 0} />
-          )}{" "}
-          {o}
-        </label>
+      {options.map((o) => (
+        <label key={o}><input type="radio" name={`q-${k}`} value={o} checked={f[k] === o} onChange={() => set(k, o)} /> {o}</label>
       ))}
-      {errors[name] && <span className="err">{errors[name]}</span>}
+      {err(k)}
     </fieldset>
   );
 
   return (
-    <form onSubmit={onSubmit} aria-label="Order a Quick Test">
-      <h2 className="form-title">Order a Quick Test</h2>
-      <p className="form-sub">We overnight the test to you and a Labb proctor walks you through it by video.</p>
-      <div className="fields">
-        <h3 className="form-group full">Your test</h3>
-        {radios("testType", "Test type", TEST_TYPES)}
-        {radios("observation", "Collection", OBSERVATION)}
-        {radios("reason", "Reason for the test", REASONS)}
-        {radios("panel", "Drugs to test", PANELS)}
-        {radios("reportTo", "Who gets the report", REPORT_TO, { value: reportTo, set: setReportTo })}
-        {reportTo !== REPORT_TO[0] && input("reportEmail", "Their email (if you have it)", { type: "email", full: true })}
+    <div className="qt">
+      <ol className="qt-steps" aria-label="Checkout steps">
+        {STEPS.map((s, i) => (
+          <li key={s} className={i === step ? "on" : i < step ? "done" : undefined} aria-current={i === step ? "step" : undefined}>
+            <span>{i + 1}</span>{s}
+          </li>
+        ))}
+      </ol>
 
-        <h3 className="form-group full">About you</h3>
-        {input("firstName", "First name", { required: true, auto: "given-name" })}
-        {input("lastName", "Last name", { required: true, auto: "family-name" })}
-        {input("email", "Email", { type: "email", required: true, auto: "email" })}
-        {input("phone", "Mobile phone", { type: "tel", required: true, auto: "tel-national" })}
-
-        <h3 className="form-group full">Ship to</h3>
-        {input("address1", "Street address", { required: true, auto: "address-line1", full: true })}
-        {input("address2", "Apartment, suite (optional)", { auto: "address-line2", full: true })}
-        {input("city", "City", { required: true, auto: "address-level2" })}
-        {input("state", "State", { required: true, auto: "address-level1" })}
-        {input("zip", "ZIP", { required: true, auto: "postal-code" })}
-        {input("deliverBy", "Need results by (optional)", { type: "date" })}
-        <div className="field full">
-          <label htmlFor="q-message">Anything we should know?</label>
-          <textarea id="q-message" name="message" />
+      {step === 0 && (
+        <div>
+          <h2 className="form-title">Where do you want to test?</h2>
+          <p className="form-sub">{price ? `${price}, same price either way.` : "Same price either way."}</p>
+          <div className="qt-where" role="radiogroup" aria-label="Where do you want to test?">
+            {WHERE.map((w) => (
+              <button key={w.v} type="button" role="radio" aria-checked={f.fulfillment === w.v} className={`qt-card${f.fulfillment === w.v ? " on" : ""}`} onClick={() => set("fulfillment", w.v)}>
+                <strong>{w.t}</strong>
+                <span>{w.b}</span>
+                {price && <em>{price}</em>}
+              </button>
+            ))}
+          </div>
+          {err("fulfillment")}
         </div>
-        <div className="hp" aria-hidden="true"><label>Website<input name="website" tabIndex={-1} autoComplete="off" /></label></div>
-      </div>
-      <button type="submit" className="btn btn-primary btn-block" style={{ marginTop: 22 }} disabled={sending}>{sending ? "Sending..." : "Request my test"}</button>
+      )}
+
+      {step === 1 && (
+        <div className="fields">
+          {radios("testType", "Test type", TEST_TYPES)}
+          {home && radios("observation", "Collection", OBSERVATION)}
+          {radios("reason", "Reason for the test", REASONS)}
+          {radios("panel", "Drugs to test", PANELS)}
+          {radios("reportTo", "Who gets the report", REPORT_TO)}
+          {f.reportTo !== REPORT_TO[0] && input("reportEmail", "Their email", { type: "email", full: true, optional: true })}
+        </div>
+      )}
+
+      {step === 2 && (
+        <div className="fields">
+          {input("firstName", "First name", { auto: "given-name" })}
+          {input("lastName", "Last name", { auto: "family-name" })}
+          {input("email", "Email", { type: "email", auto: "email" })}
+          {input("phone", "Mobile phone", { type: "tel", auto: "tel-national" })}
+          {home ? (
+            <>
+              <h3 className="form-group full">Ship my kit to</h3>
+              {input("address1", "Street address", { auto: "address-line1", full: true })}
+              {input("address2", "Apartment, suite", { auto: "address-line2", full: true, optional: true })}
+              {input("city", "City", { auto: "address-level2" })}
+              {input("state", "State", { auto: "address-level1" })}
+              {input("zip", "ZIP", { auto: "postal-code", inputMode: "numeric" })}
+            </>
+          ) : (
+            <>
+              <h3 className="form-group full">Find a clinic near</h3>
+              {input("clinicZip", "Your ZIP code", { auto: "postal-code", inputMode: "numeric" })}
+              {input("clinicName", "Preferred clinic, if you have one", { optional: true })}
+              <p className="fine full" style={{ margin: 0 }}>We send your rapid test to a clinic near this ZIP and email you where to go.</p>
+            </>
+          )}
+          <div className="field full">
+            <label htmlFor="q-message">Anything we should know?</label>
+            <textarea id="q-message" value={f.message || ""} onChange={(e) => set("message", e.target.value)} />
+          </div>
+          <div className="hp" aria-hidden="true"><label>Website<input tabIndex={-1} autoComplete="off" value={f.website || ""} onChange={(e) => set("website", e.target.value)} /></label></div>
+        </div>
+      )}
+
+      {step === 3 && (
+        <div>
+          <h2 className="form-title">Review your order</h2>
+          <table className="lead-facts" style={{ marginTop: 10 }}>
+            <tbody>
+              {([
+                ["Where", f.fulfillment],
+                ["Test", f.testType],
+                ["Collection", home ? f.observation : "At the clinic"],
+                ["Reason", f.reason],
+                ["Drugs", f.panel],
+                ["Report to", f.reportTo],
+                ["Name", `${f.firstName} ${f.lastName}`],
+                ["Email", f.email],
+                [home ? "Ship to" : "Clinic near", home ? `${f.address1}${f.address2 ? `, ${f.address2}` : ""}, ${f.city}, ${f.state} ${f.zip}` : `ZIP ${f.clinicZip}${f.clinicName ? ` (${f.clinicName})` : ""}`],
+                ["Total", price || "Shown at checkout"],
+              ] as [string, string][]).map(([k, v]) => <tr key={k}><th scope="row">{k}</th><td>{v}</td></tr>)}
+            </tbody>
+          </table>
+          <p className="fine">{checkout ? "You'll pay securely on the next page." : "Online payment is coming soon. A Labb specialist will contact you to confirm and take payment."} By ordering you agree to our <a href="/terms">terms</a> and <a href="/privacy">privacy policy</a>.</p>
+        </div>
+      )}
+
       {error && <p className="form-error" role="alert">{error}</p>}
-      <p className="fine">A Labb specialist confirms your order, price and who can receive the report before anything ships. See our <a href="/privacy">privacy policy</a>.</p>
-    </form>
+      <div className="qt-nav">
+        {step > 0 && <button type="button" className="btn btn-outline" onClick={() => setStep(step - 1)}>Back</button>}
+        {step < 3 && <button type="button" className="btn btn-primary" onClick={next}>Continue</button>}
+        {step === 3 && <button type="button" className="btn btn-primary" onClick={submit} disabled={sending}>{sending ? "One moment..." : checkout ? `Pay${price ? ` ${price}` : ""} and order` : "Place my order"}</button>}
+      </div>
+    </div>
   );
 }

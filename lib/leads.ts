@@ -109,6 +109,7 @@ export async function logLeadEvent(leadId: string | number, event: string, detai
 // ---- Rendering ----
 export const DETAIL_LABELS: Record<string, string> = {
   topic: "Opened from",
+  fulfillment: "Where", clinicZip: "Clinic near ZIP", clinicName: "Preferred clinic", paid: "Payment",
   testType: "Test type", observation: "Collection", reason: "Reason for test", panel: "Drugs to test", reportTo: "Send report to",
   reportEmail: "Report recipient email", address1: "Ship to", address2: "Ship to (line 2)", city: "City", state: "State", zip: "ZIP",
   deliverBy: "Needed by",
@@ -155,7 +156,7 @@ function table(r: [string, string | undefined][]) {
 }
 
 // ---- Save and deliver ----
-async function saveLead(lead: Lead): Promise<string> {
+export async function saveLead(lead: Lead): Promise<string> {
   const extra = {
     legalName: lead.legalName || undefined,
     signer: lead.signer || undefined,
@@ -180,9 +181,9 @@ async function saveLead(lead: Lead): Promise<string> {
   return row.id;
 }
 
-export async function deliverLead(lead: Lead) {
-  let id: string | undefined;
-  if (dbConfigured) {
+export async function deliverLead(lead: Lead, existingId?: string) {
+  let id: string | undefined = existingId;
+  if (!id && dbConfigured) {
     try {
       id = await saveLead(lead);
     } catch (e) {
@@ -192,7 +193,7 @@ export async function deliverLead(lead: Lead) {
 
   const name = lead.company || `${lead.firstName} ${lead.lastName}`.trim() || lead.email;
   const subject = lead.type === "quick-test"
-      ? `Quick Test order: ${`${lead.firstName} ${lead.lastName}`.trim()} (${lead.details?.testType || "test"}, ${lead.details?.state || ""})`
+      ? `${lead.details?.paid ? "PAID " : ""}Quick Test order: ${`${lead.firstName} ${lead.lastName}`.trim()} (${lead.details?.testType || "test"}, ${lead.details?.state || ""})`
       : lead.type === "cpp-application"
       ? `CPP application${lead.wantsAgreement ? " (SEND AGREEMENT)" : ""}: ${lead.company} (${[lead.city, lead.state].filter(Boolean).join(", ")})`
       : `New ${segmentLabel(lead.segment).toLowerCase()} lead: ${name}`;
@@ -255,3 +256,14 @@ export async function emailPartner(partner: { email: string; name: string }, lea
 }
 
 export { statusLabel };
+
+// Rebuild a Lead from a stored row (used after Stripe confirms payment, to send the notification).
+export function leadFromRow(r: LeadRow): Lead {
+  const d = (r.data || {}) as Record<string, unknown>;
+  return {
+    type: r.type, segment: r.segment as Lead["segment"], products: r.products || undefined, firstName: r.first_name || "", lastName: r.last_name || "",
+    email: r.email, phone: r.phone || undefined, company: r.company || undefined, city: r.city || undefined, state: r.state || undefined,
+    message: r.message || undefined, page: r.page || undefined, referrer: r.referrer || undefined,
+    details: (d.details as Record<string, string>) || undefined, submittedAt: new Date(r.created_at).toISOString(),
+  };
+}

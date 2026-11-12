@@ -3,6 +3,9 @@
 
 import Stripe from "stripe";
 import { certs } from "@/lib/certifications";
+import { dbConfigured } from "@/lib/db";
+import { absoluteUrl } from "@/lib/site";
+import type { Lead } from "@/lib/leads";
 
 export const stripeEnabled = Boolean(process.env.STRIPE_SECRET_KEY);
 export const lmsUrl = process.env.NEXT_PUBLIC_LMS_URL || "";
@@ -32,4 +35,35 @@ export async function enrollInLms(email: string, course: string) {
     body: JSON.stringify({ email, course }),
   });
   if (!res.ok) throw new Error(`LMS enrollment failed: ${res.status}`);
+}
+
+// ---- Quick Test (individual at-home or at-clinic test) ----
+// One Stripe Price for both options (same price at home or at a clinic): STRIPE_PRICE_QUICK_TEST.
+export const quickTestCheckoutReady = () => stripeEnabled && Boolean(process.env.STRIPE_PRICE_QUICK_TEST) && dbConfigured;
+
+export async function quickTestCheckout(leadId: string, lead: Lead) {
+  const home = lead.details?.fulfillment === "At home";
+  const session = await stripe().checkout.sessions.create({
+    mode: "payment",
+    line_items: [{ price: process.env.STRIPE_PRICE_QUICK_TEST!, quantity: 1 }],
+    customer_email: lead.email,
+    automatic_tax: { enabled: process.env.STRIPE_AUTOMATIC_TAX === "true" },
+    metadata: { kind: "quick-test", leadId, fulfillment: lead.details?.fulfillment || "" },
+    payment_intent_data: { description: `Labb Quick Test (${home ? "at home" : "at a clinic"}), order ${leadId}` },
+    success_url: absoluteUrl("/thank-you?type=quick-test-paid"),
+    cancel_url: absoluteUrl("/quick-test?canceled=1#order"),
+  });
+  return session.url!;
+}
+
+// Display price for the Quick Test page, read from Stripe (cached by the page's revalidate).
+export async function quickTestPrice(): Promise<string | null> {
+  if (!stripeEnabled || !process.env.STRIPE_PRICE_QUICK_TEST) return process.env.QUICK_TEST_PRICE_DISPLAY || null;
+  try {
+    const p = await stripe().prices.retrieve(process.env.STRIPE_PRICE_QUICK_TEST);
+    if (p.unit_amount == null) return null;
+    return new Intl.NumberFormat("en-US", { style: "currency", currency: p.currency.toUpperCase() }).format(p.unit_amount / 100);
+  } catch {
+    return process.env.QUICK_TEST_PRICE_DISPLAY || null;
+  }
 }

@@ -8,12 +8,19 @@ export default async function Page({ searchParams }: { searchParams: Promise<{ t
   const { type, agreement } = await searchParams;
   const cpp = type === "cpp";
   const quick = type === "quick-test";
+  const paid = type === "quick-test-paid";
   return (
     <section className="section">
       <div className="wrap center" style={{ maxWidth: 700 }}>
         <div className="done">
           <div className="ok" aria-hidden="true">✓</div>
-          {quick ? (
+          {paid ? (
+            <>
+              <h1 style={{ fontSize: "2.4rem" }}>Order confirmed.</h1>
+              <p className="lede">Thank you. Your payment went through and Stripe has emailed your receipt. A Labb specialist will confirm who receives your report, then we ship your kit overnight or send your test to the clinic.</p>
+              <p>Questions? Call <a href={site.phoneHref}>{site.phone}</a> or email <a href={`mailto:${site.email}`}>{site.email}</a>.</p>
+            </>
+          ) : quick ? (
             <>
               <h1 style={{ fontSize: "2.4rem" }}>Quick Test request received.</h1>
               <p className="lede">A Labb specialist will contact you to confirm your test, the price and who receives the report. Once confirmed, we ship overnight and schedule your proctored video session.</p>

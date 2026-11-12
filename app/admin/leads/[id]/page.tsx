@@ -13,6 +13,7 @@ export const dynamic = "force-dynamic";
 
 const EVENT_LABEL: Record<string, string> = {
   received: "Lead received",
+  paid: "Payment received",
   notified: "Notification sent",
   notify_failed: "Notification failed",
   status: "Status changed",
