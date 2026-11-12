@@ -16,14 +16,6 @@ export const metadata: Metadata = {
 
 // Light copy, big graphics: each section is a headline, one line and a graphic. Detail sits behind plus buttons.
 // Graphics marked as placeholders show the file name to drop into /public/graphics.
-const who = [
-  { href: "/laboratories", label: "Laboratories", g: "laboratories" },
-  { href: "/tpas", label: "TPAs", g: "tpas" },
-  { href: "/collection-sites", label: "Collection Sites", g: "collection-sites" },
-  { href: "/employers", label: "Employers", g: "employers" },
-  { href: "/treatment-recovery", label: "Treatment & Recovery", g: "treatment" },
-  { href: "/corrections", label: "Corrections", g: "corrections" },
-];
 
 const story = [
   { title: "Scan the ID", body: "The app reads the driver's license and fills in the paperwork.", g: "scan-1-id" },
@@ -42,13 +34,6 @@ const outcomes = [
   { title: "Less work for your team", g: "outcome-less-work", body: "Fee collection, notifications and records run remotely, so staff manage more with less effort.", topic: "Outcome: less work" },
 ];
 
-const platforms = [
-  { title: "One by Labb", g: "one", body: "The network that connects labs, TPAs, MROs, collection sites and employers.", href: "/one" },
-  { title: "LabbHR", g: "labbhr", body: "Runs the business: sales, marketing, contracting and accounting for drug testing companies. Now in beta.", href: "/labbhr" },
-  { title: "LabbPO", g: "labbpo", body: "Runs the caseload: random selection, notification and fee collection for corrections.", href: "/labbpo" },
-  { title: "LabbMD", g: "labbmd", body: "The platform for treatment and recovery programs.", href: "/labbmd" },
-  { title: "Labb Station", g: "labb-station", body: "Runs the test: an objective read and a documented record on any phone or tablet.", href: "/labb-station" },
-];
 
 export default function Home() {
   return (
@@ -72,15 +57,30 @@ export default function Home() {
         <div className="wrap">
           <div className="band-head center">
             <h2>Who are you?</h2>
-            <p className="lede-sm">Pick your world. We&apos;ll show you what fits.</p>
+            <p className="lede-sm">Two paths. Pick yours.</p>
           </div>
-          <div className="who-grid">
-            {who.map((w) => (
-              <Link key={w.href} href={w.href} className="who">
-                <div style={{ width: 96 }}><GraphicSlot src={`/graphics/who/${w.g}.webp`} alt="" label={w.label} w={400} h={400} sizes="96px" /></div>
-                <b>{w.label}</b>
-              </Link>
-            ))}
+          <div className="paths">
+            <Link href="/employers" className="split-door">
+              <GraphicSlot src="/graphics/who/employers.webp" alt="" label="Employers" w={1000} h={600} sizes="520px" />
+              <span className="eyebrow">Employers</span>
+              <h3>I need to test my employees.</h3>
+              <p>Test at your location, or send employees to a clinic.</p>
+              <div className="chips-row"><span>Test in-house</span><span>Use a clinic</span></div>
+              <span className="go">For employers →</span>
+            </Link>
+            <Link href="/testing-professionals" className="split-door">
+              <GraphicSlot src="/graphics/who/testing-pros.webp" alt="" label="Testing professionals" w={1000} h={600} sizes="520px" />
+              <span className="eyebrow">Testing professionals</span>
+              <h3>I run a drug testing business.</h3>
+              <p>Clinics, collection sites, TPAs and laboratories.</p>
+              <div className="chips-row"><span>Clinics</span><span>TPAs</span><span>Labs</span></div>
+              <span className="go">For testing pros →</span>
+            </Link>
+          </div>
+          <div className="split-more">
+            <Link href="/corrections">Corrections</Link>
+            <Link href="/treatment-recovery">Treatment and recovery</Link>
+            <Link href="/quick-test">Need one test for yourself? Quick Test</Link>
           </div>
         </div>
       </section>
@@ -103,25 +103,6 @@ export default function Home() {
         </div>
       </section>
 
-      <section className="band dark">
-        <div className="wrap">
-          <div className="band-head">
-            <h2>One platform for every part of drug testing.</h2>
-            <p className="lede-sm">Open any platform for the short version.</p>
-          </div>
-          <RevealTiles
-            cols={3}
-            items={platforms.map((p) => ({
-              title: p.title,
-              graphic: <GraphicSlot src={`/graphics/platforms/${p.g}.webp`} alt={`${p.title} logo`} label={`${p.title} logo`} w={800} h={500} sizes="320px" />,
-              body: p.body,
-              topic: p.title,
-              href: p.href,
-              hrefLabel: `About ${p.title}`,
-            }))}
-          />
-        </div>
-      </section>
 
       <section className="band light">
         <div className="wrap">

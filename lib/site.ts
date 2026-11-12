@@ -20,27 +20,31 @@ export const site = {
 };
 
 export const nav = [
+  // The big split: employers (test in-house or hire a clinic) vs testing professionals.
   {
-    label: "Who we serve",
-    base: ["/industries"],
+    label: "For employers",
+    base: ["/employers", "/industries"],
     children: [
-      { href: "/laboratories", label: "Laboratories" },
-      { href: "/tpas", label: "TPAs" },
-      { href: "/collection-sites", label: "Collection Sites" },
-      { href: "/employers", label: "Employers" },
-      { href: "/treatment-recovery", label: "Treatment & Recovery" },
-      { href: "/corrections", label: "Corrections" },
+      { href: "/employers", label: "Overview" },
+      { href: "/employers#in-house", label: "Test in-house" },
+      { href: "/employers#clinic", label: "Use a clinic" },
+      { heading: "Your industry" },
+      { href: "/industries/construction", label: "Construction" },
+      { href: "/industries/manufacturing", label: "Manufacturing" },
+      { href: "/industries/logistics-warehousing", label: "Logistics and warehousing" },
     ],
   },
   {
-    label: "Platforms",
-    base: ["/platforms", "/compare"],
+    label: "For testing pros",
+    base: ["/testing-professionals", "/collection-sites", "/tpas", "/laboratories", "/corrections", "/treatment-recovery"],
     children: [
-      { href: "/one", label: "One by Labb" },
-      { href: "/labbhr", label: "LabbHR" },
-      { href: "/labbpo", label: "LabbPO" },
-      { href: "/labbmd", label: "LabbMD" },
-      { href: "/labb-station", label: "Labb Station" },
+      { href: "/testing-professionals", label: "Overview" },
+      { href: "/collection-sites", label: "Clinics and collection sites" },
+      { href: "/tpas", label: "TPAs" },
+      { href: "/laboratories", label: "Laboratories" },
+      { heading: "Programs" },
+      { href: "/corrections", label: "Corrections" },
+      { href: "/treatment-recovery", label: "Treatment and recovery" },
     ],
   },
   {

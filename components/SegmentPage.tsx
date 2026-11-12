@@ -2,6 +2,7 @@ import Link from "next/link";
 import { Breadcrumbs, Checks, Faq, KitCard } from "@/components/ui";
 import { LeadForm } from "@/components/LeadForm";
 import { PageHero } from "@/components/PageHero";
+import { ConnectButton } from "@/components/visual/ConnectDrawer";
 import { getKit } from "@/lib/kits";
 import type { Segment } from "@/lib/segments";
 
@@ -23,6 +24,7 @@ export function SegmentPage(p: {
   extra?: { eyebrow: string; title: string; body: React.ReactNode; checks?: string[]; side?: Card; link?: { href: string; label: string } };
   kits?: { title: string; intro: string; slugs: string[] };
   faqs?: { q: string; a: string }[];
+  paths?: { id: string; eyebrow: string; title: string; body: string; points: string[]; graphic?: React.ReactNode; cta: { topic: string; label: string } }[];
   form: { segment: Segment; products: string[]; title: string; intro: string; heading: string; submit: string; variant?: "demo" | "quote" };
 }) {
   const kits = (p.kits?.slugs || []).map(getKit).filter((k): k is NonNullable<ReturnType<typeof getKit>> => Boolean(k));
@@ -30,6 +32,25 @@ export function SegmentPage(p: {
     <>
       <PageHero eyebrow={p.eyebrow} title={p.title} lede={p.lede} primary={p.primary} secondary={p.secondary} />
       <Breadcrumbs items={[{ name: p.crumb, href: `/${p.slug}` }]} />
+
+      {p.paths && (
+        <section className="band" style={{ paddingTop: 48 }}>
+          <div className="wrap">
+            <div className="paths">
+              {p.paths.map((x) => (
+                <div key={x.id} id={x.id} className="path-card">
+                  {x.graphic && <div className="path-graphic">{x.graphic}</div>}
+                  <span className="eyebrow">{x.eyebrow}</span>
+                  <h2>{x.title}</h2>
+                  <p className="lede-sm">{x.body}</p>
+                  <Checks items={x.points} />
+                  <ConnectButton className="btn btn-primary" topic={x.cta.topic} segment={p.form.segment} products={p.form.products} label={x.cta.label} title={x.cta.label} />
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
 
       <section className="section tight">
         <div className="wrap split" style={{ alignItems: "start" }}>

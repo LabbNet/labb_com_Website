@@ -21,18 +21,32 @@ export function Footer() {
           </p>
         </div>
         <div>
-          <h2>Products</h2>
+          <h2>Who we serve</h2>
+          <ul>
+            <li><Link href="/employers">Employers</Link></li>
+            <li><Link href="/collection-sites">Clinics and collection sites</Link></li>
+            <li><Link href="/tpas">TPAs</Link></li>
+            <li><Link href="/laboratories">Laboratories</Link></li>
+            <li><Link href="/corrections">Corrections</Link></li>
+            <li><Link href="/treatment-recovery">Treatment and recovery</Link></li>
+            <li><Link href="/quick-test">Individuals: Quick Test</Link></li>
+          </ul>
+        </div>
+        <div>
+          <h2>Test kits</h2>
           <ul>
             <li><Link href="/test-kits/oral-etest">Oral eTest</Link></li>
             <li><Link href="/test-kits/urine-etest">Urine eTest</Link></li>
             <li><Link href="/test-kits/oraflo">OraFlo</Link></li>
             <li><Link href="/test-kits#compare">Compare panels</Link></li>
+          </ul>
+          <h2 style={{ marginTop: 24 }}>Software</h2>
+          <ul>
             <li><Link href="/labb-station">Labb Station</Link></li>
             <li><Link href="/labbhr">LabbHR</Link></li>
             <li><Link href="/labbpo">LabbPO</Link></li>
             <li><Link href="/labbmd">LabbMD</Link></li>
             <li><Link href="/one">One by Labb</Link></li>
-            <li><Link href="/platforms">All platforms</Link></li>
           </ul>
         </div>
         <div>

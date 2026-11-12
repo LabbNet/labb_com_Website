@@ -1,6 +1,7 @@
 import Link from "next/link";
 import type { Metadata } from "next";
 import { SegmentPage } from "@/components/SegmentPage";
+import { GraphicSlot } from "@/components/visual/GraphicSlot";
 import { industries } from "@/lib/industries";
 
 export const metadata: Metadata = {
@@ -16,10 +17,30 @@ export default function Employers() {
       slug="employers"
       crumb="Employers"
       eyebrow="Employers testing in-house"
-      title="In-house drug testing without the guesswork or the paperwork."
-      lede="Faster and less expensive than sending employees out, without the mistakes that come with reading tests yourself. In your office, or at a collection site near you."
+      title="Drug testing for employers. In-house or at a clinic."
+      lede="Test at your location, or send employees to a clinic. Either way, Labb runs the program with you."
       primary={{ href: "#contact", label: "Get a quote" }}
-      secondary={{ href: "#industries", label: "Find your industry" }}
+      secondary={{ href: "#in-house", label: "In-house or clinic?" }}
+      paths={[
+        {
+          id: "in-house",
+          eyebrow: "Test in-house",
+          title: "Test at your location.",
+          body: "Your team runs the test with Labb kits and the Labb Station app on a phone. Fast, private and documented.",
+          points: ["Results in minutes, hire the same day", "Guided steps and an objective read", "Confirmation with one button"],
+          graphic: <GraphicSlot src="/graphics/employers/in-house.webp" alt="An employer testing in-house with a phone and a Labb kit" label="In-house testing" w={1000} h={700} sizes="520px" />,
+          cta: { topic: "Employer: test in-house", label: "Plan in-house testing" },
+        },
+        {
+          id: "clinic",
+          eyebrow: "Use a clinic",
+          title: "Send employees to a clinic.",
+          body: "Labb connects you with clinics near your locations that run Labb technology, and manages the program for you.",
+          points: ["Clinics near your sites", "One program, one bill", "Results documented the same way everywhere"],
+          graphic: <GraphicSlot src="/graphics/employers/clinic.webp" alt="An employee testing at a clinic" label="Testing at a clinic" w={1000} h={700} sizes="520px" />,
+          cta: { topic: "Employer: use a clinic", label: "Find clinics near me" },
+        },
+      ]}
       problem={{
         title: "Reading tests yourself is where programs go wrong",
         body: (

@@ -20,6 +20,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     page("/labbhr", 0.9),
     page("/labbpo", 0.9),
     page("/corrections", 0.9),
+    page("/testing-professionals", 0.9),
     page("/collection-sites", 0.9),
     page("/employers", 0.9),
     page("/laboratories", 0.8),

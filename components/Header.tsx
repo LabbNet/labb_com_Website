@@ -6,14 +6,16 @@ import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { nav as navItems, site } from "@/lib/site";
 
-type NavItem = { label: string; href?: string; base?: readonly string[]; children?: readonly { href: string; label: string }[] };
+type NavChild = { href?: string; label?: string; heading?: string };
+type NavItem = { label: string; href?: string; base?: readonly string[]; children?: readonly NavChild[] };
 const nav = navItems as readonly NavItem[];
 
 export function Header() {
   const [open, setOpen] = useState(false); // mobile menu
   const [menu, setMenu] = useState<string | null>(null); // which dropdown is open (only one at a time)
   const pathname = usePathname();
-  const isCurrent = (href: string) => pathname === href.split("?")[0];
+  // Links with a #section are never marked current; the section's main page is.
+  const isCurrent = (href?: string) => !!href && !href.includes("#") && pathname === href.split("?")[0];
   const inSection = (item: NavItem) =>
     (item.children || []).some((c) => isCurrent(c.href)) || (item.base || []).some((b) => pathname === b || pathname.startsWith(b + "/"));
 
@@ -76,11 +78,15 @@ export function Header() {
                     {item.label}
                   </button>
                   <ul id={`menu-${item.label.replace(/\s+/g, "-").toLowerCase()}`} hidden={menu !== item.label}>
-                    {item.children.map((c) => (
-                      <li key={c.href}>
-                        <Link href={c.href} aria-current={isCurrent(c.href) ? "page" : undefined} onClick={() => setMenu(null)}>{c.label}</Link>
-                      </li>
-                    ))}
+                    {item.children.map((c) =>
+                      c.heading ? (
+                        <li key={c.heading} className="dd-head" aria-hidden="true">{c.heading}</li>
+                      ) : (
+                        <li key={c.href}>
+                          <Link href={c.href!} aria-current={isCurrent(c.href) ? "page" : undefined} onClick={() => setMenu(null)}>{c.label}</Link>
+                        </li>
+                      ),
+                    )}
                   </ul>
                 </li>
               ) : (
