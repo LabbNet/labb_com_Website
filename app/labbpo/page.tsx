@@ -141,7 +141,7 @@ export default function LabbPOPage() {
             <span className="eyebrow po">Request a demo</span>
             <h2>See LabbPO with your caseload in mind</h2>
             <p>Tell us about your department and we&apos;ll walk you through random selection, the offender portal, fee collection and the guaranteed result system.</p>
-            <p className="program-note">Whatever you test, Labb has a program for it, and a support team that builds it around your goals and keeps it on track.</p>
+            <p className="program-note">Your testing goals, our technology and support: Labb builds the program around your goals and keeps it on track.</p>
           </div>
           <div className="hero-card">
             <LeadForm variant="demo" segment="corrections" products={["LabbPO"]} title="Request a LabbPO demo" submitLabel="Request a Demo" />

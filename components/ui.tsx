@@ -45,8 +45,8 @@ export function Breadcrumbs({ items }: { items: { name: string; href: string }[]
 // The site-wide call to action: whatever the testing need, Labb has a program and a support team
 // to help meet the goal. Primary button opens the slide-in form; secondary is page-specific.
 export function CtaBand({
-  title = "Whatever you test, we have a program for it.",
-  body = "Tell us your testing goals. A Labb support team builds the program around them and stays with you to keep it on track.",
+  title = "Your testing goals. Our technology and support.",
+  body = "Whatever you test, Labb has a program for it. Tell us your goals and our support team builds the program around them and keeps it on track.",
   topic = "Program and support",
   segment,
   products,
