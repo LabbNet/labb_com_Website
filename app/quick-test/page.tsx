@@ -3,7 +3,8 @@ import { Breadcrumbs, Faq } from "@/components/ui";
 import { QuickTestForm } from "@/components/QuickTestForm";
 import { GraphicSlot } from "@/components/visual/GraphicSlot";
 import { RevealTiles } from "@/components/visual/Reveal";
-import { quickTestCheckoutReady, quickTestPrice } from "@/lib/commerce";
+import { quickTestCheckoutReady } from "@/lib/commerce";
+import { QT_PRICING, money } from "@/lib/quickTest";
 
 export const metadata: Metadata = {
   title: "Quick Test: Order a Drug Test at Home or at a Clinic | Labb",
@@ -12,17 +13,19 @@ export const metadata: Metadata = {
   alternates: { canonical: "/quick-test" },
 };
 
-export const revalidate = 3600; // refresh the price from Stripe hourly
+export const dynamic = "force-dynamic"; // checkout availability depends on runtime settings
 
 const faqs = [
-  { q: "Is the price the same at home and at a clinic?", a: "Yes. You pay one price whichever you choose." },
+  { q: "Is the price the same at home and at a clinic?", a: "Yes. The price depends only on the drugs you test for, not where you test." },
+  { q: "Can I choose which drugs to test for?", a: "Yes. Pick a standard or expanded panel, or build a custom panel drug by drug. The price updates as you add drugs." },
   { q: "What is the difference between observed and non-observed?", a: "At home, an observed test means a Labb proctor watches the collection by video. Non-observed tests are completed on your own, with the proctor guiding the steps." },
   { q: "Who receives the report?", a: "It depends on the reason for the test and the drugs tested. Labb confirms who can receive your report before your test is sent." },
   { q: "How fast will I get my test?", a: "At home, Labb ships your kit overnight. At a clinic, Labb sends the rapid test to the clinic and emails you where to go." },
 ];
 
 export default async function QuickTest() {
-  const [price, ready] = await Promise.all([quickTestPrice(), Promise.resolve(quickTestCheckoutReady())]);
+  const ready = quickTestCheckoutReady();
+  const from = money(QT_PRICING.baseCents);
   return (
     <>
       <section className="hero-v2">
@@ -30,7 +33,7 @@ export default async function QuickTest() {
           <div>
             <span className="eyebrow">Quick Test · For individuals</span>
             <h1>Order a drug test. At home or at a clinic.</h1>
-            <p className="lede">{price ? `${price}, same price either way.` : "Same price either way."} Results come to you.</p>
+            <p className="lede">From {from}, same price at home or at a clinic. Choose your drugs, results come to you.</p>
             <div className="btn-row">
               <a href="#order" className="btn btn-primary btn-lg">Order now</a>
               <a href="#options" className="btn btn-outline btn-lg">How it works</a>
@@ -77,7 +80,7 @@ export default async function QuickTest() {
             <Faq items={faqs} />
           </div>
           <div className="hero-card">
-            <QuickTestForm price={price} checkout={ready} />
+            <QuickTestForm checkout={ready} />
           </div>
         </div>
       </section>

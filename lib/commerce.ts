@@ -38,14 +38,25 @@ export async function enrollInLms(email: string, course: string) {
 }
 
 // ---- Quick Test (individual at-home or at-clinic test) ----
-// One Stripe Price for both options (same price at home or at a clinic): STRIPE_PRICE_QUICK_TEST.
-export const quickTestCheckoutReady = () => stripeEnabled && Boolean(process.env.STRIPE_PRICE_QUICK_TEST) && dbConfigured;
+// The amount comes from lib/quickTest (base price plus drugs), recalculated on the server, and is
+// charged with Stripe price_data. Same price at home or at a clinic.
+export const quickTestCheckoutReady = () => stripeEnabled && dbConfigured;
 
 export async function quickTestCheckout(leadId: string, lead: Lead) {
   const home = lead.details?.fulfillment === "At home";
   const session = await stripe().checkout.sessions.create({
     mode: "payment",
-    line_items: [{ price: process.env.STRIPE_PRICE_QUICK_TEST!, quantity: 1 }],
+    line_items: [{
+      quantity: 1,
+      price_data: {
+        currency: "usd",
+        unit_amount: Math.round(Number((lead.details?.total || "").replace(/[^0-9.]/g, "")) * 100),
+        product_data: {
+          name: `Labb Quick Test (${home ? "at home" : "at a clinic"})`,
+          description: `${lead.details?.testType || "Test"}: ${lead.details?.drugs || "Labb to recommend"}`.slice(0, 500),
+        },
+      },
+    }],
     customer_email: lead.email,
     automatic_tax: { enabled: process.env.STRIPE_AUTOMATIC_TAX === "true" },
     metadata: { kind: "quick-test", leadId, fulfillment: lead.details?.fulfillment || "" },
@@ -54,16 +65,4 @@ export async function quickTestCheckout(leadId: string, lead: Lead) {
     cancel_url: absoluteUrl("/quick-test?canceled=1#order"),
   });
   return session.url!;
-}
-
-// Display price for the Quick Test page, read from Stripe (cached by the page's revalidate).
-export async function quickTestPrice(): Promise<string | null> {
-  if (!stripeEnabled || !process.env.STRIPE_PRICE_QUICK_TEST) return process.env.QUICK_TEST_PRICE_DISPLAY || null;
-  try {
-    const p = await stripe().prices.retrieve(process.env.STRIPE_PRICE_QUICK_TEST);
-    if (p.unit_amount == null) return null;
-    return new Intl.NumberFormat("en-US", { style: "currency", currency: p.currency.toUpperCase() }).format(p.unit_amount / 100);
-  } catch {
-    return process.env.QUICK_TEST_PRICE_DISPLAY || null;
-  }
 }

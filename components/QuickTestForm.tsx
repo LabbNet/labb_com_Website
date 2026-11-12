@@ -2,6 +2,7 @@
 
 import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
+import { PANELS, canAdd, drugCatalog, money, presetDrugs, quote, specimenOf } from "@/lib/quickTest";
 
 // Quick Test checkout for individuals, in four steps: where, your test, your details, review and pay.
 // The order is saved, then the buyer pays on Stripe Checkout. Same price at home or at a clinic.
@@ -12,22 +13,36 @@ const WHERE = [
 const TEST_TYPES = ["Oral fluid (mouth swab)", "Urine (cup)", "Help me choose"];
 const OBSERVATION = ["Observed (a Labb proctor watches by video)", "Non-observed"];
 const REASONS = ["Personal or family", "Employer or job requirement", "Court, probation or legal", "Other"];
-const PANELS = ["Help me choose", "Standard panel (6 drugs)", "Expanded panel (10 or more drugs)", "Include alcohol"];
 const REPORT_TO = ["Only me", "Me and someone else (employer, attorney, court)"];
 const STEPS = ["Where", "Your test", "Your details", "Review"];
 
 type F = Record<string, string>;
 
-export function QuickTestForm({ price, checkout }: { price: string | null; checkout: boolean }) {
+export function QuickTestForm({ checkout }: { checkout: boolean }) {
   const router = useRouter();
   const started = useRef(Date.now());
   const [step, setStep] = useState(0);
-  const [f, setF] = useState<F>({ panel: PANELS[0], reportTo: REPORT_TO[0] });
+  const [f, setF] = useState<F>({ panel: "Help me choose", reportTo: REPORT_TO[0] });
   const [errors, setErrors] = useState<F>({});
   const [error, setError] = useState("");
   const [sending, setSending] = useState(false);
+  const [custom, setCustom] = useState<string[]>([]);
   const home = f.fulfillment === "At home";
+  const specimen = specimenOf(f.testType);
+  const q = quote(f.testType, f.panel, custom);
+  const price = money(q.cents);
+  const toggleDrug = (code: string) => {
+    setCustom((c) => (c.includes(code) ? c.filter((x) => x !== code) : [...c, code]));
+    setErrors((e) => ({ ...e, panel: "" }));
+  };
   const set = (k: string, v: string) => {
+    // A new test type changes which drugs exist, so start the drug choice over.
+    if (k === "testType") {
+      setCustom([]);
+      setF((x) => ({ ...x, testType: v, panel: specimenOf(v) ? x.panel : "Help me choose" }));
+      setErrors((e) => ({ ...e, testType: "", panel: "" }));
+      return;
+    }
     setF((x) => ({ ...x, [k]: v }));
     setErrors((e) => ({ ...e, [k]: "" }));
   };
@@ -39,6 +54,7 @@ export function QuickTestForm({ price, checkout }: { price: string | null; check
       if (!f.testType) e.testType = "Choose a test type.";
       if (home && !f.observation) e.observation = "Choose observed or non-observed.";
       if (!f.reason) e.reason = "Choose the reason for the test.";
+      if (q.error) e.panel = q.error;
     }
     if (n === 2) {
       if (!f.firstName) e.firstName = "Enter your first name.";
@@ -75,6 +91,7 @@ export function QuickTestForm({ price, checkout }: { price: string | null; check
         reportTo: f.reportTo, reportEmail: f.reportTo !== REPORT_TO[0] ? f.reportEmail || "" : "",
         address1: home ? f.address1 : "", address2: home ? f.address2 || "" : "", city: home ? f.city : "", state: home ? f.state : "", zip: home ? f.zip : "",
         clinicZip: home ? "" : f.clinicZip, clinicName: home ? "" : f.clinicName || "",
+        customDrugs: f.panel === "Custom panel" ? custom : [],
       },
     };
     try {
@@ -87,6 +104,7 @@ export function QuickTestForm({ price, checkout }: { price: string | null; check
         return;
       }
       if (!res.ok) throw new Error(data.error);
+      if (data.errors) setErrors(data.errors);
       (window as unknown as { dataLayer?: unknown[] }).dataLayer?.push({ event: "begin_checkout", item: "quick-test", fulfillment: f.fulfillment });
       if (data.checkout) window.location.href = data.checkout;
       else router.push("/thank-you?type=quick-test");
@@ -127,13 +145,12 @@ export function QuickTestForm({ price, checkout }: { price: string | null; check
       {step === 0 && (
         <div>
           <h2 className="form-title">Where do you want to test?</h2>
-          <p className="form-sub">{price ? `${price}, same price either way.` : "Same price either way."}</p>
+          <p className="form-sub">Same price either way. The price depends only on the drugs you choose.</p>
           <div className="qt-where" role="radiogroup" aria-label="Where do you want to test?">
             {WHERE.map((w) => (
               <button key={w.v} type="button" role="radio" aria-checked={f.fulfillment === w.v} className={`qt-card${f.fulfillment === w.v ? " on" : ""}`} onClick={() => set("fulfillment", w.v)}>
                 <strong>{w.t}</strong>
                 <span>{w.b}</span>
-                {price && <em>{price}</em>}
               </button>
             ))}
           </div>
@@ -146,7 +163,28 @@ export function QuickTestForm({ price, checkout }: { price: string | null; check
           {radios("testType", "Test type", TEST_TYPES)}
           {home && radios("observation", "Collection", OBSERVATION)}
           {radios("reason", "Reason for the test", REASONS)}
-          {radios("panel", "Drugs to test", PANELS)}
+          {radios("panel", "Drugs to test", (specimen ? PANELS : PANELS.filter((p) => p === "Help me choose")) as unknown as string[])}
+          {specimen && (f.panel === "Standard panel" || f.panel === "Expanded panel") && (
+            <p className="fine full" style={{ margin: 0 }}>Tests for: {presetDrugs(specimen, f.panel).join(", ")}</p>
+          )}
+          {specimen && f.panel === "Custom panel" && (
+            <fieldset className="field full drug-pick">
+              <legend>Add drugs ({custom.length} selected)</legend>
+              <div>
+                {drugCatalog(specimen).map((d) => {
+                  const on = custom.includes(d.code);
+                  const ok = on || canAdd(specimen, custom, d.code);
+                  return (
+                    <button key={d.code} type="button" className={`drug${on ? " on" : ""}`} aria-pressed={on} disabled={!ok} onClick={() => toggleDrug(d.code)} title={ok ? d.name : "Can't be combined with your other picks in one test"}>
+                      <b>{d.code}</b> {d.name}
+                    </button>
+                  );
+                })}
+              </div>
+            </fieldset>
+          )}
+          {f.panel === "Help me choose" && <p className="fine full" style={{ margin: 0 }}>A Labb specialist will recommend the right drugs before your test is sent.</p>}
+          <div className="qt-total full" aria-live="polite"><span>Your price</span><strong>{price}</strong></div>
           {radios("reportTo", "Who gets the report", REPORT_TO)}
           {f.reportTo !== REPORT_TO[0] && input("reportEmail", "Their email", { type: "email", full: true, optional: true })}
         </div>
@@ -193,12 +231,12 @@ export function QuickTestForm({ price, checkout }: { price: string | null; check
                 ["Test", f.testType],
                 ["Collection", home ? f.observation : "At the clinic"],
                 ["Reason", f.reason],
-                ["Drugs", f.panel],
+                ["Drugs", q.drugs.length ? `${f.panel}: ${q.drugs.join(", ")}` : f.panel],
                 ["Report to", f.reportTo],
                 ["Name", `${f.firstName} ${f.lastName}`],
                 ["Email", f.email],
                 [home ? "Ship to" : "Clinic near", home ? `${f.address1}${f.address2 ? `, ${f.address2}` : ""}, ${f.city}, ${f.state} ${f.zip}` : `ZIP ${f.clinicZip}${f.clinicName ? ` (${f.clinicName})` : ""}`],
-                ["Total", price || "Shown at checkout"],
+                ["Total", price],
               ] as [string, string][]).map(([k, v]) => <tr key={k}><th scope="row">{k}</th><td>{v}</td></tr>)}
             </tbody>
           </table>
@@ -210,7 +248,7 @@ export function QuickTestForm({ price, checkout }: { price: string | null; check
       <div className="qt-nav">
         {step > 0 && <button type="button" className="btn btn-outline" onClick={() => setStep(step - 1)}>Back</button>}
         {step < 3 && <button type="button" className="btn btn-primary" onClick={next}>Continue</button>}
-        {step === 3 && <button type="button" className="btn btn-primary" onClick={submit} disabled={sending}>{sending ? "One moment..." : checkout ? `Pay${price ? ` ${price}` : ""} and order` : "Place my order"}</button>}
+        {step === 3 && <button type="button" className="btn btn-primary" onClick={submit} disabled={sending}>{sending ? "One moment..." : checkout ? `Pay ${price} and order` : "Place my order"}</button>}
       </div>
     </div>
   );
