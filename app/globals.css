@@ -743,7 +743,13 @@ p { margin: 0 0 1em; }
 .drug b { display: block; font-weight: 800; }
 .drug.on { border-color: var(--orange); background: var(--tint-20); }
 .drug:disabled { opacity: 0.4; cursor: not-allowed; }
-.qt-total { display: flex; justify-content: space-between; align-items: baseline; border-top: 1px solid var(--border); padding-top: 14px; margin-top: 6px; }
-.qt-total span { color: var(--muted); font-weight: 600; }
-.qt-total strong { font-size: 1.5rem; color: var(--dark); }
+.qt-total { border-top: 1px solid var(--border); padding-top: 14px; margin-top: 6px; }
+.qt-total dl { margin: 0; display: grid; gap: 6px; }
+.qt-total dl div { display: flex; justify-content: space-between; font-size: 0.92rem; color: var(--muted); }
+.qt-total dd { margin: 0; color: var(--dark); font-weight: 600; }
+.qt-sum { display: flex; justify-content: space-between; align-items: baseline; border-top: 1px solid var(--border); margin-top: 10px; padding-top: 10px; }
+.qt-sum span { font-weight: 700; color: var(--dark); }
+.qt-sum strong { font-size: 1.5rem; color: var(--dark); }
+.price-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; }
+.price-grid label { display: grid; gap: 6px; font-weight: 600; font-size: 0.9rem; }
 .program-note { border-left: 3px solid var(--orange); padding: 4px 0 4px 14px; font-weight: 600; color: var(--dark); margin-top: 16px; }

@@ -46,17 +46,19 @@ export async function quickTestCheckout(leadId: string, lead: Lead) {
   const home = lead.details?.fulfillment === "At home";
   const session = await stripe().checkout.sessions.create({
     mode: "payment",
-    line_items: [{
-      quantity: 1,
-      price_data: {
-        currency: "usd",
-        unit_amount: Math.round(Number((lead.details?.total || "").replace(/[^0-9.]/g, "")) * 100),
-        product_data: {
-          name: `Labb Quick Test (${home ? "at home" : "at a clinic"})`,
-          description: `${lead.details?.testType || "Test"}: ${lead.details?.drugs || "Labb to recommend"}`.slice(0, 500),
-        },
-      },
-    }],
+    line_items: (
+      [
+        ["Screen fee", lead.details?.screenFee, `${lead.details?.testType || "Test"}: ${lead.details?.drugs || "Labb to recommend"}`],
+        ["Overnight shipping", lead.details?.shippingFee, home ? "Kit shipped to you" : "Test shipped to your clinic"],
+        ["Proctoring", lead.details?.proctoringFee, lead.details?.observation || ""],
+      ] as [string, string | undefined, string][]
+    )
+      .map(([name, amt, desc]) => ({ name, cents: Math.round(Number((amt || "0").replace(/[^0-9.]/g, "")) * 100), desc }))
+      .filter((l) => l.cents > 0)
+      .map((l) => ({
+        quantity: 1,
+        price_data: { currency: "usd", unit_amount: l.cents, product_data: { name: `Quick Test ${l.name.toLowerCase()}`, ...(l.desc ? { description: l.desc.slice(0, 500) } : {}) } },
+      })),
     customer_email: lead.email,
     automatic_tax: { enabled: process.env.STRIPE_AUTOMATIC_TAX === "true" },
     metadata: { kind: "quick-test", leadId, fulfillment: lead.details?.fulfillment || "" },

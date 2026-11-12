@@ -2,7 +2,7 @@
 
 import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { PANELS, canAdd, drugCatalog, money, presetDrugs, quote, specimenOf } from "@/lib/quickTest";
+import { PANELS, canAdd, drugCatalog, money, presetDrugs, quote, specimenOf, type QtPricing } from "@/lib/quickTest";
 
 // Quick Test checkout for individuals, in four steps: where, your test, your details, review and pay.
 // The order is saved, then the buyer pays on Stripe Checkout. Same price at home or at a clinic.
@@ -11,14 +11,14 @@ const WHERE = [
   { v: "At a clinic", t: "At a clinic", b: "We send the rapid test to a clinic near you. You test there." },
 ];
 const TEST_TYPES = ["Oral fluid (mouth swab)", "Urine (cup)", "Help me choose"];
-const OBSERVATION = ["Observed (a Labb proctor watches by video)", "Non-observed"];
+const OBSERVATION = ["Observed", "Non-observed"];
 const REASONS = ["Personal or family", "Employer or job requirement", "Court, probation or legal", "Other"];
 const REPORT_TO = ["Only me", "Me and someone else (employer, attorney, court)"];
 const STEPS = ["Where", "Your test", "Your details", "Review"];
 
 type F = Record<string, string>;
 
-export function QuickTestForm({ checkout }: { checkout: boolean }) {
+export function QuickTestForm({ checkout, pricing }: { checkout: boolean; pricing: QtPricing }) {
   const router = useRouter();
   const started = useRef(Date.now());
   const [step, setStep] = useState(0);
@@ -29,7 +29,7 @@ export function QuickTestForm({ checkout }: { checkout: boolean }) {
   const [custom, setCustom] = useState<string[]>([]);
   const home = f.fulfillment === "At home";
   const specimen = specimenOf(f.testType);
-  const q = quote(f.testType, f.panel, custom);
+  const q = quote(f.testType, f.panel, custom, f.observation, pricing);
   const price = money(q.cents);
   const toggleDrug = (code: string) => {
     setCustom((c) => (c.includes(code) ? c.filter((x) => x !== code) : [...c, code]));
@@ -52,7 +52,7 @@ export function QuickTestForm({ checkout }: { checkout: boolean }) {
     if (n === 0 && !f.fulfillment) e.fulfillment = "Choose at home or at a clinic.";
     if (n === 1) {
       if (!f.testType) e.testType = "Choose a test type.";
-      if (home && !f.observation) e.observation = "Choose observed or non-observed.";
+      if (!f.observation) e.observation = "Choose observed or non-observed.";
       if (!f.reason) e.reason = "Choose the reason for the test.";
       if (q.error) e.panel = q.error;
     }
@@ -87,7 +87,7 @@ export function QuickTestForm({ checkout }: { checkout: boolean }) {
       website: f.website || "", page: window.location.pathname, referrer: document.referrer,
       elapsed: Date.now() - started.current,
       details: {
-        fulfillment: f.fulfillment, testType: f.testType, observation: home ? f.observation : "", reason: f.reason, panel: f.panel,
+        fulfillment: f.fulfillment, testType: f.testType, observation: f.observation, reason: f.reason, panel: f.panel,
         reportTo: f.reportTo, reportEmail: f.reportTo !== REPORT_TO[0] ? f.reportEmail || "" : "",
         address1: home ? f.address1 : "", address2: home ? f.address2 || "" : "", city: home ? f.city : "", state: home ? f.state : "", zip: home ? f.zip : "",
         clinicZip: home ? "" : f.clinicZip, clinicName: home ? "" : f.clinicName || "",
@@ -161,7 +161,10 @@ export function QuickTestForm({ checkout }: { checkout: boolean }) {
       {step === 1 && (
         <div className="fields">
           {radios("testType", "Test type", TEST_TYPES)}
-          {home && radios("observation", "Collection", OBSERVATION)}
+          {radios("observation", "Collection", OBSERVATION)}
+          <p className="fine full" style={{ margin: "-6px 0 0" }}>
+            Observed: {home ? "a Labb proctor watches the collection by video" : "the clinic watches the collection"} ({money(pricing.proctorObservedCents)}). Non-observed: {home ? "the proctor guides you without watching" : "you collect in private"} ({money(pricing.proctorNonObservedCents)}).
+          </p>
           {radios("reason", "Reason for the test", REASONS)}
           {radios("panel", "Drugs to test", (specimen ? PANELS : PANELS.filter((p) => p === "Help me choose")) as unknown as string[])}
           {specimen && (f.panel === "Standard panel" || f.panel === "Expanded panel") && (
@@ -184,7 +187,14 @@ export function QuickTestForm({ checkout }: { checkout: boolean }) {
             </fieldset>
           )}
           {f.panel === "Help me choose" && <p className="fine full" style={{ margin: 0 }}>A Labb specialist will recommend the right drugs before your test is sent.</p>}
-          <div className="qt-total full" aria-live="polite"><span>Your price</span><strong>{price}</strong></div>
+          <div className="qt-total full" aria-live="polite">
+            <dl>
+              <div><dt>Screen fee{q.drugs.length ? ` (${q.drugs.length} drugs)` : ""}</dt><dd>{money(q.fees.screen)}</dd></div>
+              <div><dt>Overnight shipping</dt><dd>{money(q.fees.shipping)}</dd></div>
+              <div><dt>Proctoring{f.observation ? `, ${f.observation.toLowerCase()}` : ""}</dt><dd>{f.observation ? money(q.fees.proctoring) : "Choose collection"}</dd></div>
+            </dl>
+            <div className="qt-sum"><span>Total</span><strong>{price}</strong></div>
+          </div>
           {radios("reportTo", "Who gets the report", REPORT_TO)}
           {f.reportTo !== REPORT_TO[0] && input("reportEmail", "Their email", { type: "email", full: true, optional: true })}
         </div>
@@ -229,13 +239,16 @@ export function QuickTestForm({ checkout }: { checkout: boolean }) {
               {([
                 ["Where", f.fulfillment],
                 ["Test", f.testType],
-                ["Collection", home ? f.observation : "At the clinic"],
+                ["Collection", f.observation],
                 ["Reason", f.reason],
                 ["Drugs", q.drugs.length ? `${f.panel}: ${q.drugs.join(", ")}` : f.panel],
                 ["Report to", f.reportTo],
                 ["Name", `${f.firstName} ${f.lastName}`],
                 ["Email", f.email],
                 [home ? "Ship to" : "Clinic near", home ? `${f.address1}${f.address2 ? `, ${f.address2}` : ""}, ${f.city}, ${f.state} ${f.zip}` : `ZIP ${f.clinicZip}${f.clinicName ? ` (${f.clinicName})` : ""}`],
+                ["Screen fee", money(q.fees.screen)],
+                ["Overnight shipping", money(q.fees.shipping)],
+                ["Proctoring", money(q.fees.proctoring)],
                 ["Total", price],
               ] as [string, string][]).map(([k, v]) => <tr key={k}><th scope="row">{k}</th><td>{v}</td></tr>)}
             </tbody>

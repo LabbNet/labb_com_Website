@@ -2,13 +2,28 @@
 // actually charged), so the browser can never set its own total.
 import { publishedKits, type Kit } from "@/lib/kits";
 
-// PLACEHOLDER PRICES: replace with Labb's real Quick Test pricing.
-// Same price at home or at a clinic. A test includes the first `includedDrugs` drugs; each drug
-// after that adds `perDrugCents`.
-export const QT_PRICING = {
-  baseCents: 7900,
+// Quick Test pricing. Admins edit it in /admin/settings (stored in site_settings as
+// "quick_test_pricing"); these are the defaults until it is saved. Amounts are in cents.
+// Total = screen fee + overnight shipping + proctoring.
+// Screen fee: starts at screenMinCents for up to includedDrugs drugs, adds perDrugCents for each
+// drug after that, and never goes above screenMaxCents.
+export type QtPricing = {
+  screenMinCents: number;
+  screenMaxCents: number;
+  includedDrugs: number;
+  perDrugCents: number;
+  shippingCents: number;
+  proctorNonObservedCents: number;
+  proctorObservedCents: number;
+};
+export const QT_DEFAULT_PRICING: QtPricing = {
+  screenMinCents: 3900,
+  screenMaxCents: 8900,
   includedDrugs: 6,
   perDrugCents: 500,
+  shippingCents: 3900,
+  proctorNonObservedCents: 3000,
+  proctorObservedCents: 6000,
 };
 
 export type Specimen = "Oral fluid" | "Urine";
@@ -49,21 +64,31 @@ export function kitForSelection(specimen: Specimen, codes: string[]): Kit | null
 // A drug can be added only if some kit still covers the selection with it.
 export const canAdd = (specimen: Specimen, codes: string[], code: string) => Boolean(kitForSelection(specimen, [...codes, code]));
 
-export function priceCents(drugCount: number) {
-  const extra = Math.max(0, drugCount - QT_PRICING.includedDrugs);
-  return QT_PRICING.baseCents + extra * QT_PRICING.perDrugCents;
+export function screenFeeCents(drugCount: number, pr: QtPricing) {
+  const extra = Math.max(0, drugCount - pr.includedDrugs);
+  return Math.min(pr.screenMaxCents, pr.screenMinCents + extra * pr.perDrugCents);
 }
+export const isObserved = (observation?: string) => Boolean(observation?.startsWith("Observed"));
 
 export const money = (cents: number) => new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" }).format(cents / 100);
 
-// Resolve an order's drugs, kit and price. Returns an error message for an invalid custom selection.
-export function quote(testType: string | undefined, panel: string | undefined, custom: string[] = []) {
+// Resolve an order's drugs, kit and fees. Returns an error message for an invalid custom selection.
+export function quote(testType: string | undefined, panel: string | undefined, custom: string[] = [], observation?: string, pr: QtPricing = QT_DEFAULT_PRICING) {
   const specimen = specimenOf(testType);
   const p = (PANELS as readonly string[]).includes(panel || "") ? (panel as Panel) : "Help me choose";
-  if (!specimen || p === "Help me choose") return { drugs: [] as string[], kit: null, cents: priceCents(QT_PRICING.includedDrugs), error: "" };
-  const drugs = p === "Custom panel" ? [...new Set(custom)] : presetDrugs(specimen, p);
-  if (p === "Custom panel" && !drugs.length) return { drugs, kit: null, cents: priceCents(0), error: "Choose at least one drug." };
-  const kit = kitForSelection(specimen, drugs);
-  if (!kit) return { drugs, kit: null, cents: priceCents(drugs.length), error: "Those drugs can't be combined in one test. Remove one and try again." };
-  return { drugs, kit, cents: priceCents(drugs.length), error: "" };
+  let drugs: string[] = [];
+  let kit: Kit | null = null;
+  let error = "";
+  if (specimen && p !== "Help me choose") {
+    drugs = p === "Custom panel" ? [...new Set(custom)] : presetDrugs(specimen, p);
+    if (p === "Custom panel" && !drugs.length) error = "Choose at least one drug.";
+    else {
+      kit = kitForSelection(specimen, drugs);
+      if (!kit) error = "Those drugs can't be combined in one test. Remove one and try again.";
+    }
+  }
+  const screen = drugs.length ? screenFeeCents(drugs.length, pr) : pr.screenMinCents;
+  const shipping = pr.shippingCents;
+  const proctoring = observation ? (isObserved(observation) ? pr.proctorObservedCents : pr.proctorNonObservedCents) : 0;
+  return { drugs, kit, error, fees: { screen, shipping, proctoring }, cents: screen + shipping + proctoring };
 }
