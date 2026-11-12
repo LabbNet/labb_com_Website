@@ -8,7 +8,7 @@ import { KitShelf } from "@/components/visual/KitShelf";
 import { shelfKits } from "@/lib/kits";
 
 export const metadata: Metadata = {
-  title: { absolute: "Smart Drug Testing Technology for Better Outcomes | Labb" },
+  title: { absolute: "Drug Testing Programs, Technology and Support | Labb" },
   description:
     "Labb builds smarter drug testing technology: software, test kits and a connected network for labs, TPAs, collection sites, employers, treatment programs and corrections. Better technology, better outcomes.",
   alternates: { canonical: "/" },
@@ -57,8 +57,8 @@ export default function Home() {
         <div className="wrap">
           <div>
             <span className="eyebrow">Smart drug testing technology</span>
-            <h1>Better technology. Better outcomes.</h1>
-            <p className="lede">Software, test kits and a connected network that make every drug test faster, more accurate and easier to trust.</p>
+            <h1>Your testing goals. Our technology and support.</h1>
+            <p className="lede">Whatever you test, Labb has the program, the support team and the technology to get you there.</p>
             <div className="btn-row">
               <a href="#who" className="btn btn-primary btn-lg">Who are you?</a>
               <a href="#outcomes" className="btn btn-outline btn-lg">See the outcomes</a>
@@ -167,7 +167,11 @@ export default function Home() {
         </div>
       </section>
 
-      <CtaBand secondary={{ href: "/quick-test", label: "Need one test? Quick Test" }} />
+      <CtaBand
+        title="Better technology. Better outcomes."
+        body="Tell us your testing goals and our support team builds a program around them, then keeps it on track."
+        secondary={{ href: "/quick-test", label: "Need one test? Quick Test" }}
+      />
     </>
   );
 }
