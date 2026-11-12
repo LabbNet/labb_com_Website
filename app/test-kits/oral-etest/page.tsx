@@ -18,7 +18,7 @@ export default function OralETest() {
       info={{
         title: "eTest Swab oral fluid screens",
         body: <p>Observed collection with no restroom needed. A two-sided cup designed for an objective Labb Station read, in the office or at the clinic.</p>,
-        points: ["Oral fluid, observed collection", "Read in 3 to 10 minutes", "Two-sided cup built for Labb Station", "Workplace (EUO)"],
+        points: ["Oral fluid, observed collection", "Read in 3 to 10 minutes", "Two-sided cup built for Labb Station", "Employment use only (EUO)"],
       }}
     />
   );

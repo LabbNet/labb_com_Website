@@ -24,7 +24,7 @@ const FILTERS = [
   { k: "all", label: "All" },
   { k: "Oral fluid", label: "Oral fluid" },
   { k: "Urine", label: "Urine" },
-  { k: "EUO", label: "Workplace" },
+  { k: "EUO", label: "Employment use only" },
   { k: "FUO", label: "Forensic" },
 ];
 

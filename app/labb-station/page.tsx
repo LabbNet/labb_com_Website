@@ -19,10 +19,10 @@ export const metadata: Metadata = {
 };
 
 const story = [
-  { title: "Set up the test", body: "Pick the donor and the panel. The app guides each step.", g: "scan-1-place" },
-  { title: "Scan side 1", body: "Point your phone or tablet at the kit.", g: "scan-2-side1" },
-  { title: "Scan side 2", body: "The app prompts the next side, so nothing is missed.", g: "scan-3-side2" },
-  { title: "Objective read, on record", body: "The result is saved with the image and time.", g: "scan-4-result" },
+  { title: "Scan the ID", body: "Scan the donor's driver's license. The app fills in the paperwork or finds the existing order.", g: "scan-1-id" },
+  { title: "Collect and set it down", body: "Collect the sample and place the kit on a table or desk.", g: "scan-2-place" },
+  { title: "Capture the kit", body: "Take one picture of the kit in the app.", g: "scan-3-capture" },
+  { title: "Get the result", body: "An objective read, saved with the image and time.", g: "scan-4-result" },
   { title: "Send to lab", body: "Need confirmation? One button.", g: "scan-5-send" },
 ];
 

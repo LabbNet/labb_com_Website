@@ -422,7 +422,7 @@ export const publishedKits = kits.filter((k) => k.published);
 export const getKit = (slug: string) => publishedKits.find((k) => k.slug === slug);
 
 export const badgeLabel: Record<Kit["badge"], string> = {
-  EUO: "Workplace",
+  EUO: "Employment use only",
   FUO: "Forensic",
   OTC: "Diagnostic",
 };

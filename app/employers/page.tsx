@@ -62,7 +62,7 @@ export default function Employers() {
       }}
       kits={{
         title: "Smaller workplace panels",
-        intro: "Workplace (EUO), OTC and IVD kits for pre-employment, random and post-accident testing.",
+        intro: "Employment use only (EUO), OTC and IVD kits for pre-employment, random and post-accident testing.",
         slugs: ["or-06a-etest-swab", "orf-31c-oraflo", "ua-13a-svt", "ua-16c-svt"],
       }}
       form={{ segment: "employer", products: ["Labb Station", "Test kits"], heading: "Get a quote", title: "Start an in-house program", intro: "Tell us about your workforce and we'll recommend panels, send a free sample and get your team certified.", submit: "Get a Quote", variant: "quote" }}

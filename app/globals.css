@@ -719,3 +719,4 @@ p { margin: 0 0 1em; }
 .gslot.gslot-l { justify-items: start; text-align: left; padding-left: 28px; }
 .gslot.gslot-r { justify-items: end; text-align: right; padding-right: 28px; }
 .gslot.gslot-l > div, .gslot.gslot-r > div { max-width: 40%; }
+.band.light .gslot-img { mix-blend-mode: multiply; }

@@ -18,7 +18,7 @@ export default function OraFlo() {
       info={{
         title: "OraFlo oral fluid screens",
         body: <p>Drug names on the device are masked to protect donor privacy, and decoded privately by Labb Station. Built for workplace testing, in the office or at the clinic.</p>,
-        points: ["Oral fluid, observed collection", "Masked drug names (True Privacy)", "Read with Labb Station", "Workplace (EUO)"],
+        points: ["Oral fluid, observed collection", "Masked drug names (True Privacy)", "Read with Labb Station", "Employment use only (EUO)"],
       }}
     />
   );
