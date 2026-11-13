@@ -17,7 +17,7 @@ export default function Employers() {
       slug="employers"
       crumb="Employers"
       eyebrow="Employers testing in-house"
-      title="Drug testing for employers. In-house or at a clinic."
+      title="Drug testing for your employees. In your office or at a clinic."
       lede="Test at your location, or send employees to a clinic. Either way, Labb runs the program with you."
       primary={{ href: "#contact", label: "Get a quote" }}
       secondary={{ href: "#in-house", label: "In-house or clinic?" }}
