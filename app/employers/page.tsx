@@ -42,7 +42,7 @@ export default function Employers() {
         },
       ]}
       problem={{
-        title: "Running an in-office program means not just reading kits, but documenting and confirming them correctly.",
+        title: "In-house testing means reading, documenting, and confirming test kits correctly.",
         body: (
           <p>
             Low testing volume means staff never get good at reading kits. A test misread as positive can rule out a candidate who would
