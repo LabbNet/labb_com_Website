@@ -6,7 +6,7 @@ import { PageHero } from "@/components/PageHero";
 import { benefits, faqs } from "@/lib/cpp";
 
 export const metadata: Metadata = {
-  title: "CPP Program Details: Benefits, Costs and Requirements | Labb",
+  title: "CPP Program Details: Benefits, Costs and Requirements",
   description: "Labb Channel Partner Program benefits, costs and member requirements for clinics and collection sites.",
   alternates: { canonical: "/channel-partner-program/program-details" },
 };

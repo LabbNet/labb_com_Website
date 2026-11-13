@@ -7,7 +7,7 @@ import { publishedKits } from "@/lib/kits";
 import { LABBPO_LICENSE, labbpo } from "@/lib/platforms";
 
 export const metadata: Metadata = {
-  title: "Probation and Corrections Drug Testing Software | Labb",
+  title: "Probation and Corrections Drug Testing Software",
   description:
     "Offender management and objective rapid drug testing for probation, parole and jails. LabbPO handles random selection, notification and fee collection; Labb Station gives every rapid test an objective read.",
   alternates: { canonical: "/corrections" },

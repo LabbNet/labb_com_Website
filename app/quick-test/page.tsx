@@ -8,7 +8,7 @@ import { money } from "@/lib/quickTest";
 import { getQtPricing } from "@/lib/qtPricing";
 
 export const metadata: Metadata = {
-  title: "Quick Test: Order a Drug Test at Home or at a Clinic | Labb",
+  title: "Quick Test: Order a Drug Test at Home or at a Clinic",
   description:
     "Order a drug test online. Test at home with a Labb proctor by video, or at a clinic near you. Same price either way, with the report sent to you.",
   alternates: { canonical: "/quick-test" },

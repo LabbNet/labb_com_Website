@@ -5,7 +5,7 @@ import { LeadForm } from "@/components/LeadForm";
 import { PageHero } from "@/components/PageHero";
 
 export const metadata: Metadata = {
-  title: "Software for Drug Testing Businesses: TPAs, Labs, MROs | Labb",
+  title: "Software for Drug Testing Businesses: TPAs, Labs, MROs",
   description:
     "LabbHR gives TPAs, laboratories, MROs, national accounts and collection sites one platform for sales, marketing, contracting and accounting, connected to the industry through One by Labb.",
   alternates: { canonical: "/drug-testing-businesses" },

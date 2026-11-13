@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { SegmentPage } from "@/components/SegmentPage";
 
 export const metadata: Metadata = {
-  title: "Rapid Drug Testing for Treatment and Recovery Programs | Labb",
+  title: "Rapid Drug Testing for Treatment and Recovery Programs",
   description:
     "Objective, documented rapid urine drug testing for treatment and recovery programs, with FDA 510(k) cleared kits, a Labb Station read and lab confirmation in one button.",
   alternates: { canonical: "/treatment-recovery" },

@@ -4,7 +4,7 @@ import { Breadcrumbs, CtaBand } from "@/components/ui";
 import { GraphicSlot } from "@/components/visual/GraphicSlot";
 
 export const metadata: Metadata = {
-  title: "Drug Testing Technology for Clinics, TPAs and Laboratories | Labb",
+  title: "Drug Testing Technology for Clinics, TPAs and Laboratories",
   description: "Labb technology, test kits and support for drug testing professionals: clinics and collection sites, TPAs and laboratories, plus corrections and treatment programs.",
   alternates: { canonical: "/testing-professionals" },
 };

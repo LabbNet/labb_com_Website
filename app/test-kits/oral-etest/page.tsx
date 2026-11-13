@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { SeriesPage } from "@/components/SeriesPage";
 
 export const metadata: Metadata = {
-  title: "Oral eTest: eTest Swab Oral Fluid Drug Tests | Labb",
+  title: "Oral eTest: eTest Swab Oral Fluid Drug Tests",
   description: "Labb Oral eTest (OR Series) eTest Swab oral fluid drug screens: observed collection, no restroom, read objectively with Labb Station. 6 and 13 drug panels.",
   alternates: { canonical: "/test-kits/oral-etest" },
 };

@@ -5,7 +5,7 @@ import { PageHero } from "@/components/PageHero";
 import { LABBMD_LICENSE } from "@/lib/platforms";
 
 export const metadata: Metadata = {
-  title: "LabbMD: Platform for Treatment and Recovery Programs | Labb",
+  title: "LabbMD: Platform for Treatment and Recovery Programs",
   description: "LabbMD is Labb's platform for clinical, treatment and recovery programs.",
   alternates: { canonical: "/labbmd" },
 };

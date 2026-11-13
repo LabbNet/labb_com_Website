@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { SeriesPage } from "@/components/SeriesPage";
 
 export const metadata: Metadata = {
-  title: "OraFlo Oral Fluid Drug Tests | Labb",
+  title: "OraFlo Oral Fluid Drug Tests",
   description: "Labb OraFlo (ORF Series) oral fluid drug screens with masked drug names for donor privacy, read objectively with Labb Station.",
   alternates: { canonical: "/test-kits/oraflo" },
 };

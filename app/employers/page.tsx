@@ -5,7 +5,7 @@ import { GraphicSlot } from "@/components/visual/GraphicSlot";
 import { industries } from "@/lib/industries";
 
 export const metadata: Metadata = {
-  title: "In-House Drug Testing for Employers | Labb",
+  title: "Drug Testing for Employers: In Your Office or at a Clinic",
   description:
     "Run rapid drug tests in-house without the guesswork or the paperwork. Labb Station gives every test an objective read, and confirmation is one button. Construction, manufacturing and logistics.",
   alternates: { canonical: "/employers" },

@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 import { SegmentPage } from "@/components/SegmentPage";
 
 export const metadata: Metadata = {
-  title: "Rapid Drug Test Documentation for Collection Sites | Labb",
+  title: "Rapid Drug Test Documentation for Collection Sites",
   description:
     "Labb Station gives collection sites an objective read and a documented, court-ready record for every rapid drug test, plus Flex Testing custom panels and lab ordering in one system.",
   alternates: { canonical: "/collection-sites" },

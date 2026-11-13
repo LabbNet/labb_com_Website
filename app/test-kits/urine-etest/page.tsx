@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { SeriesPage } from "@/components/SeriesPage";
 
 export const metadata: Metadata = {
-  title: "Urine eTest: eTest Cup Urine Drug Tests | Labb",
+  title: "Urine eTest: eTest Cup Urine Drug Tests",
   description: "Labb Urine eTest (UA Series) eTest Cup urine drug screens from 6 to 23 drugs, including ETG panels, read objectively with Labb Station.",
   alternates: { canonical: "/test-kits/urine-etest" },
 };
