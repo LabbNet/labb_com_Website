@@ -63,18 +63,18 @@ export default function Home() {
             <Link href="/employers" className="split-door">
               <GraphicSlot src="/graphics/who/employers.webp" alt="" label="Employers" w={1000} h={600} sizes="520px" />
               <span className="eyebrow">Employers</span>
-              <h3>I need to test my employees.</h3>
-              <p>Test at your location, or send employees to a clinic.</p>
+              <h3>I am an Employer</h3>
+              <p>I need to test my employees, at my location or at a clinic.</p>
               <div className="chips-row"><span>Test in-house</span><span>Use a clinic</span></div>
               <span className="go">For employers →</span>
             </Link>
             <Link href="/testing-professionals" className="split-door">
-              <GraphicSlot src="/graphics/who/testing-pros.webp" alt="" label="Testing professionals" w={1000} h={600} sizes="520px" />
-              <span className="eyebrow">Testing professionals</span>
-              <h3>I run a drug testing business.</h3>
-              <p>Clinics, collection sites, TPAs and laboratories.</p>
+              <GraphicSlot src="/graphics/who/testing-pros.webp" alt="" label="Industry professionals" w={1000} h={600} sizes="520px" />
+              <span className="eyebrow">Industry professionals</span>
+              <h3>I am an Industry Professional</h3>
+              <p>I run a clinic, collection site, TPA or laboratory.</p>
               <div className="chips-row"><span>Clinics</span><span>TPAs</span><span>Labs</span></div>
-              <span className="go">For testing pros →</span>
+              <span className="go">For industry professionals →</span>
             </Link>
           </div>
           <div className="split-more">
