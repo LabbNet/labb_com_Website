@@ -42,7 +42,7 @@ export default function Employers() {
         },
       ]}
       problem={{
-        title: "Reading tests yourself is where programs go wrong",
+        title: "Running an in-office program means not just reading kits, but documenting and confirming them correctly.",
         body: (
           <p>
             Low testing volume means staff never get good at reading kits. A test misread as positive can rule out a candidate who would
