@@ -69,7 +69,7 @@ export default function Home() {
               <span className="go">For employers →</span>
             </Link>
             <Link href="/testing-professionals" className="split-door">
-              <GraphicSlot src="/graphics/who/testing-pros.webp" alt="" label="Industry professionals" w={1000} h={600} sizes="520px" />
+              <GraphicSlot src="/graphics/who/testing-pros.webp" alt="A tablet showing a donor intake form beside a stethoscope" label="Industry professionals" w={1000} h={600} sizes="520px" />
               <span className="eyebrow">Industry professionals</span>
               <h3>I am an Industry Professional</h3>
               <p>I run a clinic, collection site, TPA or laboratory.</p>
