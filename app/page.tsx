@@ -26,7 +26,7 @@ const story = [
 
 // Technology on the left, the outcome it produces on the right. Opening a tile shows how.
 const outcomes = [
-  { title: "Results you can stand behind", g: "outcome-defensible", body: "Every test is read objectively and documented with the image, so results hold up when they are questioned.", topic: "Outcome: defensible results" },
+  { title: "Results you can stand behind", g: "outcome-defensible", alt: "A Labb drug test result form showing a negative result with donor and specimen details", body: "Every test is read objectively and documented with the image, so results hold up when they are questioned.", topic: "Outcome: defensible results" },
   { title: "Faster decisions", g: "outcome-faster", body: "Rapid results on site, and confirmation with one button when it is needed. Hire, treat or act the same day.", topic: "Outcome: faster decisions" },
   { title: "Fewer mistakes", g: "outcome-fewer-errors", body: "Guided steps, ID scanning and automatic paperwork remove the errors that come from manual forms.", topic: "Outcome: fewer mistakes" },
   { title: "Privacy protected", g: "outcome-privacy", body: "Masked drug names and digital records keep donor information private.", topic: "Outcome: privacy" },
@@ -95,7 +95,7 @@ export default function Home() {
             cols={3}
             items={outcomes.map((o) => ({
               title: o.title,
-              graphic: <GraphicSlot src={`/graphics/home/${o.g}.webp`} alt={o.title} label={o.title} w={800} h={600} sizes="320px" />,
+              graphic: <GraphicSlot src={`/graphics/home/${o.g}.webp`} alt={("alt" in o && o.alt) || o.title} label={o.title} w={800} h={600} sizes="320px" />,
               body: o.body,
               topic: o.topic,
             }))}
