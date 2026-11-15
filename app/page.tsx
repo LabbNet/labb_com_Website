@@ -29,7 +29,7 @@ const outcomes = [
   { title: "Results you can stand behind", g: "outcome-defensible", alt: "A Labb drug test result form showing a negative result with donor and specimen details", body: "Every test is read objectively and documented with the image, so results hold up when they are questioned.", topic: "Outcome: defensible results" },
   { title: "Faster decisions", g: "outcome-faster", alt: "A Labb UA:13A eTest Cup with test lines showing in the result window", body: "Rapid results on site, and confirmation with one button when it is needed. Hire, treat or act the same day.", topic: "Outcome: faster decisions" },
   { title: "Fewer mistakes", g: "outcome-fewer-errors", alt: "A Labb testing station with a tablet and a UA:16C eTest Cup showing test and control lines", body: "Guided steps, ID scanning and automatic paperwork remove the errors that come from manual forms.", topic: "Outcome: fewer mistakes" },
-  { title: "Privacy protected", g: "outcome-privacy", body: "Masked drug names and digital records keep donor information private.", topic: "Outcome: privacy" },
+  { title: "Privacy protected", g: "outcome-privacy", alt: "Close-up of an OraFlo oral fluid device with masked drug labels and the collector above the test strips", body: "Masked drug names and digital records keep donor information private.", topic: "Outcome: privacy" },
   { title: "Programs that grow", g: "outcome-growth", body: "LabbHR gives testing businesses the tools to sell, contract and bill, and One by Labb connects them to the industry.", topic: "Outcome: growth" },
   { title: "Less work for your team", g: "outcome-less-work", body: "Fee collection, notifications and records run remotely, so staff manage more with less effort.", topic: "Outcome: less work" },
 ];
@@ -95,7 +95,7 @@ export default function Home() {
             cols={3}
             items={outcomes.map((o) => ({
               title: o.title,
-              graphic: <GraphicSlot src={`/graphics/home/${o.g}.webp`} alt={("alt" in o && o.alt) || o.title} label={o.title} className={o.g === "outcome-defensible" ? "framed" : undefined} w={800} h={600} sizes="320px" />,
+              graphic: <GraphicSlot src={`/graphics/home/${o.g}.webp`} alt={("alt" in o && o.alt) || o.title} label={o.title} className={o.g === "outcome-defensible" || o.g === "outcome-privacy" ? "framed" : undefined} w={800} h={600} sizes="320px" />,
               body: o.body,
               topic: o.topic,
             }))}
