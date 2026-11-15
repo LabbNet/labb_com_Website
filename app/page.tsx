@@ -42,8 +42,8 @@ export default function Home() {
         <div className="wrap">
           <div>
             <span className="eyebrow">Smart drug testing technology</span>
-            <h1>Your testing goals. Our technology and support.</h1>
-            <p className="lede">Whatever you test, Labb has the program, the support team and the technology to get you there.</p>
+            <h1>Better drug testing starts here.</h1>
+            <p className="lede">Your testing goals, our technology and support. In your office, at a clinic, or across your whole business.</p>
             <div className="btn-row">
               <a href="#who" className="btn btn-primary btn-lg">Who are you?</a>
               <a href="#outcomes" className="btn btn-outline btn-lg">See the outcomes</a>
