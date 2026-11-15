@@ -49,7 +49,7 @@ export default function Home() {
               <a href="#outcomes" className="btn btn-outline btn-lg">See the outcomes</a>
             </div>
           </div>
-          <GraphicSlot src="/graphics/home/hero-technology.webp" alt="Labb software on a phone and tablet beside Labb test kits" label="Hero: Labb technology (phone, tablet and kits together)" w={1600} h={1200} priority />
+          <GraphicSlot src="/graphics/home/hero-technology.webp" alt="Labb Urine eTest cups UA:06B, UA:13A, UA:23A and UA:18C with the Oral eTest OR:06A oral fluid test" label="Hero: Labb test kit family" w={1565} h={758} priority />
         </div>
       </section>
 
