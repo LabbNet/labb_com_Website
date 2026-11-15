@@ -31,7 +31,7 @@ const outcomes = [
   { title: "Fewer mistakes", g: "outcome-fewer-errors", alt: "A Labb testing station with a tablet and a UA:16C eTest Cup showing test and control lines", body: "Guided steps, ID scanning and automatic paperwork remove the errors that come from manual forms.", topic: "Outcome: fewer mistakes" },
   { title: "Privacy protected", g: "outcome-privacy", alt: "Close-up of an OraFlo oral fluid device with masked drug labels and the collector above the test strips", body: "Masked drug names and digital records keep donor information private.", topic: "Outcome: privacy" },
   { title: "Programs that grow", g: "outcome-growth", body: "LabbHR gives testing businesses the tools to sell, contract and bill, and One by Labb connects them to the industry.", topic: "Outcome: growth" },
-  { title: "Less work for your team", g: "outcome-less-work", body: "Fee collection, notifications and records run remotely, so staff manage more with less effort.", topic: "Outcome: less work" },
+  { title: "Less work for your team", g: "outcome-less-work", body: "LabbHR automates the repetitive tasks that eat up your day. Enter donor information once and it fills every form, sends every notification, collects fees and files the record. No retyping, no chasing paperwork.", topic: "Outcome: less work", href: "/labbhr", hrefLabel: "See LabbHR" },
 ];
 
 
@@ -98,6 +98,8 @@ export default function Home() {
               graphic: <GraphicSlot src={`/graphics/home/${o.g}.webp`} alt={("alt" in o && o.alt) || o.title} label={o.title} className={o.g === "outcome-defensible" || o.g === "outcome-privacy" ? "framed" : undefined} w={800} h={600} sizes="320px" />,
               body: o.body,
               topic: o.topic,
+              href: "href" in o ? o.href : undefined,
+              hrefLabel: "hrefLabel" in o ? o.hrefLabel : undefined,
             }))}
           />
         </div>
