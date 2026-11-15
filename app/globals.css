@@ -774,3 +774,6 @@ p { margin: 0 0 1em; }
 .split-more a { color: var(--dark); text-decoration: underline; text-decoration-color: var(--orange); text-underline-offset: 5px; }
 .split-door .gslot-img { border-radius: 14px; }
 .reveal-graphic .gslot-img.framed { border: 1px solid var(--border); border-radius: 12px; }
+.cpp-logo-card { background: #fff; border-radius: 18px; padding: 28px 32px; max-width: 440px; margin-left: auto; box-shadow: 0 10px 30px rgba(0,0,0,.18); }
+.cpp-logo-card img { width: 100%; height: auto; display: block; }
+@media (max-width: 900px) { .cpp-logo-card { margin: 8px auto 0; max-width: 320px; } }

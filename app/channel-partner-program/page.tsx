@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 import type { Metadata } from "next";
 import { Breadcrumbs, LabbHR } from "@/components/ui";
@@ -22,6 +23,11 @@ export default function CppOverview() {
         lede={<>The Channel Partner Program (CPP) partners Labb with independent clinics and collection sites to serve employer accounts with <LabbHR />, Labb rapid testing and Labb marketing support.</>}
         primary={{ href: "/channel-partner-program/get-started", label: "Get started" }}
         secondary={{ href: "/channel-partner-program/program-details", label: "Program details" }}
+        aside={
+          <div className="cpp-logo-card">
+            <Image src="/graphics/cpp/cpp-logo.png" alt="Labb Channel Partner Program (CPP) logo" width={975} height={838} priority sizes="(max-width: 900px) 70vw, 420px" />
+          </div>
+        }
       />
       <Breadcrumbs items={[{ name: "Partner program", href: "/channel-partner-program" }]} />
       <CppNav current="/channel-partner-program" />
