@@ -61,7 +61,7 @@ export default function Home() {
           </div>
           <div className="paths">
             <Link href="/employers" className="split-door">
-              <GraphicSlot src="/graphics/who/employers.webp" alt="" label="Employers" w={1000} h={600} sizes="520px" />
+              <GraphicSlot src="/graphics/who/employers.webp" alt="A hard hat beside a clipboard with an employment application" label="Employers" w={1000} h={600} sizes="520px" />
               <span className="eyebrow">Employers</span>
               <h3>I am an Employer</h3>
               <p>I need to test my employees, at my location or at a clinic.</p>
