@@ -95,7 +95,7 @@ export default function Home() {
             cols={3}
             items={outcomes.map((o) => ({
               title: o.title,
-              graphic: <GraphicSlot src={`/graphics/home/${o.g}.webp`} alt={("alt" in o && o.alt) || o.title} label={o.title} w={800} h={600} sizes="320px" />,
+              graphic: <GraphicSlot src={`/graphics/home/${o.g}.webp`} alt={("alt" in o && o.alt) || o.title} label={o.title} className={o.g === "outcome-defensible" ? "framed" : undefined} w={800} h={600} sizes="320px" />,
               body: o.body,
               topic: o.topic,
             }))}
