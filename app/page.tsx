@@ -27,7 +27,7 @@ const story = [
 // Technology on the left, the outcome it produces on the right. Opening a tile shows how.
 const outcomes = [
   { title: "Results you can stand behind", g: "outcome-defensible", alt: "A Labb drug test result form showing a negative result with donor and specimen details", body: "Every test is read objectively and documented with the image, so results hold up when they are questioned.", topic: "Outcome: defensible results" },
-  { title: "Faster decisions", g: "outcome-faster", body: "Rapid results on site, and confirmation with one button when it is needed. Hire, treat or act the same day.", topic: "Outcome: faster decisions" },
+  { title: "Faster decisions", g: "outcome-faster", alt: "A Labb UA:13A eTest Cup with test lines showing in the result window", body: "Rapid results on site, and confirmation with one button when it is needed. Hire, treat or act the same day.", topic: "Outcome: faster decisions" },
   { title: "Fewer mistakes", g: "outcome-fewer-errors", body: "Guided steps, ID scanning and automatic paperwork remove the errors that come from manual forms.", topic: "Outcome: fewer mistakes" },
   { title: "Privacy protected", g: "outcome-privacy", body: "Masked drug names and digital records keep donor information private.", topic: "Outcome: privacy" },
   { title: "Programs that grow", g: "outcome-growth", body: "LabbHR gives testing businesses the tools to sell, contract and bill, and One by Labb connects them to the industry.", topic: "Outcome: growth" },
