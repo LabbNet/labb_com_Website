@@ -787,3 +787,8 @@ p { margin: 0 0 1em; }
 .svc-link:hover { color: var(--orange-hover); text-decoration: underline; }
 @media (max-width: 960px) { .svc-grid { grid-template-columns: repeat(2, 1fr); } }
 @media (max-width: 600px) { .svc-grid { grid-template-columns: 1fr; gap: 32px; } }
+/* Admin member detail */
+.member-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 20px; flex-wrap: wrap; }
+.contract-list { list-style: none; padding: 0; margin: 20px 0 0; border-top: 1px solid var(--border); }
+.contract-list li { display: flex; justify-content: space-between; align-items: center; gap: 16px; padding: 12px 0; border-bottom: 1px solid var(--border); }
+.contract-list .sub { display: block; font-size: .85rem; color: var(--muted); margin-top: 2px; }

@@ -1,5 +1,6 @@
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
+import Link from "next/link";
 import type { Metadata } from "next";
 import { currentMember, type Member } from "@/lib/auth";
 import { dbConfigured, sql } from "@/lib/db";
@@ -10,21 +11,27 @@ export const dynamic = "force-dynamic";
 
 const fmt = (d: Date | null) => (d ? new Date(d).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }) : "Never");
 
-export default async function AdminMembers({ searchParams }: { searchParams: Promise<{ q?: string; show?: string }> }) {
+export default async function AdminMembers({ searchParams }: { searchParams: Promise<{ q?: string; show?: string; cpp?: string }> }) {
   if (!dbConfigured) redirect("/login?error=unavailable");
   const admin = await currentMember();
   if (!admin) redirect("/login?next=/admin/members");
   if (admin.role !== "admin") redirect("/members");
 
-  const { q = "", show = "all" } = await searchParams;
+  const { q = "", show = "all", cpp = "all" } = await searchParams;
   const like = `%${q.toLowerCase().slice(0, 80)}%`;
-  const rows = await sql()<Member[]>`
-    select id, username, email, name, clinic, role, status, session_version, created_at, last_login_at from members
+  const rows = await sql()<(Member & { cpp_status: string; cpp_start: string | null; contracts: number })[]>`
+    select id, username, email, name, clinic, role, status, session_version, created_at, last_login_at, cpp_status,
+      to_char(cpp_start_date, 'Mon DD, YYYY') as cpp_start,
+      (select count(*)::int from member_contracts c where c.member_id = members.id) as contracts
+    from members
     where (${q} = '' or lower(name) like ${like} or lower(email) like ${like} or lower(username) like ${like} or lower(coalesce(clinic, '')) like ${like})
       and (${show} = 'all' or status = ${show})
+      and (${cpp} = 'all' or (role = 'member' and cpp_status = ${cpp}))
     order by status = 'disabled', lower(name)`;
   const counts = await sql()<{ status: string; n: number }[]>`select status, count(*)::int as n from members group by status`;
   const c = Object.fromEntries(counts.map((r) => [r.status, r.n]));
+  const cppCounts = await sql()<{ cpp_status: string; n: number }[]>`select cpp_status, count(*)::int as n from members where role = 'member' group by cpp_status`;
+  const cc = Object.fromEntries(cppCounts.map((r) => [r.cpp_status, r.n]));
 
   let flash: { msg: string; link?: string; kind: "ok" | "error" } | null = null;
   try {
@@ -55,7 +62,7 @@ export default async function AdminMembers({ searchParams }: { searchParams: Pro
           <div className="split" style={{ alignItems: "start", gridTemplateColumns: "1fr 1.6fr" }}>
             <div className="hero-card">
               <h2 className="form-title">Add a member</h2>
-              <p className="form-sub">Creates the account and emails a setup link. Add members after their CPP agreement is signed.</p>
+              <p className="form-sub">Creates the account and emails a setup link. Add members after their CPP agreement is signed, then open the member to upload the contract.</p>
               <form action="/api/admin/members" method="post">
                 <input type="hidden" name="action" value="create" />
                 <div className="fields" style={{ gridTemplateColumns: "1fr" }}>
@@ -65,6 +72,10 @@ export default async function AdminMembers({ searchParams }: { searchParams: Pro
                   <div className="field">
                     <label htmlFor="a-user">Username</label>
                     <input id="a-user" name="username" placeholder="Defaults to the part of the email before @" pattern="[a-zA-Z0-9._-]{3,40}" />
+                  </div>
+                  <div className="field">
+                    <label htmlFor="a-start">CPP start date</label>
+                    <input id="a-start" name="cpp_start" type="date" />
                   </div>
                   <div className="field">
                     <label htmlFor="a-role">Access</label>
@@ -83,6 +94,8 @@ export default async function AdminMembers({ searchParams }: { searchParams: Pro
                 <div><strong>{c.active || 0}</strong><span>Active</span></div>
                 <div><strong>{c.invited || 0}</strong><span>Invited, not set up</span></div>
                 <div><strong>{c.disabled || 0}</strong><span>Disabled</span></div>
+                <div><strong>{cc.active || 0}</strong><span>CPP active</span></div>
+                <div><strong>{cc.inactive || 0}</strong><span>CPP inactive</span></div>
               </div>
               <form method="get" className="admin-search">
                 <input name="q" defaultValue={q} placeholder="Search name, email, username or clinic" aria-label="Search members" />
@@ -92,20 +105,33 @@ export default async function AdminMembers({ searchParams }: { searchParams: Pro
                   <option value="invited">Invited</option>
                   <option value="disabled">Disabled</option>
                 </select>
+                <select name="cpp" defaultValue={cpp} aria-label="Filter by CPP status">
+                  <option value="all">Any CPP status</option>
+                  <option value="active">CPP active</option>
+                  <option value="inactive">CPP inactive</option>
+                </select>
                 <button className="btn btn-outline-dark" type="submit">Filter</button>
               </form>
               <div className="compare-wrap">
                 <table className="compare admin-table">
                   <thead>
-                    <tr><th scope="col" style={{ textAlign: "left" }}>Member</th><th scope="col">Status</th><th scope="col">Last sign in</th><th scope="col">Actions</th></tr>
+                    <tr><th scope="col" style={{ textAlign: "left" }}>Member</th><th scope="col">CPP</th><th scope="col">Account</th><th scope="col">Last sign in</th><th scope="col">Actions</th></tr>
                   </thead>
                   <tbody>
                     {rows.map((m) => (
                       <tr key={m.id}>
                         <th scope="row">
-                          {m.name} {m.role === "admin" && <span className="tag plain">Admin</span>}
+                          <Link href={`/admin/members/${m.id}`}>{m.name}</Link> {m.role === "admin" && <span className="tag plain">Admin</span>}
                           <span className="sub">{m.username} · {m.email}{m.clinic ? ` · ${m.clinic}` : ""}</span>
                         </th>
+                        <td>
+                          {m.role === "member" ? (
+                            <>
+                              <span className={`status ${m.cpp_status === "active" ? "s-active" : "s-disabled"}`}>{m.cpp_status === "active" ? "Active" : "Inactive"}</span>
+                              <span className="sub">{m.cpp_start ? `Since ${m.cpp_start}` : "No start date"} · {m.contracts ? `${m.contracts} contract${m.contracts > 1 ? "s" : ""}` : "No contract"}</span>
+                            </>
+                          ) : <span className="sub">Labb staff</span>}
+                        </td>
                         <td><span className={`status s-${m.status}`}>{m.status === "invited" ? "Invited" : m.status === "active" ? "Active" : "Disabled"}</span></td>
                         <td>{fmt(m.last_login_at)}</td>
                         <td className="acts">
@@ -117,7 +143,7 @@ export default async function AdminMembers({ searchParams }: { searchParams: Pro
                         </td>
                       </tr>
                     ))}
-                    {!rows.length && <tr><td colSpan={4}>No members match.</td></tr>}
+                    {!rows.length && <tr><td colSpan={5}>No members match.</td></tr>}
                   </tbody>
                 </table>
               </div>

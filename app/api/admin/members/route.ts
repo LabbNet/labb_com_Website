@@ -24,6 +24,7 @@ export async function POST(req: Request) {
     const clinic = field(fd, "clinic", 160) || null;
     const username = (field(fd, "username", 40) || email.split("@")[0]).toLowerCase().replace(/[^a-z0-9._-]/g, "");
     const role = fd.get("role") === "admin" ? "admin" : "member";
+    const cppStart = /^\d{4}-\d{2}-\d{2}$/.test(field(fd, "cpp_start", 10)) ? field(fd, "cpp_start", 10) : null;
     if (!name || !EMAIL_RE.test(email)) {
       await flash("Enter a name and a valid email address.", undefined, "error");
       return go(req, "/admin/members");
@@ -38,7 +39,7 @@ export async function POST(req: Request) {
       return go(req, "/admin/members");
     }
     const [m] = await db<{ id: string; email: string; name: string; username: string }[]>`
-      insert into members (username, email, name, clinic, role, created_by) values (${username}, ${email}, ${name}, ${clinic}, ${role}, ${admin.id})
+      insert into members (username, email, name, clinic, role, created_by, cpp_start_date) values (${username}, ${email}, ${name}, ${clinic}, ${role}, ${admin.id}, ${cppStart})
       returning id, email, name, username`;
     await logEvent(m.id, "created", `role ${role}`, admin.id);
     const { link, sent } = await sendInvite(m);

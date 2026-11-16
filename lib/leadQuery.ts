@@ -32,5 +32,5 @@ export async function findLeads(f: LeadFilters, limit = 500) {
 
 export async function partnerOptions() {
   return sql()<{ id: string; name: string; clinic: string | null; email: string }[]>`
-    select id, name, clinic, email from members where role = 'member' and status <> 'disabled' order by lower(coalesce(clinic, name))`;
+    select id, name, clinic, email from members where role = 'member' and status <> 'disabled' and cpp_status = 'active' order by lower(coalesce(clinic, name))`;
 }
