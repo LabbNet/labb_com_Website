@@ -179,7 +179,7 @@ p { margin: 0 0 1em; }
 .facts dd { margin: 2px 0 0; font-weight: 500; }
 
 .note { display: flex; gap: 12px; background: var(--tint-10); border-left: 4px solid var(--orange); border-radius: 8px; padding: 16px 20px; font-size: 0.95rem; }
-.banner-rule { background: var(--blue); color: #fff; border-radius: 12px; padding: 18px 22px; font-weight: 500; }
+.banner-rule { background: var(--dark); color: #fff; border-left: 6px solid var(--orange); border-radius: 12px; padding: 18px 22px; font-weight: 500; }
 
 /* Forms */
 .form-title { font-size: 1.5rem; margin-bottom: 4px; }
