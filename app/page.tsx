@@ -27,7 +27,7 @@ const story = [
 
 // Technology on the left, the outcome it produces on the right. Opening a tile shows how.
 const outcomes = [
-  { title: "Stand-Alone or Integrated Software", Icon: IconSoftware, g: "outcome-defensible", alt: "A Labb drug test result form showing a negative result with donor and specimen details", body: "End-to-end employment screening now has more options. Use LabbHR as a stand-alone solution or integrate it into your current tech stack.", topic: "Intelligent software", href: "/labbhr", hrefLabel: "See LabbHR" },
+  { title: "Stand-Alone or Integrated Software", Icon: IconSoftware, g: "outcome-defensible", alt: "A Labb drug test result form showing a negative result with donor and specimen details", body: "End-to-end employment screening now has more options. Labb offers a variety of stand-alone as well as fully integrated solutions designed to run entire employment screening departments or integrate into current tech stacks.", topic: "Intelligent software", href: "/labbhr", hrefLabel: "See LabbHR" },
   { title: "Mobile App Reader", Icon: IconReader, g: "outcome-fewer-errors", alt: "A Labb testing station with a tablet and a UA:16C eTest Cup showing test and control lines", body: "Turn any phone or tablet into a digital rapid testing reader. Get objective, automated rapid test screening results with digital chain of custody and electronic lab confirmation and MRO ordering.", topic: "Rapid test reader", href: "/labb-station", hrefLabel: "See Labb Station" },
   { title: "Background Screening", Icon: IconBackground, g: "outcome-background", body: "Consolidate and order background screening with drug and alcohol tests, physicals and more.", topic: "Background checks" },
   { title: "Physicals", Icon: IconPhysicals, g: "outcome-physicals", alt: "A tablet showing a donor intake form beside a stethoscope", body: "Pre-employment and periodic physicals through Labb's network of clinics, scheduled and tracked in the same program as your drug testing.", topic: "Physicals" },
@@ -106,6 +106,13 @@ export default function Home() {
               </div>
             ))}
           </div>
+          <Link href="/channel-partner-program" className="qt-strip">
+            <span className="qt-strip-text">
+              <strong>Run a clinic or collection site?</strong>
+              <span>Join the Labb Channel Partner Program and offer these same solutions to employers in your area.</span>
+            </span>
+            <span className="btn btn-primary">Become a partner</span>
+          </Link>
         </div>
       </section>
 
