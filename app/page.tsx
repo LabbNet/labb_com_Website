@@ -91,7 +91,7 @@ export default function Home() {
       <section className="band" id="outcomes">
         <div className="wrap">
           <div className="band-head">
-            <h2>Smarter technology. Better results.</h2>
+            <h2>Intelligent solutions for complete employment screening options.</h2>
             <p className="lede-sm">What changes when your testing runs on Labb.</p>
           </div>
           <div className="svc-grid">
