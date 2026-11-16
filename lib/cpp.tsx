@@ -14,13 +14,13 @@ export const benefits = [
   },
   {
     tag: "Revenue",
-    t: "Commission on Labb accounts",
-    b: <>Labb invoices the employer directly and pays you a commission on the accounts you serve. No chasing invoices, no collections.</>,
+    t: "Multiple billing options",
+    b: <>Invoice clients directly or use Labb as your billing agent to streamline managing employers and accounts receivable.</>,
   },
   {
     tag: "Savings",
-    t: "Reduced card processing",
-    b: <>A 1.75% member card processing rate through the Labb point of sale. Many clinics pay 2.99% to 3.65% today, depending on card type and how the card is entered.</>,
+    t: "Reduced testing costs",
+    b: <>Enjoy special reduced pricing on certain products and services when sold through the Channel Partner Program.</>,
   },
   {
     tag: "Growth",
@@ -67,7 +67,7 @@ export const faqs = [
   },
   {
     q: "Who owns the employer accounts?",
-    a: "Employer accounts are Labb accounts. Labb invoices the employer directly, and members are paid a commission on the accounts they serve, as set out in the agreement.",
+    a: "Employer accounts are Labb accounts, as set out in the agreement. Members can invoice employers directly or use Labb as their billing agent.",
   },
   {
     q: "What kinds of employers do members serve?",

@@ -38,8 +38,8 @@ export default function CppOverview() {
             <span className="eyebrow">What is the CPP</span>
             <h2>A partnership between Labb and independent clinics</h2>
             <p className="intro" style={{ marginBottom: 0 }}>
-              Labb brings the technology, the kits and the employer marketing. CPP members bring local collection and service. Labb invoices
-              the employer and pays members a commission on the accounts they serve.
+              Labb brings the technology, the kits and the employer marketing. CPP members bring local collection and service. Invoice
+              employers yourself or use Labb as your billing agent.
             </p>
           </div>
           <div className="card rail">

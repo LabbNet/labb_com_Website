@@ -14,7 +14,6 @@ export const metadata: Metadata = {
 // Placeholder lists, to be completed from the CPP agreement during the content pass.
 const costs = [
   "Program fees are set out in the Channel Partner Program Agreement",
-  "1.75% member card processing rate through the Labb point of sale",
   "Optional co-op marketing programs",
 ];
 const requirements = [
