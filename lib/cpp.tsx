@@ -59,7 +59,7 @@ export const steps = [
 export const faqs = [
   {
     q: "What does membership cost?",
-    a: "Membership is $60 a month per member. It includes sales and marketing resources, free trade show brochures and banners (limit 1 per member) and inclusion in select email marketing and lead generation programs. Your partner manager will walk you through the agreement on the discovery call before anything is signed.",
+    a: "Membership is $60 a month per member. It includes sales and marketing resources, free brochures and banners for one sponsored trade show (Labb contributes up to $450) and inclusion in select email marketing and lead generation programs. Your partner manager will walk you through the agreement on the discovery call before anything is signed.",
   },
   {
     q: "Are there territories?",

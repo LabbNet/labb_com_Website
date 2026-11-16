@@ -14,7 +14,7 @@ export const metadata: Metadata = {
 // Placeholder lists, to be completed from the CPP agreement during the content pass.
 const costs = [
   "Access to sales and marketing resources",
-  "Free brochures and banners when you attend trade shows (limit 1 per member)",
+  "Free brochures and banners when you attend trade shows*",
   "Inclusion in select email marketing and lead generation programs",
 ];
 const requirements = [
@@ -58,6 +58,10 @@ export default function CppDetails() {
             <h2>Only $60 a month per member</h2>
             <p>What you get for your investment:</p>
             <Checks items={costs} />
+            <p className="fine-print">
+              *Limit 1 set of pop-up banner stands per CPP member when attending trade shows. Labb&apos;s total contribution for attending a
+              trade show will not exceed $450 per member. Limit 1 sponsored show per CPP member.
+            </p>
             <p className="program-note" style={{ marginTop: 18 }}>
               More than 100% of all funds collected from CPP members is reinvested in supporting CPP member growth.
             </p>
