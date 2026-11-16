@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { AdminBar, Flash } from "@/components/AdminBar";
 import { fmtDate, readFlash, requireAdmin } from "@/lib/admin";
 import { sql } from "@/lib/db";
-import { money, PRICE_CATEGORIES, type PriceCategory, type PriceItem } from "@/lib/cppPricing";
+import { money, PRICE_CATEGORIES, PRICE_FIELDS, type PriceCategory, type PriceItem } from "@/lib/cppPricing";
 
 export const metadata: Metadata = { title: "CPP Pricing", robots: { index: false, follow: false } };
 export const dynamic = "force-dynamic";
@@ -17,8 +17,9 @@ function ItemFields({ item, category }: { item?: PriceItem; category: PriceCateg
       <div className="field full"><label htmlFor={`n-${k}`}>Product or service<span className="req">*</span></label><input id={`n-${k}`} name="name" required maxLength={160} defaultValue={item?.name} /></div>
       <div className="field"><label htmlFor={`s-${k}`}>SKU or code</label><input id={`s-${k}`} name="sku" maxLength={60} defaultValue={item?.sku ?? ""} /></div>
       <div className="field"><label htmlFor={`u-${k}`}>Unit</label><input id={`u-${k}`} name="unit" maxLength={60} defaultValue={item?.unit ?? ""} placeholder="Per kit, case of 25, per month" /></div>
-      <div className="field"><label htmlFor={`m-${k}`}>Member cost ($)</label><input id={`m-${k}`} name="member_price" inputMode="decimal" defaultValue={cents(item?.member_cents ?? null)} placeholder="0.00" /></div>
-      <div className="field"><label htmlFor={`e-${k}`}>Employer price ($)</label><input id={`e-${k}`} name="employer_price" inputMode="decimal" defaultValue={cents(item?.employer_cents ?? null)} placeholder="0.00" /></div>
+      {PRICE_FIELDS.map((f) => (
+        <div key={f.form} className="field"><label htmlFor={`${f.form}-${k}`}>{f.label} ($)</label><input id={`${f.form}-${k}`} name={f.form} inputMode="decimal" defaultValue={cents(item?.[f.key] ?? null)} placeholder="0.00" /></div>
+      ))}
       <div className="field full"><label htmlFor={`d-${k}`}>Product details</label><textarea id={`d-${k}`} name="description" maxLength={600} defaultValue={item?.description ?? ""} /></div>
       <div className="field full"><label htmlFor={`o-${k}`}>Notes for members</label><input id={`o-${k}`} name="notes" maxLength={300} defaultValue={item?.notes ?? ""} placeholder="Minimum order, volume tiers, lead time" /></div>
       <div className="field"><label htmlFor={`r-${k}`}>Sort order</label><input id={`r-${k}`} name="sort" type="number" min={0} max={9999} defaultValue={item?.sort ?? 100} /></div>
@@ -44,8 +45,8 @@ export default async function AdminPricing() {
         <div className="wrap">
           <Flash flash={flash} />
           <p className="lede" style={{ maxWidth: 820 }}>
-            Products and prices here appear on the CPP member Pricing page. Member cost is what the member pays Labb. Employer price is the price
-            for employers buying through the CPP. Leave a price blank to show &ldquo;Contact Labb&rdquo;.
+            Products and prices here appear on the CPP member Pricing page. Enter the member price and MSRP for Service Level 1 and
+            Service Level 3. Leave a price blank if it doesn&apos;t apply; an item with no prices shows &ldquo;Contact Labb&rdquo;.
           </p>
           {PRICE_CATEGORIES.map((c) => {
             const list = items.filter((i) => i.category === c.value);
@@ -58,7 +59,7 @@ export default async function AdminPricing() {
                       <details>
                         <summary className="price-summary">
                           <span><strong>{i.name}</strong>{i.sku ? ` · ${i.sku}` : ""}{!i.active && <span className="tag plain" style={{ marginLeft: 8 }}>Hidden</span>}</span>
-                          <span className="muted">{i.unit ? `${i.unit} · ` : ""}Member {money(i.member_cents) || "n/a"} · Employer {money(i.employer_cents) || "n/a"}</span>
+                          <span className="muted">{i.unit ? `${i.unit} · ` : ""}SL1 {money(i.sl1_cents) || "n/a"} (MSRP {money(i.sl1_msrp_cents) || "n/a"}) · SL3 {money(i.sl3_cents) || "n/a"} (MSRP {money(i.sl3_msrp_cents) || "n/a"})</span>
                         </summary>
                         <form action="/api/admin/pricing" method="post" style={{ marginTop: 14 }}>
                           <input type="hidden" name="action" value="update" />

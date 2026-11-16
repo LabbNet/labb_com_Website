@@ -2,7 +2,7 @@ import { currentMember, sameOrigin } from "@/lib/auth";
 import { setFlash } from "@/lib/admin";
 import { sql } from "@/lib/db";
 import { field, go } from "@/lib/http";
-import { isPriceCategory, parseCents } from "@/lib/cppPricing";
+import { isPriceCategory, parseCents, PRICE_FIELDS } from "@/lib/cppPricing";
 
 // Admin add, edit and delete for the CPP member price list.
 export async function POST(req: Request) {
@@ -26,13 +26,12 @@ export async function POST(req: Request) {
   }
 
   const name = field(fd, "name", 160);
-  const member = parseCents(field(fd, "member_price", 20));
-  const employer = parseCents(field(fd, "employer_price", 20));
+  const [sl1, sl1m, sl3, sl3m] = PRICE_FIELDS.map((f) => parseCents(field(fd, f.form, 20)));
   if (!isPriceCategory(category) || !name) {
     await flash("Choose a category and enter a product name.", "error");
     return go(req, back);
   }
-  if (member === undefined || employer === undefined) {
+  if ([sl1, sl1m, sl3, sl3m].some((v) => v === undefined)) {
     await flash("Enter prices as numbers, for example 12.50.", "error");
     return go(req, back);
   }
@@ -48,14 +47,14 @@ export async function POST(req: Request) {
   if (action === "update" && /^\d+$/.test(id)) {
     await db`
       update cpp_price_items set category = ${category}, name = ${name}, sku = ${v.sku}, description = ${v.description}, unit = ${v.unit},
-        member_cents = ${member}, employer_cents = ${employer}, notes = ${v.notes}, sort = ${v.sort}, active = ${v.active},
+        sl1_cents = ${sl1 ?? null}, sl1_msrp_cents = ${sl1m ?? null}, sl3_cents = ${sl3 ?? null}, sl3_msrp_cents = ${sl3m ?? null}, notes = ${v.notes}, sort = ${v.sort}, active = ${v.active},
         updated_at = now(), updated_by = ${admin.id}
       where id = ${id}`;
     await flash(`Saved ${name}.`);
   } else {
     await db`
-      insert into cpp_price_items (category, name, sku, description, unit, member_cents, employer_cents, notes, sort, active, updated_by)
-      values (${category}, ${name}, ${v.sku}, ${v.description}, ${v.unit}, ${member}, ${employer}, ${v.notes}, ${v.sort}, ${v.active}, ${admin.id})`;
+      insert into cpp_price_items (category, name, sku, description, unit, sl1_cents, sl1_msrp_cents, sl3_cents, sl3_msrp_cents, notes, sort, active, updated_by)
+      values (${category}, ${name}, ${v.sku}, ${v.description}, ${v.unit}, ${sl1 ?? null}, ${sl1m ?? null}, ${sl3 ?? null}, ${sl3m ?? null}, ${v.notes}, ${v.sort}, ${v.active}, ${admin.id})`;
     await flash(`Added ${name}.`);
   }
   return go(req, back);

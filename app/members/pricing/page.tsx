@@ -17,7 +17,7 @@ export default async function MemberPricing() {
       <div className="wrap">
         <h1 style={{ fontSize: "clamp(2rem, 4vw, 2.8rem)", marginTop: 12 }}>CPP member pricing</h1>
         <p className="lede">
-          Member costs and employer pricing for products and services sold through the Channel Partner Program. Pricing is confidential to CPP
+          Service Level 1 and Service Level 3 pricing, with MSRP, for products and services sold through the Channel Partner Program. Pricing is confidential to CPP
           members. Please don&apos;t share it outside your organization.
         </p>
         {last && <p className="fine-print">Last updated {fmtDate(last)}. Questions on pricing or larger opportunities: <a href={site.phoneHref}>{site.phone}</a> or <a href={`mailto:${site.email}`}>{site.email}</a>.</p>}
@@ -33,7 +33,13 @@ export default async function MemberPricing() {
                 <div className="compare-wrap">
                   <table className="compare price-table">
                     <thead>
-                      <tr><th scope="col" style={{ textAlign: "left" }}>Product</th><th scope="col">Unit</th><th scope="col">Member cost</th><th scope="col">Employer price</th></tr>
+                      <tr>
+                        <th scope="col" rowSpan={2} style={{ textAlign: "left" }}>Product</th>
+                        <th scope="col" rowSpan={2}>Unit</th>
+                        <th scope="colgroup" colSpan={2} className="sl-head">Service Level 1</th>
+                        <th scope="colgroup" colSpan={2} className="sl-head">Service Level 3</th>
+                      </tr>
+                      <tr><th scope="col">Price</th><th scope="col">MSRP</th><th scope="col">Price</th><th scope="col">MSRP</th></tr>
                     </thead>
                     <tbody>
                       {list.map((i) => (
@@ -44,8 +50,16 @@ export default async function MemberPricing() {
                             {i.notes && <span className="sub"><em>{i.notes}</em></span>}
                           </th>
                           <td>{i.unit || ""}</td>
-                          <td><strong>{money(i.member_cents) || "Contact Labb"}</strong></td>
-                          <td>{money(i.employer_cents) || "Contact Labb"}</td>
+                          {[i.sl1_cents, i.sl1_msrp_cents, i.sl3_cents, i.sl3_msrp_cents].every((c) => c == null) ? (
+                            <td colSpan={4}>Contact Labb</td>
+                          ) : (
+                            <>
+                              <td><strong>{money(i.sl1_cents)}</strong></td>
+                              <td className="muted">{money(i.sl1_msrp_cents)}</td>
+                              <td><strong>{money(i.sl3_cents)}</strong></td>
+                              <td className="muted">{money(i.sl3_msrp_cents)}</td>
+                            </>
+                          )}
                         </tr>
                       ))}
                     </tbody>

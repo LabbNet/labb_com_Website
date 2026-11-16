@@ -829,3 +829,4 @@ p { margin: 0 0 1em; }
 .price-table .sub { display: block; font-weight: 400; color: var(--muted); font-size: .88rem; margin-top: 3px; }
 .price-summary { display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap; cursor: pointer; padding: 4px 0; }
 .price-fields { grid-template-columns: 1fr 1fr; }
+.price-table .sl-head { border-bottom: 2px solid var(--orange); }

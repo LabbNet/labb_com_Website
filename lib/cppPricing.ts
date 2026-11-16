@@ -11,7 +11,7 @@ export const isPriceCategory = (v: unknown): v is PriceCategory => PRICE_CATEGOR
 
 export type PriceItem = {
   id: string; category: PriceCategory; name: string; sku: string | null; description: string | null; unit: string | null;
-  member_cents: number | null; employer_cents: number | null; notes: string | null; sort: number; active: boolean; updated_at: Date;
+  sl1_cents: number | null; sl1_msrp_cents: number | null; sl3_cents: number | null; sl3_msrp_cents: number | null; notes: string | null; sort: number; active: boolean; updated_at: Date;
 };
 
 export const money = (c: number | null) =>
@@ -24,3 +24,10 @@ export function parseCents(s: string): number | null | undefined {
   if (!/^\d+(\.\d{1,2})?$/.test(t)) return undefined;
   return Math.round(Number(t) * 100);
 }
+
+export const PRICE_FIELDS = [
+  { key: "sl1_cents", form: "sl1", label: "Service Level 1 price" },
+  { key: "sl1_msrp_cents", form: "sl1_msrp", label: "Service Level 1 MSRP" },
+  { key: "sl3_cents", form: "sl3", label: "Service Level 3 price" },
+  { key: "sl3_msrp_cents", form: "sl3_msrp", label: "Service Level 3 MSRP" },
+] as const;
