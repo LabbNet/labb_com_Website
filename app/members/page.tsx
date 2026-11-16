@@ -5,6 +5,22 @@ import { publishedKits } from "@/lib/kits";
 import { library } from "@/lib/resources";
 import { lmsUrl } from "@/lib/commerce";
 import { site } from "@/lib/site";
+import { IconHandbook, IconMarketing, IconReference, IconDataSheet, IconCertification, IconSupport } from "@/components/ResourceIcons";
+
+const GROUP_ICON: Record<string, () => React.JSX.Element> = {
+  "Clinic Owners Handbooks": IconHandbook,
+  "Marketing sheets": IconMarketing,
+  Reference: IconReference,
+};
+
+function CardHead({ Icon, title }: { Icon: () => React.JSX.Element; title: string }) {
+  return (
+    <div className="res-head">
+      <span className="res-icon"><Icon /></span>
+      <h2>{title}</h2>
+    </div>
+  );
+}
 
 export default async function MembersHome({ searchParams }: { searchParams: Promise<{ welcome?: string; reset?: string }> }) {
   const { welcome, reset } = await searchParams;
@@ -21,7 +37,7 @@ export default async function MembersHome({ searchParams }: { searchParams: Prom
         <div className="grid g3" style={{ marginTop: 32 }}>
           {library.map((g) => (
             <div key={g.group} className="card top" style={{ background: "#fff", border: "1px solid var(--border)", borderTop: "4px solid var(--orange)" }}>
-              <h2 style={{ fontSize: "1.2rem" }}>{g.group}</h2>
+              <CardHead Icon={GROUP_ICON[g.group] || IconReference} title={g.group} />
               <ul style={{ paddingLeft: 18, margin: 0 }}>
                 {g.items.map((i) => (
                   <li key={i.url} style={{ marginBottom: 8 }}>
@@ -32,7 +48,7 @@ export default async function MembersHome({ searchParams }: { searchParams: Prom
             </div>
           ))}
           <div className="card top" style={{ background: "#fff", border: "1px solid var(--border)", borderTop: "4px solid var(--orange)" }}>
-            <h2 style={{ fontSize: "1.2rem" }}>Product data sheets</h2>
+            <CardHead Icon={IconDataSheet} title="Product data sheets" />
             <ul style={{ paddingLeft: 18, margin: 0 }}>
               {publishedKits.filter((k) => k.dataSheet).map((k) => (
                 <li key={k.slug} style={{ marginBottom: 6 }}><a href={k.dataSheet} target="_blank" rel="noopener">{k.name}</a></li>
@@ -40,14 +56,14 @@ export default async function MembersHome({ searchParams }: { searchParams: Prom
             </ul>
           </div>
           <div className="card top" style={{ background: "#fff", border: "1px solid var(--border)", borderTop: "4px solid var(--orange)" }}>
-            <h2 style={{ fontSize: "1.2rem" }}>Certifications</h2>
+            <CardHead Icon={IconCertification} title="Certifications" />
             <p>Product, specimen, software and position certifications for you and your collectors.</p>
             <p style={{ marginTop: 12 }}>
               {lmsUrl ? <a className="btn btn-primary" href={lmsUrl}>Open Labb Learning</a> : <Link href="/certifications">See certifications</Link>}
             </p>
           </div>
           <div className="card top" style={{ background: "#fff", border: "1px solid var(--border)", borderTop: "4px solid var(--orange)" }}>
-            <h2 style={{ fontSize: "1.2rem" }}>Member support</h2>
+            <CardHead Icon={IconSupport} title="Member support" />
             <p>Pricing help, larger opportunities and program questions.</p>
             <p style={{ marginTop: 12 }}>
               <a href={site.phoneHref}>{site.phone}</a>

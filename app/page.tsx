@@ -111,15 +111,15 @@ export default function Home() {
       <section className="band light">
         <div className="wrap">
           <Hotspots
-            graphic={<GraphicSlot src="/graphics/home/oraflo-closeup.webp" alt="Close-up of an OraFlo oral fluid device with masked drug labels and the collector above the test strips" label="OraFlo close-up" className="framed" w={1044} h={616} />}
+            graphic={<GraphicSlot src="/graphics/home/oraflo-31c.webp" alt="OraFlo ORF:31C oral fluid device with masked drug labels, its cap and the oral fluid collector" label="OraFlo 31C" w={1640} h={770} />}
             title="Better-built test kits."
             intro="OraFlo oral fluid screens, built for the workplace. Tap a plus to look closer."
             cta="Get a quote"
             points={[
-              { x: 9, y: 16, title: "True privacy", body: "Drug names are masked on the device as D1, D2, D3. The donor never sees what is being tested, and Labb Station decodes the panel privately.", topic: "OraFlo: true privacy" },
-              { x: 62, y: 22, title: "Lower sample volume", body: "OraFlo needs less oral fluid than typical collection devices, so collection is quicker and easier, even for donors with a dry mouth.", topic: "OraFlo: lower sample volume" },
-              { x: 40, y: 62, title: "Workplace-aligned THC detection", body: "Screens for parent THC at 40 ng/mL, which points to recent use rather than use from weeks ago. That fits impairment-focused workplace policies.", topic: "OraFlo: THC detection" },
-              { x: 70, y: 86, title: "Digitally read", body: "Every OraFlo is read by Labb Station on a phone or tablet. Results are objective, consistent and saved with the image.", topic: "OraFlo: digitally read" },
+              { x: 17, y: 31, title: "True privacy", body: "Drug names are masked on the device by code. The donor never sees what is being tested, and Labb Station decodes the panel privately.", topic: "OraFlo: true privacy" },
+              { x: 88, y: 44, title: "Lower sample volume", body: "OraFlo needs less oral fluid than typical collection devices, so collection is quicker and easier, even for donors with a dry mouth.", topic: "OraFlo: lower sample volume" },
+              { x: 35, y: 47, title: "Workplace-aligned THC detection", body: "Screens for parent THC at 40 ng/mL, which points to recent use rather than use from weeks ago. That fits impairment-focused workplace policies.", topic: "OraFlo: THC detection" },
+              { x: 47, y: 62, title: "Digitally read", body: "Every OraFlo is read by Labb Station on a phone or tablet. Results are objective, consistent and saved with the image.", topic: "OraFlo: digitally read" },
             ]}
           />
         </div>

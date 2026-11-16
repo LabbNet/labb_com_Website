@@ -792,3 +792,7 @@ p { margin: 0 0 1em; }
 .contract-list { list-style: none; padding: 0; margin: 20px 0 0; border-top: 1px solid var(--border); }
 .contract-list li { display: flex; justify-content: space-between; align-items: center; gap: 16px; padding: 12px 0; border-bottom: 1px solid var(--border); }
 .contract-list .sub { display: block; font-size: .85rem; color: var(--muted); margin-top: 2px; }
+/* Member resources card headings with icons */
+.res-head { display: flex; align-items: center; gap: 12px; margin-bottom: 14px; }
+.res-head h2 { font-size: 1.2rem; margin: 0; }
+.res-icon { flex: none; width: 48px; height: 48px; border-radius: 12px; background: var(--tint-10); color: var(--orange); display: grid; place-items: center; }
