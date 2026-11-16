@@ -78,11 +78,13 @@ export default function Home() {
               <span className="go">For industry professionals →</span>
             </Link>
           </div>
-          <div className="split-more">
-            <Link href="/corrections">Corrections</Link>
-            <Link href="/treatment-recovery">Treatment and recovery</Link>
-            <Link href="/quick-test">Need one test for yourself? Quick Test</Link>
-          </div>
+          <Link href="/quick-test" className="qt-strip">
+            <span className="qt-strip-text">
+              <strong>Need a drug test for yourself?</strong>
+              <span>Order a Quick Test. Test at home or at a clinic for the same price, pick your drugs and check out in minutes.</span>
+            </span>
+            <span className="btn btn-primary">Order a Quick Test</span>
+          </Link>
         </div>
       </section>
 
