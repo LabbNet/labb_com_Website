@@ -19,7 +19,7 @@ export default function CppOverview() {
     <>
       <PageHero
         eyebrow="Channel Partner Program · Overview"
-        title={<>Grow your clinic with Labb.</>}
+        title={<>Expand your clinic and watch revenue grow.</>}
         lede={<>The Channel Partner Program (CPP) partners Labb with independent clinics and collection sites to serve employer accounts with <LabbHR />, Labb rapid testing and Labb marketing support.</>}
         primary={{ href: "/channel-partner-program/get-started", label: "Get started" }}
         secondary={{ href: "/channel-partner-program/program-details", label: "Program details" }}
