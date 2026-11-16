@@ -45,4 +45,8 @@ export type LeadStatus = (typeof LEAD_STATUSES)[number]["value"];
 export const isStatus = (v: unknown): v is LeadStatus => LEAD_STATUSES.some((s) => s.value === v);
 export const statusLabel = (v: string) => LEAD_STATUSES.find((s) => s.value === v)?.label || v;
 
-export const VOLUME = ["Under 25 tests or offenders a month", "25 to 100", "100 to 500", "500+"];
+export const VOLUME = ["Under 25 tests a month", "25 to 100", "100 to 500", "500+"];
+
+// Segments offered in the "I am a" dropdown. Forms are LabbHR-focused, so corrections is not offered
+// (the corrections page still tags its own leads).
+export const FORM_SEGMENTS = SEGMENTS.filter((s) => s.value !== "corrections");

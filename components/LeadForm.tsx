@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { PRODUCTS, SEGMENTS, VOLUME, type Segment } from "@/lib/segments";
+import { PRODUCTS, FORM_SEGMENTS, VOLUME, type Segment } from "@/lib/segments";
 
 type Variant = "quote" | "sample" | "handbook" | "clinic" | "certification-waitlist" | "contact" | "early-access" | "demo";
 
@@ -177,7 +177,7 @@ export function LeadForm({ variant, title, subtitle, submitLabel, resource, indu
                 <label htmlFor="f-segment">I am a<span className="req" aria-hidden="true">*</span></label>
                 <select id="f-segment" name="segment" required value={segment} onChange={(e) => setSegment(e.target.value)}>
                   <option value="" disabled>Select one</option>
-                  {SEGMENTS.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
+                  {FORM_SEGMENTS.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
                 </select>
                 {errors.segment && <span className="err">{errors.segment}</span>}
               </div>
@@ -195,7 +195,7 @@ export function LeadForm({ variant, title, subtitle, submitLabel, resource, indu
               <label htmlFor="f-costPerTest">Current cost per test</label>
               <input id="f-costPerTest" name="costPerTest" inputMode="decimal" placeholder="$45 or not sure" />
             </div>
-            {select("volume", isClinic ? "Tests per month at your site" : segment === "corrections" ? "Offenders tested per month" : "Tests per month", VOLUME, true)}
+            {select("volume", isClinic ? "Tests per month at your site" : "Tests per month", VOLUME, true)}
             {!isClinic && (
               <>
                 <h3 className="form-group full">Where will testing happen?</h3>
@@ -226,13 +226,13 @@ export function LeadForm({ variant, title, subtitle, submitLabel, resource, indu
             <label htmlFor="f-segment">I am a<span className="req" aria-hidden="true">*</span></label>
             <select id="f-segment" name="segment" required value={segment} onChange={(e) => setSegment(e.target.value)}>
               <option value="" disabled>Select one</option>
-              {SEGMENTS.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
+              {FORM_SEGMENTS.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
             </select>
             {errors.segment && <span className="err">{errors.segment}</span>}
           </div>
         )}
         {!isWaitlist && !industry && !isClinic && !compact && segment === "employer" && select("industry", "Industry", INDUSTRY)}
-        {!isWaitlist && select("volume", isClinic ? "Tests per month at your site" : segment === "corrections" ? "Offenders tested per month" : "Tests per month", VOLUME, true)}
+        {!isWaitlist && select("volume", isClinic ? "Tests per month at your site" : "Tests per month", VOLUME, true)}
         {variant === "sample" && !compact && (
           <div className="field full">
             <label htmlFor="f-message">How can we help?</label>
