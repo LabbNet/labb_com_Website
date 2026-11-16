@@ -4,11 +4,11 @@ import { LabbHR } from "@/components/ui";
 export const benefits = [
   {
     tag: "Platform",
-    t: "Upgrade to LabbHR",
+    t: "Access to multiple platforms",
     b: (
       <>
-        Members get the <LabbHR /> platform to read rapid tests digitally, document every result automatically and give employer clients a
-        clean, auditable record. <LabbHR /> is available to clinics only through the CPP.
+        Members get access to a range of Labb software platforms and reader technologies, including <LabbHR />, that make it easy to
+        consolidate services for your employer clients.
       </>
     ),
   },
