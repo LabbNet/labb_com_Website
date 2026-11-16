@@ -13,8 +13,9 @@ export const metadata: Metadata = {
 
 // Placeholder lists, to be completed from the CPP agreement during the content pass.
 const costs = [
-  "Program fees are set out in the Channel Partner Program Agreement",
-  "Optional co-op marketing programs",
+  "Access to sales and marketing resources",
+  "Free brochures and banners when you attend trade shows (limit 1 per member)",
+  "Inclusion in select email marketing and lead generation programs",
 ];
 const requirements = [
   "An independent clinic or collection site",
@@ -54,8 +55,12 @@ export default function CppDetails() {
         <div className="wrap grid g2" style={{ alignItems: "start" }}>
           <div id="costs">
             <span className="eyebrow">Costs</span>
-            <h2>What it costs</h2>
+            <h2>Only $60 a month per member</h2>
+            <p>What you get for your investment:</p>
             <Checks items={costs} />
+            <p className="program-note" style={{ marginTop: 18 }}>
+              More than 100% of all funds collected from CPP members is reinvested in supporting CPP member growth.
+            </p>
           </div>
           <div id="requirements">
             <span className="eyebrow">Requirements</span>
