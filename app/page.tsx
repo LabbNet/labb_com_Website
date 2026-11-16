@@ -2,7 +2,8 @@ import { CtaBand } from "@/components/ui";
 import Link from "next/link";
 import type { Metadata } from "next";
 import { GraphicSlot } from "@/components/visual/GraphicSlot";
-import { Hotspots, RevealTiles } from "@/components/visual/Reveal";
+import { Hotspots } from "@/components/visual/Reveal";
+import { IconSoftware, IconReader, IconBackground, IconPhysicals, IconCollections, IconAdministration } from "@/components/ServiceIcons";
 import { ScanStory } from "@/components/visual/ScanStory";
 import { KitShelf } from "@/components/visual/KitShelf";
 import { shelfKits } from "@/lib/kits";
@@ -26,12 +27,12 @@ const story = [
 
 // Technology on the left, the outcome it produces on the right. Opening a tile shows how.
 const outcomes = [
-  { title: "Intelligent Software", g: "outcome-defensible", alt: "A Labb drug test result form showing a negative result with donor and specimen details", body: "LabbHR runs the program for you. Enter a donor once and it fills every form, sends every notification, collects fees and files a complete digital record with the test image, so every result is documented and easy to find.", topic: "Intelligent software", href: "/labbhr", hrefLabel: "See LabbHR" },
-  { title: "Rapid Test Reader", g: "outcome-fewer-errors", alt: "A Labb testing station with a tablet and a UA:16C eTest Cup showing test and control lines", body: "Labb Station turns a phone or tablet into a digital reader. Every kit is read the same objective way, without the guesswork and bias of reading lines by eye, and results come back in minutes. Patented (US PAT 10,340,032).", topic: "Rapid test reader", href: "/labb-station", hrefLabel: "See Labb Station" },
-  { title: "Background Checks", g: "outcome-background", body: "Order background checks in LabbHR alongside the drug test. One simple onboarding and one place to track every candidate's screening.", topic: "Background checks" },
-  { title: "Physicals", g: "outcome-physicals", alt: "A tablet showing a donor intake form beside a stethoscope", body: "Pre-employment and periodic physicals through Labb's network of clinics, scheduled and tracked in the same program as your drug testing.", topic: "Physicals" },
-  { title: "Professional Collections", g: "outcome-privacy", alt: "Close-up of an OraFlo oral fluid device with masked drug labels and the collector above the test strips", body: "Trained collectors at clinics and collection sites near your locations, or your own staff trained by Labb to collect in-house. Urine and observed oral fluid, including OraFlo panels with masked drug names that keep each donor's screen private.", topic: "Professional collections", href: "/test-kits/oraflo", hrefLabel: "See OraFlo" },
-  { title: "Complete Program Administration", g: "outcome-growth", alt: "Stacked blocks labeled background screens, physicals, drug testing, collections and emergency support", body: "Labb is an end-to-end screening partner for employers. Background screens, physicals, drug testing, collections and emergency support, set up and managed in one program with one team behind it. Start with what you need and add services as you grow.", topic: "Program administration", href: "/employers", hrefLabel: "Screening for employers" },
+  { title: "Intelligent Software", Icon: IconSoftware, g: "outcome-defensible", alt: "A Labb drug test result form showing a negative result with donor and specimen details", body: "LabbHR runs the program for you. Enter a donor once and it fills every form, sends every notification, collects fees and files a complete digital record with the test image, so every result is documented and easy to find.", topic: "Intelligent software", href: "/labbhr", hrefLabel: "See LabbHR" },
+  { title: "Rapid Test Reader", Icon: IconReader, g: "outcome-fewer-errors", alt: "A Labb testing station with a tablet and a UA:16C eTest Cup showing test and control lines", body: "Labb Station turns a phone or tablet into a digital reader. Every kit is read the same objective way, without the guesswork and bias of reading lines by eye, and results come back in minutes. Patented (US PAT 10,340,032).", topic: "Rapid test reader", href: "/labb-station", hrefLabel: "See Labb Station" },
+  { title: "Background Checks", Icon: IconBackground, g: "outcome-background", body: "Order background checks in LabbHR alongside the drug test. One simple onboarding and one place to track every candidate's screening.", topic: "Background checks" },
+  { title: "Physicals", Icon: IconPhysicals, g: "outcome-physicals", alt: "A tablet showing a donor intake form beside a stethoscope", body: "Pre-employment and periodic physicals through Labb's network of clinics, scheduled and tracked in the same program as your drug testing.", topic: "Physicals" },
+  { title: "Professional Collections", Icon: IconCollections, g: "outcome-privacy", alt: "Close-up of an OraFlo oral fluid device with masked drug labels and the collector above the test strips", body: "Trained collectors at clinics and collection sites near your locations, or your own staff trained by Labb to collect in-house. Urine and observed oral fluid, including OraFlo panels with masked drug names that keep each donor's screen private.", topic: "Professional collections", href: "/test-kits/oraflo", hrefLabel: "See OraFlo" },
+  { title: "Complete Program Administration", Icon: IconAdministration, g: "outcome-growth", alt: "Stacked blocks labeled background screens, physicals, drug testing, collections and emergency support", body: "Labb is an end-to-end screening partner for employers. Background screens, physicals, drug testing, collections and emergency support, set up and managed in one program with one team behind it. Start with what you need and add services as you grow.", topic: "Program administration", href: "/employers", hrefLabel: "Screening for employers" },
 ];
 
 
@@ -91,17 +92,18 @@ export default function Home() {
             <h2>Smarter technology. Better results.</h2>
             <p className="lede-sm">What changes when your testing runs on Labb.</p>
           </div>
-          <RevealTiles
-            cols={3}
-            items={outcomes.map((o) => ({
-              title: o.title,
-              graphic: <GraphicSlot src={`/graphics/home/${o.g}.webp`} alt={("alt" in o && o.alt) || o.title} label={o.title} className={o.g === "outcome-defensible" || o.g === "outcome-privacy" ? "framed" : undefined} w={800} h={600} sizes="320px" />,
-              body: o.body,
-              topic: o.topic,
-              href: "href" in o ? o.href : undefined,
-              hrefLabel: "hrefLabel" in o ? o.hrefLabel : undefined,
-            }))}
-          />
+          <div className="svc-grid">
+            {outcomes.map((o) => (
+              <div key={o.title} className="svc">
+                <div className="svc-icon"><o.Icon /></div>
+                <h3>{o.title}</h3>
+                <p>{o.body}</p>
+                {"href" in o && o.href && (
+                  <Link href={o.href} className="svc-link">{o.hrefLabel} →</Link>
+                )}
+              </div>
+            ))}
+          </div>
         </div>
       </section>
 

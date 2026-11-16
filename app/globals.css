@@ -777,3 +777,13 @@ p { margin: 0 0 1em; }
 .cpp-logo-card { background: #fff; border-radius: 18px; padding: 28px 32px; max-width: 440px; margin-left: auto; box-shadow: 0 10px 30px rgba(0,0,0,.18); }
 .cpp-logo-card img { width: 100%; height: auto; display: block; }
 @media (max-width: 900px) { .cpp-logo-card { margin: 8px auto 0; max-width: 320px; } }
+/* Home services grid (icons, no reveal) */
+.svc-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 40px 48px; margin-top: 8px; }
+.svc { display: flex; flex-direction: column; }
+.svc-icon { width: 76px; height: 76px; border-radius: 18px; background: var(--tint-10); color: var(--orange); display: grid; place-items: center; margin-bottom: 18px; }
+.svc h3 { margin: 0 0 8px; font-size: 1.2rem; }
+.svc p { margin: 0 0 12px; color: var(--muted); line-height: 1.6; }
+.svc-link { margin-top: auto; font-weight: 600; color: var(--orange); text-decoration: none; }
+.svc-link:hover { color: var(--orange-hover); text-decoration: underline; }
+@media (max-width: 960px) { .svc-grid { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 600px) { .svc-grid { grid-template-columns: 1fr; gap: 32px; } }
