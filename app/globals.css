@@ -820,3 +820,12 @@ p { margin: 0 0 1em; }
 .reinvest p { margin: 0; color: rgba(255,255,255,.88); line-height: 1.55; }
 .reinvest strong { display: block; color: #fff; font-size: 1.1rem; margin-bottom: 4px; }
 @media (max-width: 600px) { .reinvest { flex-direction: column; align-items: flex-start; } }
+/* CPP pricing */
+.price-jump { display: flex; flex-wrap: wrap; gap: 8px 18px; margin: 24px 0 8px; font-weight: 600; }
+.price-jump a { color: var(--dark); text-decoration: underline; text-decoration-color: var(--orange); text-underline-offset: 5px; }
+.price-section { margin-top: 40px; scroll-margin-top: 120px; }
+.price-section h2 { font-size: 1.5rem; }
+.price-table th[scope="row"] { text-align: left; }
+.price-table .sub { display: block; font-weight: 400; color: var(--muted); font-size: .88rem; margin-top: 3px; }
+.price-summary { display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap; cursor: pointer; padding: 4px 0; }
+.price-fields { grid-template-columns: 1fr 1fr; }

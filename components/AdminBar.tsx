@@ -4,6 +4,7 @@ const LINKS = [
   { href: "/admin/leads", label: "Leads" },
   { href: "/admin/members", label: "CPP members" },
   { href: "/admin/trade-shows", label: "Trade shows" },
+  { href: "/admin/pricing", label: "Pricing" },
   { href: "/admin/settings", label: "Settings" },
 ];
 

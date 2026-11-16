@@ -22,6 +22,7 @@ export default async function MembersLayout({ children }: { children: React.Reac
           </div>
           <nav aria-label="Member">
             <Link href="/members">Resources</Link>
+            <Link href="/members/pricing">Pricing</Link>
             <Link href="/members/leads">My leads</Link>
             <Link href="/members/trade-shows">Trade shows</Link>
             <Link href="/members/account">My account</Link>
