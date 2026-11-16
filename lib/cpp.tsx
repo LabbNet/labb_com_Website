@@ -63,7 +63,7 @@ export const faqs = [
   },
   {
     q: "Are there territories?",
-    a: "No. The CPP has no assigned geographic territories. Accounts are matched by fit with the employer's needs.",
+    a: "No. The CPP has no assigned geographic territories, and accounts are matched by fit with the employer's needs. Labb will use best efforts to respect clinic territories when possible. When an account has locations that span multiple territories, it is assigned by best fit along with geographic considerations.",
   },
   {
     q: "Who owns the employer accounts?",
@@ -79,7 +79,7 @@ export const faqs = [
   },
   {
     q: "What if I land a large account?",
-    a: "Great. For any account over 500 tests a month, or several accounts closing at once, give Labb advance notice so kit supply is ready.",
+    a: "Great. The Labb team and fellow CPP members are here to help you close and support accounts of all sizes. Keep in mind that for any account over 500 tests a month, or several accounts closing at once, you should give Labb advance notice so kit supply is ready.",
   },
   {
     q: "Am I committed when I apply?",

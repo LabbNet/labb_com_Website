@@ -20,6 +20,7 @@ const costs = [
 const requirements = [
   "An independent clinic or collection site",
   "A signed Channel Partner Program Agreement",
+  "An active Labb customer account",
   "Advance notice to Labb for any account over 500 tests a month",
 ];
 
@@ -62,9 +63,13 @@ export default function CppDetails() {
               *Limit 1 set of pop-up banner stands per CPP member when attending trade shows. Labb&apos;s total contribution for attending a
               trade show will not exceed $450 per member. Limit 1 sponsored show per CPP member.
             </p>
-            <p className="program-note" style={{ marginTop: 18 }}>
-              More than 100% of all funds collected from CPP members is reinvested in supporting CPP member growth.
-            </p>
+            <div className="reinvest">
+              <span className="reinvest-num">100%<sup>+</sup></span>
+              <p>
+                <strong>Every dollar goes back to members.</strong> More than 100% of all funds collected from CPP members is reinvested in
+                supporting CPP member growth.
+              </p>
+            </div>
           </div>
           <div id="requirements">
             <span className="eyebrow">Requirements</span>
