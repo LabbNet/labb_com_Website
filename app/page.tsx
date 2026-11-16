@@ -111,14 +111,15 @@ export default function Home() {
       <section className="band light">
         <div className="wrap">
           <Hotspots
-            graphic={<GraphicSlot src="/kits/or-06a/hero.webp" alt="eTest Swab OR:06A oral fluid test with its swab and cap" label="Kit render" w={1000} h={1000} />}
+            graphic={<GraphicSlot src="/graphics/home/oraflo-closeup.webp" alt="Close-up of an OraFlo oral fluid device with masked drug labels and the collector above the test strips" label="OraFlo close-up" className="framed" w={1044} h={616} />}
             title="Better-built test kits."
-            intro="Designed to be read by a phone. Tap a plus to look closer."
+            intro="OraFlo oral fluid screens, built for the workplace. Tap a plus to look closer."
             cta="Get a quote"
             points={[
-              { x: 38, y: 34, title: "Built for the reader", body: "Each side is labeled and scanned in order, so the app reads every strip.", topic: "Kit design: built for the reader" },
-              { x: 62, y: 58, title: "Observed oral fluid", body: "Collect anywhere in 2 to 3 minutes. No restroom needed.", topic: "Oral fluid collection" },
-              { x: 22, y: 78, title: "Panels that fit", body: "From 6 to 23 drugs, oral fluid or urine, workplace or forensic.", topic: "Panel options" },
+              { x: 9, y: 16, title: "True privacy", body: "Drug names are masked on the device as D1, D2, D3. The donor never sees what is being tested, and Labb Station decodes the panel privately.", topic: "OraFlo: true privacy" },
+              { x: 62, y: 22, title: "Lower sample volume", body: "OraFlo needs less oral fluid than typical collection devices, so collection is quicker and easier, even for donors with a dry mouth.", topic: "OraFlo: lower sample volume" },
+              { x: 40, y: 62, title: "Workplace-aligned THC detection", body: "Screens for parent THC at 40 ng/mL, which points to recent use rather than use from weeks ago. That fits impairment-focused workplace policies.", topic: "OraFlo: THC detection" },
+              { x: 70, y: 86, title: "Digitally read", body: "Every OraFlo is read by Labb Station on a phone or tablet. Results are objective, consistent and saved with the image.", topic: "OraFlo: digitally read" },
             ]}
           />
         </div>
