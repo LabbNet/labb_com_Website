@@ -18,6 +18,11 @@ export const benefits = [
     b: <>Invoice clients directly or use Labb as your billing agent to streamline managing employers and accounts receivable.</>,
   },
   {
+    tag: "Revenue",
+    t: "High-value walk-in business",
+    b: <>Earn walk-in business from Labb&apos;s online test sales. When a test is sold online in your territory and you run it, you receive 80% of the price.</>,
+  },
+  {
     tag: "Savings",
     t: "Reduced testing costs",
     b: <>Enjoy special reduced pricing on certain products and services when sold through the Channel Partner Program.</>,
