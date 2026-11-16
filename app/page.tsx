@@ -112,7 +112,7 @@ export default function Home() {
         <div className="wrap">
           <Hotspots
             graphic={<GraphicSlot src="/graphics/home/oraflo-31c.webp" alt="OraFlo ORF:31C oral fluid device with masked drug labels, its cap and the oral fluid collector" label="OraFlo 31C" w={1640} h={770} />}
-            title="Better-built test kits."
+            title={"Built for today’s workforce."}
             intro="OraFlo oral fluid screens, built for the workplace. Tap a plus to look closer."
             cta="Get a quote"
             points={[
