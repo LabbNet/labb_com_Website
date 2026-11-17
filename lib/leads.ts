@@ -207,7 +207,7 @@ export async function deliverLead(lead: Lead, existingId?: string) {
   const text = r.filter(([, v]) => v).map(([k, v]) => `${k}: ${v}`).join("\n") + (id ? `\n\nOpen the lead: ${absoluteUrl(`/admin/leads/${id}`)}` : "");
 
   const to = lead.type === "cpp-application" && process.env.CPP_LEAD_TO_EMAIL ? process.env.CPP_LEAD_TO_EMAIL.split(",") : await notifyAddresses();
-  const emailed = await sendMail(to, subject, html, text, { replyTo: lead.email, from: process.env.LEAD_FROM_EMAIL || "Labb Website <leads@labb.com>" });
+  const emailed = await sendMail(to, subject, html, text, { replyTo: lead.email, from: process.env.LEAD_FROM_EMAIL || "Labb Website <info@mail.labb.com>" });
 
   if (id) {
     try {

@@ -9,7 +9,7 @@ import "server-only";
 
 type MailOpts = { replyTo?: string; from?: string };
 
-const defaultFrom = () => process.env.MAIL_FROM || process.env.LEAD_FROM_EMAIL || "Labb <info@labb.com>";
+const defaultFrom = () => process.env.MAIL_FROM || process.env.LEAD_FROM_EMAIL || "Labb <info@mail.labb.com>";
 
 // "Labb Website <leads@labb.com>" -> { name, email }
 function parseFrom(from: string) {
@@ -67,6 +67,8 @@ async function viaResend(to: string[], subject: string, html: string, text: stri
 export async function sendMail(to: string | string[], subject: string, html: string, text: string, opts: MailOpts = {}): Promise<boolean> {
   const list = (Array.isArray(to) ? to : to.split(",")).map((s) => s.trim()).filter(Boolean);
   if (!list.length) return false;
+  // Mail goes out from the authenticated mail.labb.com domain; replies default to the main inbox.
+  opts = { ...opts, replyTo: opts.replyTo || process.env.MAIL_REPLY_TO || "info@labb.com" };
   const attempts: [boolean, typeof viaSendGrid, string][] = [
     [Boolean(process.env.SENDGRID_API_KEY), viaSendGrid, "SendGrid"],
     [Boolean(process.env.SMTP_USER && process.env.SMTP_PASS), viaSmtp, "SMTP"],
