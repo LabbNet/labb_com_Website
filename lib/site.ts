@@ -81,3 +81,7 @@ export const nav = [
 export function absoluteUrl(path = "/") {
   return `${site.url}${path.startsWith("/") ? path : `/${path}`}`;
 }
+
+// CPP member support contacts (member area only).
+export const cppSupportEmails = ["Kelly.Ramsey@labb.com", "Angela@labb.com"];
+
