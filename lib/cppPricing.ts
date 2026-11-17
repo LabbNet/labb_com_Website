@@ -2,7 +2,7 @@
 export const PRICE_CATEGORIES = [
   { value: "rapid-kits", label: "Rapid test kits" },
   { value: "readers", label: "Tablet readers" },
-  { value: "stands", label: "Testing stands" },
+  { value: "stands", label: "Accessories" },
   { value: "saas", label: "SaaS by platform" },
   { value: "lab-mro", label: "Lab and MRO services" },
 ] as const;
