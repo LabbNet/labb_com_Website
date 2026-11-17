@@ -123,6 +123,8 @@ export const library = [
     group: "Marketing sheets",
     items: [
       { title: "OraFlo Rapid Drug Testing Booklet (2026)", url: "/api/members/files/oraflo-booklet" },
+      { title: "eTest Cup Booklet (2026)", url: "/api/members/files/etest-cup-booklet" },
+      { title: "eTest Swab Booklet (2026)", url: "/api/members/files/etest-swab-booklet" },
     ],
   },
   {

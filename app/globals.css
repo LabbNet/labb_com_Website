@@ -839,3 +839,21 @@ p { margin: 0 0 1em; }
 .dp-dl { font-size: .85rem; color: var(--muted); }
 @media (max-width: 960px) { .dp-list { grid-template-columns: repeat(2, 1fr); } }
 @media (max-width: 600px) { .dp-list { grid-template-columns: 1fr; } }
+/* CPP pricing cards: cost and MSRP clearly separated */
+.price-cards { display: grid; gap: 16px; }
+.price-card { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 24px; align-items: center; background: #fff; border: 1px solid var(--border); border-radius: var(--radius-card); padding: 22px 24px; }
+.pc-info h3 { margin: 0 0 4px; font-size: 1.15rem; display: flex; align-items: center; flex-wrap: wrap; }
+.pc-unit { display: inline-block; font-size: .85rem; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: .04em; }
+.pc-info p { margin: 8px 0 0; color: var(--muted); font-size: .95rem; }
+.pc-info .pc-note { font-style: italic; }
+.pc-levels { display: grid; grid-template-columns: repeat(2, minmax(170px, 1fr)); gap: 12px; }
+.pc-level { display: flex; flex-direction: column; padding: 14px 18px; border-radius: 12px; background: var(--light, #f4f6f6); border-top: 4px solid var(--orange); }
+.pc-level + .pc-level { border-top-color: var(--dark); }
+.pc-level-name { font-size: .78rem; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: var(--dark); margin-bottom: 8px; }
+.pc-cost-label { font-size: .8rem; color: var(--muted); }
+.pc-cost { font-size: 1.6rem; font-weight: 800; color: var(--dark); line-height: 1.15; }
+.pc-msrp { margin-top: 10px; padding-top: 8px; border-top: 1px dashed var(--border); font-size: .9rem; color: var(--muted); }
+.pc-msrp strong { color: var(--dark); font-weight: 600; }
+.pc-contact { font-weight: 600; color: var(--muted); }
+@media (max-width: 760px) { .price-card { grid-template-columns: 1fr; } .pc-levels { grid-template-columns: 1fr 1fr; } }
+@media (max-width: 420px) { .pc-levels { grid-template-columns: 1fr; } }

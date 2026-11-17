@@ -30,40 +30,37 @@ export default async function MemberPricing() {
             <div key={c.value} id={c.value} className="price-section">
               <h2>{c.label}</h2>
               {list.length ? (
-                <div className="compare-wrap">
-                  <table className="compare price-table">
-                    <thead>
-                      <tr>
-                        <th scope="col" rowSpan={2} style={{ textAlign: "left" }}>Product</th>
-                        <th scope="col" rowSpan={2}>Unit</th>
-                        <th scope="colgroup" colSpan={2} className="sl-head">Service Level 1</th>
-                        <th scope="colgroup" colSpan={2} className="sl-head">Service Level 3</th>
-                      </tr>
-                      <tr><th scope="col">Price</th><th scope="col">MSRP</th><th scope="col">Price</th><th scope="col">MSRP</th></tr>
-                    </thead>
-                    <tbody>
-                      {list.map((i) => (
-                        <tr key={i.id}>
-                          <th scope="row">
-                            {i.name}{i.sku && <span className="tag plain" style={{ marginLeft: 8 }}>{i.sku}</span>}
-                            {i.description && <span className="sub">{i.description}</span>}
-                            {i.notes && <span className="sub"><em>{i.notes}</em></span>}
-                          </th>
-                          <td>{i.unit || ""}</td>
-                          {[i.sl1_cents, i.sl1_msrp_cents, i.sl3_cents, i.sl3_msrp_cents].every((c) => c == null) ? (
-                            <td colSpan={4}>Contact Labb</td>
-                          ) : (
-                            <>
-                              <td><strong>{money(i.sl1_cents)}</strong></td>
-                              <td className="muted">{money(i.sl1_msrp_cents)}</td>
-                              <td><strong>{money(i.sl3_cents)}</strong></td>
-                              <td className="muted">{money(i.sl3_msrp_cents)}</td>
-                            </>
-                          )}
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
+                <div className="price-cards">
+                  {list.map((i) => {
+                    const none = [i.sl1_cents, i.sl1_msrp_cents, i.sl3_cents, i.sl3_msrp_cents].every((c) => c == null);
+                    return (
+                      <div key={i.id} className="price-card">
+                        <div className="pc-info">
+                          <h3>{i.name}{i.sku && <span className="tag plain" style={{ marginLeft: 8 }}>{i.sku}</span>}</h3>
+                          {i.unit && <span className="pc-unit">{i.unit}</span>}
+                          {i.description && <p>{i.description}</p>}
+                          {i.notes && <p className="pc-note">{i.notes}</p>}
+                        </div>
+                        {none ? (
+                          <div className="pc-contact">Contact Labb for pricing</div>
+                        ) : (
+                          <div className="pc-levels">
+                            {([
+                              ["Service Level 1", i.sl1_cents, i.sl1_msrp_cents],
+                              ["Service Level 3", i.sl3_cents, i.sl3_msrp_cents],
+                            ] as const).map(([label, cost, msrp]) => (
+                              <div key={label} className="pc-level">
+                                <span className="pc-level-name">{label}</span>
+                                <span className="pc-cost-label">Your cost</span>
+                                <span className="pc-cost">{money(cost) || "Contact Labb"}</span>
+                                <span className="pc-msrp">MSRP <strong>{money(msrp) || "n/a"}</strong></span>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
                 </div>
               ) : (
                 <p className="muted">Pricing coming soon. Contact Labb for a quote.</p>
