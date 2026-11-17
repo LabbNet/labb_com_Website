@@ -9,6 +9,7 @@ export const memberFiles = [
   { slug: "employer-construction", file: "labbhr-construction-screening-handbook-q4-2026-v1.70.pdf", title: "Construction" },
   { slug: "employer-manufacturing", file: "labbhr-manufacturing-screening-handbook-q4-2026-v1.71.pdf", title: "Manufacturing" },
   { slug: "employer-logistics", file: "labbhr-logistics-screening-handbook-q4-2026-v1.70.pdf", title: "Logistics" },
+  { slug: "oraflo-booklet", file: "oraflo-booklet-2026-labbhr-v2.00.pdf", title: "OraFlo Rapid Drug Testing Booklet" },
   { slug: "regional-drug-use", file: "labb-regional-drug-use-testing-panels-2026.pdf", title: "Regional Drug Use and Recommended Testing Panels (2026)" },
 ];
 export const memberFile = (slug: string) => memberFiles.find((f) => f.slug === slug);

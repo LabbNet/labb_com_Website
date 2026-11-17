@@ -122,8 +122,7 @@ export const library = [
   {
     group: "Marketing sheets",
     items: [
-      { title: "OraFlo data sheet (analytical)", url: "https://drive.google.com/file/d/1ZRNC5AJW4G9RWgsvR9GdEqTXYPV3vV2y/view" },
-      { title: "eTest Swab data sheet (analytical)", url: "https://drive.google.com/file/d/1wjUV-qbu3MUp4j7nXeDAWaIO9hAAkvc1/view" },
+      { title: "OraFlo Rapid Drug Testing Booklet (2026)", url: "/api/members/files/oraflo-booklet" },
     ],
   },
   {
