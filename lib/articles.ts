@@ -12,10 +12,11 @@ export type Article = {
   description: string;
   html: string;
   words: number;
+  draft?: boolean; // hidden from lists and the sitemap; viewable at its URL for review
 };
 
-export const articles: Article[] = (data as Article[]).sort((a, b) =>
-  b.publishedAt.localeCompare(a.publishedAt),
-);
+const all: Article[] = (data as Article[]).sort((a, b) => b.publishedAt.localeCompare(a.publishedAt));
+export const articles: Article[] = all.filter((a) => !a.draft);
 
-export const getArticle = (slug: string) => articles.find((a) => a.slug === slug);
+export const getArticle = (slug: string) => all.find((a) => a.slug === slug);
+export const allArticleSlugs = () => all.map((a) => a.slug);
