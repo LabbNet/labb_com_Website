@@ -20,7 +20,7 @@ export const metadata: Metadata = {
 
 const story = [
   { title: "Labb Mobile App", body: "The app walks your employees step-by-step through each test.", src: "/graphics/home/benefits-phones.webp", w: 1600, h: 1200, alt: "Three phone screens from the Labb mobile app: selecting an organization, choosing a UA:13A test kit, and the donor signature step" },
-  { title: "Mobile App Scanner", body: "The app scans rapid test kits and provides a fast, unbiased result.", src: "/graphics/home/outcome-fewer-errors.webp", w: 800, h: 600, alt: "A tablet on a Labb testing stand scanning a UA:16C eTest Cup" },
+  { title: "Mobile App Scanner", body: "The app scans rapid test kits and provides a fast, unbiased result. Use Labb-offered devices or any iPhone or Android device with internet access.", src: "/graphics/home/outcome-fewer-errors.webp", w: 800, h: 600, alt: "A tablet on a Labb testing stand scanning a UA:16C eTest Cup" },
   { title: "Electronic Confirmation", body: "If the rapid test is non-negative, just package the sample for confirmation. There are no paper forms to fill out. Just pack and ship.", src: "/graphics/home/outcome-defensible.webp", w: 800, h: 600, alt: "A Labb electronic drug test result form" },
   { title: "Complete Program Support", body: "A Labb team member or partner will onboard and train your team. You will always get a single point of contact for all live training and support.", src: "/graphics/home/outcome-growth.webp", w: 800, h: 600, alt: "Stacked blocks labeled background screens, physicals, drug testing, collections and emergency support" },
 ];
