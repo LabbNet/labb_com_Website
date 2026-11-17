@@ -151,6 +151,7 @@ export const industries: Industry[] = [
       },
     ],
     kitSlugs: ["orf-31c-oraflo", "or-14a-etest-swab", "ua-06b-svt", "ua-13a-svt"],
+    handbook: "logistics-screening-handbook",
     faqs: [
       {
         q: "Can we test drivers with Labb rapid screens?",

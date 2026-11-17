@@ -20,7 +20,7 @@ type Props = {
   topic?: string; // the detail the visitor opened before asking to connect (slide-in form)
 };
 
-const INDUSTRY = ["Construction", "Manufacturing", "Logistics and warehousing", "Staffing", "Healthcare", "Other"];
+const INDUSTRY = ["Construction", "Manufacturing", "Logistics and warehousing", "Staffing", "Healthcare", "Hospitality", "Other"];
 
 // Consultation forms ask about the visitor's program first, then where testing happens, then contact details.
 const IMPROVE = ["Lower cost per test", "Faster results", "Fewer errors and disputed results", "Less paperwork", "Easier lab confirmations", "Compliance and documentation", "Grow my testing business", "Something else"];

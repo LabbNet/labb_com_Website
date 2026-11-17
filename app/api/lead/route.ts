@@ -167,7 +167,7 @@ export async function POST(req: Request) {
     );
   }
 
-  const res = NextResponse.json({ ok: true, download: resource?.fileUrl });
+  const res = NextResponse.json({ ok: true, download: resource?.fileUrl ?? (resource?.file ? `/api/download/${resource.slug}` : undefined) });
   const existing = await verify(req.headers.get("cookie")?.match(new RegExp(`${COOKIE}=([^;]+)`))?.[1]);
   res.cookies.set(COOKIE, await sign({ ...existing, email: lead.email, lead: true }), cookieOptions);
   return res;

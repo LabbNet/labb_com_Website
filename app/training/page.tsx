@@ -5,6 +5,9 @@ import { Breadcrumbs, CtaBand, Faq } from "@/components/ui";
 import { PageHero } from "@/components/PageHero";
 import { publishedKits } from "@/lib/kits";
 import { resources } from "@/lib/resources";
+
+// Clinic-facing books have free landing pages but are presented in the clinic library, not the employer list.
+const CLINIC_BOOKS = ["clinic-owners-handbook", "background-screening-guidebook"];
 import { articles } from "@/lib/articles";
 
 export const metadata: Metadata = {
@@ -51,7 +54,7 @@ export default function TrainingPage() {
           <h2>Industry screening handbooks</h2>
           <p className="intro">For owners, HR teams, safety managers and supervisors who want to bring drug and background screening in-house.</p>
           <div className="grid g2">
-            {resources.map((r) => (
+            {resources.filter((r) => !CLINIC_BOOKS.includes(r.slug)).map((r) => (
               <Link key={r.slug} href={`/resources/${r.slug}`} className="card card-link top" style={{ flexDirection: "row", gap: 22, alignItems: "center" }}>
                 <Image src={r.cover} alt="" width={r.coverW} height={r.coverH} style={{ width: 120, flex: "none" }} />
                 <div>
