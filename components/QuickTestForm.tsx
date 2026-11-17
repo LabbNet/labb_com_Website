@@ -2,7 +2,7 @@
 
 import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { PANELS, canAdd, drugCatalog, money, presetDrugs, quote, specimenOf, type QtPricing } from "@/lib/quickTest";
+import { PANELS, canAdd, drugCatalog, money, presetDrugs, quote, specimenOf, type QtPricing, SHIPPING, shippingCents } from "@/lib/quickTest";
 
 // Quick Test checkout for individuals, in four steps: where, your test, your details, review and pay.
 // The order is saved, then the buyer pays on Stripe Checkout. Same price at home or at a clinic.
@@ -22,14 +22,14 @@ export function QuickTestForm({ checkout, pricing }: { checkout: boolean; pricin
   const router = useRouter();
   const started = useRef(Date.now());
   const [step, setStep] = useState(0);
-  const [f, setF] = useState<F>({ panel: "Help me choose", reportTo: REPORT_TO[0] });
+  const [f, setF] = useState<F>({ panel: "Help me choose", reportTo: REPORT_TO[0], shipping: "Overnight" });
   const [errors, setErrors] = useState<F>({});
   const [error, setError] = useState("");
   const [sending, setSending] = useState(false);
   const [custom, setCustom] = useState<string[]>([]);
   const home = f.fulfillment === "At home";
   const specimen = specimenOf(f.testType);
-  const q = quote(f.testType, f.panel, custom, f.observation, pricing);
+  const q = quote(f.testType, f.panel, custom, f.observation, pricing, f.shipping);
   const price = money(q.cents);
   const toggleDrug = (code: string) => {
     setCustom((c) => (c.includes(code) ? c.filter((x) => x !== code) : [...c, code]));
@@ -87,7 +87,7 @@ export function QuickTestForm({ checkout, pricing }: { checkout: boolean; pricin
       website: f.website || "", page: window.location.pathname, referrer: document.referrer,
       elapsed: Date.now() - started.current,
       details: {
-        fulfillment: f.fulfillment, testType: f.testType, observation: f.observation, reason: f.reason, panel: f.panel,
+        fulfillment: f.fulfillment, testType: f.testType, observation: f.observation, reason: f.reason, panel: f.panel, shipping: f.shipping,
         reportTo: f.reportTo, reportEmail: f.reportTo !== REPORT_TO[0] ? f.reportEmail || "" : "",
         address1: home ? f.address1 : "", address2: home ? f.address2 || "" : "", city: home ? f.city : "", state: home ? f.state : "", zip: home ? f.zip : "",
         clinicZip: home ? "" : f.clinicZip, clinicName: home ? "" : f.clinicName || "",
@@ -187,10 +187,18 @@ export function QuickTestForm({ checkout, pricing }: { checkout: boolean; pricin
             </fieldset>
           )}
           {f.panel === "Help me choose" && <p className="fine full" style={{ margin: 0 }}>A Labb specialist will recommend the right drugs before your test is sent.</p>}
+          <fieldset className="field full radios">
+            <legend>Shipping {home ? "to you" : "to your clinic"}</legend>
+            {SHIPPING.map((m) => (
+              <label key={m}>
+                <input type="radio" name="q-shipping" value={m} checked={f.shipping === m} onChange={() => set("shipping", m)} /> {m} ({money(shippingCents(m, pricing))})
+              </label>
+            ))}
+          </fieldset>
           <div className="qt-total full" aria-live="polite">
             <dl>
               <div><dt>Screen fee{q.drugs.length ? ` (${q.drugs.length} drugs)` : ""}</dt><dd>{money(q.fees.screen)}</dd></div>
-              <div><dt>Overnight shipping</dt><dd>{money(q.fees.shipping)}</dd></div>
+              <div><dt>{f.shipping} shipping</dt><dd>{money(q.fees.shipping)}</dd></div>
               <div><dt>Proctoring{f.observation ? `, ${f.observation.toLowerCase()}` : ""}</dt><dd>{f.observation ? money(q.fees.proctoring) : "Choose collection"}</dd></div>
             </dl>
             <div className="qt-sum"><span>Total</span><strong>{price}</strong></div>
@@ -247,7 +255,7 @@ export function QuickTestForm({ checkout, pricing }: { checkout: boolean; pricin
                 ["Email", f.email],
                 [home ? "Ship to" : "Clinic near", home ? `${f.address1}${f.address2 ? `, ${f.address2}` : ""}, ${f.city}, ${f.state} ${f.zip}` : `ZIP ${f.clinicZip}${f.clinicName ? ` (${f.clinicName})` : ""}`],
                 ["Screen fee", money(q.fees.screen)],
-                ["Overnight shipping", money(q.fees.shipping)],
+                [`${f.shipping} shipping`, money(q.fees.shipping)],
                 ["Proctoring", money(q.fees.proctoring)],
                 ["Total", price],
               ] as [string, string][]).map(([k, v]) => <tr key={k}><th scope="row">{k}</th><td>{v}</td></tr>)}

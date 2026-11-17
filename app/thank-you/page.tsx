@@ -17,13 +17,13 @@ export default async function Page({ searchParams }: { searchParams: Promise<{ t
           {paid ? (
             <>
               <h1 style={{ fontSize: "2.4rem" }}>Order confirmed.</h1>
-              <p className="lede">Thank you. Your payment went through and Stripe has emailed your receipt. A Labb specialist will confirm who receives your report, then we ship your kit overnight or send your test to the clinic.</p>
+              <p className="lede">Thank you. Your payment went through and Stripe has emailed your receipt. A Labb specialist will confirm who receives your report, then we ship your kit, or send your test to the clinic, by the shipping method you chose.</p>
               <p>Questions? Call <a href={site.phoneHref}>{site.phone}</a> or email <a href={`mailto:${site.email}`}>{site.email}</a>.</p>
             </>
           ) : quick ? (
             <>
               <h1 style={{ fontSize: "2.4rem" }}>Quick Test request received.</h1>
-              <p className="lede">A Labb specialist will contact you to confirm your test, the price and who receives the report. Once confirmed, we ship overnight and schedule your proctored video session.</p>
+              <p className="lede">A Labb specialist will contact you to confirm your test, the price and who receives the report. Once confirmed, we ship by the method you chose and schedule your proctored video session.</p>
               <p>Questions? Call <a href={site.phoneHref}>{site.phone}</a> or email <a href={`mailto:${site.email}`}>{site.email}</a>.</p>
             </>
           ) : cpp ? (

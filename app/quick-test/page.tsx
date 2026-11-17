@@ -17,12 +17,12 @@ export const metadata: Metadata = {
 export const dynamic = "force-dynamic"; // checkout availability depends on runtime settings
 
 const faqs = [
-  { q: "What does it cost?", a: "Three parts: a screen fee based on the drugs you choose, overnight shipping, and proctoring (observed or non-observed). You see the full price before you pay." },
+  { q: "What does it cost?", a: "Three parts: a screen fee based on the drugs you choose, shipping (overnight, second day or ground), and proctoring (observed or non-observed). You see the full price before you pay." },
   { q: "Is the price the same at home and at a clinic?", a: "Yes. The price depends on the drugs you choose and whether the test is observed, not where you test." },
   { q: "Can I choose which drugs to test for?", a: "Yes. Pick a standard or expanded panel, or build a custom panel drug by drug. The price updates as you add drugs." },
   { q: "What is the difference between observed and non-observed?", a: "At home, an observed test means a Labb proctor watches the collection by video. Non-observed tests are completed on your own, with the proctor guiding the steps." },
   { q: "Who receives the report?", a: "It depends on the reason for the test and the drugs tested. Labb confirms who can receive your report before your test is sent." },
-  { q: "How fast will I get my test?", a: "At home, Labb ships your kit overnight. At a clinic, Labb sends the rapid test to the clinic and emails you where to go." },
+  { q: "How fast will I get my test?", a: "You choose overnight, second day or ground shipping at checkout. At home, Labb ships the kit to you. At a clinic, Labb sends the rapid test to the clinic and emails you where to go." },
 ];
 
 export default async function QuickTest() {
@@ -60,7 +60,7 @@ export default async function QuickTest() {
               {
                 title: "At home",
                 graphic: <GraphicSlot src="/graphics/quick-test/at-home.webp" alt="Testing at home on a video call" label="At home: video proctored test" w={1000} h={700} sizes="520px" />,
-                body: "Order online. We overnight the kit to you. A Labb proctor runs the test with you by video, observed or non-observed. Your report comes to you.",
+                body: "Order online. We ship the kit to you overnight, second day or ground. A Labb proctor runs the test with you by video, observed or non-observed. Your report comes to you.",
                 topic: "Quick Test at home",
                 cta: "Questions? Ask us",
               },

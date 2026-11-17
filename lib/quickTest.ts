@@ -4,7 +4,7 @@ import { publishedKits, type Kit } from "@/lib/kits";
 
 // Quick Test pricing. Admins edit it in /admin/settings (stored in site_settings as
 // "quick_test_pricing"); these are the defaults until it is saved. Amounts are in cents.
-// Total = screen fee + overnight shipping + proctoring.
+// Total = screen fee + shipping (overnight, second day or ground) + proctoring.
 // Screen fee: starts at screenMinCents for up to includedDrugs drugs, adds perDrugCents for each
 // drug after that, and never goes above screenMaxCents.
 export type QtPricing = {
@@ -12,7 +12,9 @@ export type QtPricing = {
   screenMaxCents: number;
   includedDrugs: number;
   perDrugCents: number;
-  shippingCents: number;
+  shippingCents: number; // overnight
+  shipping2DayCents: number;
+  shippingGroundCents: number;
   proctorNonObservedCents: number;
   proctorObservedCents: number;
 };
@@ -22,9 +24,17 @@ export const QT_DEFAULT_PRICING: QtPricing = {
   includedDrugs: 6,
   perDrugCents: 500,
   shippingCents: 3900,
+  shipping2DayCents: 2500,
+  shippingGroundCents: 1500,
   proctorNonObservedCents: 3000,
   proctorObservedCents: 6000,
 };
+
+export const SHIPPING = ["Overnight", "Second day", "Ground"] as const;
+export type Shipping = (typeof SHIPPING)[number];
+export const isShipping = (v: unknown): v is Shipping => (SHIPPING as readonly unknown[]).includes(v);
+export const shippingCents = (method: string | undefined, pr: QtPricing) =>
+  method === "Ground" ? pr.shippingGroundCents : method === "Second day" ? pr.shipping2DayCents : pr.shippingCents;
 
 export type Specimen = "Oral fluid" | "Urine";
 export const specimenOf = (testType?: string): Specimen | null =>
@@ -73,7 +83,7 @@ export const isObserved = (observation?: string) => Boolean(observation?.startsW
 export const money = (cents: number) => new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" }).format(cents / 100);
 
 // Resolve an order's drugs, kit and fees. Returns an error message for an invalid custom selection.
-export function quote(testType: string | undefined, panel: string | undefined, custom: string[] = [], observation?: string, pr: QtPricing = QT_DEFAULT_PRICING) {
+export function quote(testType: string | undefined, panel: string | undefined, custom: string[] = [], observation?: string, pr: QtPricing = QT_DEFAULT_PRICING, method: string = "Overnight") {
   const specimen = specimenOf(testType);
   const p = (PANELS as readonly string[]).includes(panel || "") ? (panel as Panel) : "Help me choose";
   let drugs: string[] = [];
@@ -88,7 +98,7 @@ export function quote(testType: string | undefined, panel: string | undefined, c
     }
   }
   const screen = drugs.length ? screenFeeCents(drugs.length, pr) : pr.screenMinCents;
-  const shipping = pr.shippingCents;
+  const shipping = shippingCents(method, pr);
   const proctoring = observation ? (isObserved(observation) ? pr.proctorObservedCents : pr.proctorNonObservedCents) : 0;
   return { drugs, kit, error, fees: { screen, shipping, proctoring }, cents: screen + shipping + proctoring };
 }

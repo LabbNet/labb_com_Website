@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { deliverLead, saveLead, type Lead } from "@/lib/leads";
 import { quickTestCheckout, quickTestCheckoutReady } from "@/lib/commerce";
-import { money, quote } from "@/lib/quickTest";
+import { isShipping, money, quote } from "@/lib/quickTest";
 import { getQtPricing } from "@/lib/qtPricing";
 import { isSegment, PRODUCTS, type Segment } from "@/lib/segments";
 import { getResource } from "@/lib/resources";
@@ -27,7 +27,7 @@ function segmentOf(body: Record<string, unknown>): Segment {
 }
 
 // Extra structured answers from specialized forms (for example Quick Test). Only known keys are kept.
-const DETAIL_KEYS = ["topic", "currentProgram", "improve", "costPerTest", "testingLocation", "fulfillment", "clinicZip", "clinicName", "testType", "observation", "reason", "panel", "reportTo", "reportEmail", "address1", "address2", "city", "state", "zip", "deliverBy", "drugs", "kit", "screenFee", "shippingFee", "proctoringFee", "total"] as const;
+const DETAIL_KEYS = ["topic", "currentProgram", "improve", "costPerTest", "testingLocation", "fulfillment", "shipping", "clinicZip", "clinicName", "testType", "observation", "reason", "panel", "reportTo", "reportEmail", "address1", "address2", "city", "state", "zip", "deliverBy", "drugs", "kit", "screenFee", "shippingFee", "proctoringFee", "total"] as const;
 function detailsOf(v: unknown) {
   if (!v || typeof v !== "object") return undefined;
   const out: Record<string, string> = {};
@@ -121,13 +121,14 @@ export async function POST(req: Request) {
     if (!d.testType) errors.testType = "Choose a test type.";
     if (!d.observation) errors.observation = "Choose observed or non-observed.";
     if (!d.reason) errors.reason = "Choose the reason for the test.";
+    if (!isShipping(d.shipping)) d.shipping = "Overnight";
     if (home && (!d.address1 || !d.city || !d.state || !d.zip)) errors.address1 = "Enter the full shipping address.";
     if (!home && !/^\d{5}$/.test(d.clinicZip || "")) errors.clinicZip = "Enter a 5 digit ZIP code.";
     // Price and kit are always recalculated here from the drugs chosen; the browser's total is ignored.
     const custom = Array.isArray((body.details as Record<string, unknown>)?.customDrugs)
       ? ((body.details as Record<string, unknown>).customDrugs as unknown[]).map((x) => String(x).slice(0, 10)).slice(0, 40)
       : [];
-    const q = quote(d.testType, d.panel, custom, d.observation, await getQtPricing());
+    const q = quote(d.testType, d.panel, custom, d.observation, await getQtPricing(), d.shipping);
     if (q.error) errors.panel = q.error;
     lead.details = {
       ...d,

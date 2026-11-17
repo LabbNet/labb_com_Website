@@ -49,7 +49,7 @@ export async function quickTestCheckout(leadId: string, lead: Lead) {
     line_items: (
       [
         ["Screen fee", lead.details?.screenFee, `${lead.details?.testType || "Test"}: ${lead.details?.drugs || "Labb to recommend"}`],
-        ["Overnight shipping", lead.details?.shippingFee, home ? "Kit shipped to you" : "Test shipped to your clinic"],
+        [`${lead.details?.shipping || "Overnight"} shipping`, lead.details?.shippingFee, home ? "Kit shipped to you" : "Test shipped to your clinic"],
         ["Proctoring", lead.details?.proctoringFee, lead.details?.observation || ""],
       ] as [string, string | undefined, string][]
     )

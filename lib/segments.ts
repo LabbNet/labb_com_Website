@@ -23,7 +23,7 @@ export const SEGMENT_PATH: Record<Segment, string> = {
   laboratory: "LabbHR and One by Labb consultation (laboratory)",
   tpa: "LabbHR and One by Labb consultation (TPA)",
   treatment: "Treatment and recovery inquiry",
-  individual: "Quick Test order: ship kit overnight and schedule proctoring",
+  individual: "Quick Test order: ship kit by the chosen method and schedule proctoring",
   "collection-site": "Clinic wants Labb technology in its facility",
   employer: "CPP lead generation (company needs drug testing)",
   corrections: "LabbPO and Labb Station consultation",

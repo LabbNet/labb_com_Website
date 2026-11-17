@@ -30,6 +30,8 @@ export async function POST(req: Request) {
       includedDrugs: Math.round(Number(field(fd, "included", 4))),
       perDrugCents: dollars("perDrug"),
       shippingCents: dollars("shipping"),
+      shipping2DayCents: dollars("shipping2"),
+      shippingGroundCents: dollars("shippingGround"),
       proctorNonObservedCents: dollars("proctorNon"),
       proctorObservedCents: dollars("proctorObs"),
     };

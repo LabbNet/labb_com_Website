@@ -41,13 +41,15 @@ export default async function AdminSettings() {
             <form action="/api/admin/settings" method="post">
               <input type="hidden" name="action" value="pricing" />
               <h3>Quick Test pricing</h3>
-              <p className="fine" style={{ margin: 0 }}>Total = screen fee + overnight shipping + proctoring. Same price at home or at a clinic. Changes apply to new orders right away.</p>
+              <p className="fine" style={{ margin: 0 }}>Total = screen fee + shipping (the customer picks overnight, second day or ground) + proctoring. Same price at home or at a clinic. Changes apply to new orders right away.</p>
               <div className="price-grid">
                 <label>Screen fee, lowest ($)<input name="screenMin" inputMode="decimal" defaultValue={d(pr.screenMinCents)} required /></label>
                 <label>Screen fee, highest ($)<input name="screenMax" inputMode="decimal" defaultValue={d(pr.screenMaxCents)} required /></label>
                 <label>Drugs included at the lowest fee<input name="included" inputMode="numeric" defaultValue={pr.includedDrugs} required /></label>
                 <label>Each additional drug ($)<input name="perDrug" inputMode="decimal" defaultValue={d(pr.perDrugCents)} required /></label>
                 <label>Overnight shipping ($)<input name="shipping" inputMode="decimal" defaultValue={d(pr.shippingCents)} required /></label>
+                <label>Second day shipping ($)<input name="shipping2" inputMode="decimal" defaultValue={d(pr.shipping2DayCents)} required /></label>
+                <label>Ground shipping ($)<input name="shippingGround" inputMode="decimal" defaultValue={d(pr.shippingGroundCents)} required /></label>
                 <label>Proctoring, non-observed ($)<input name="proctorNon" inputMode="decimal" defaultValue={d(pr.proctorNonObservedCents)} required /></label>
                 <label>Proctoring, observed ($)<input name="proctorObs" inputMode="decimal" defaultValue={d(pr.proctorObservedCents)} required /></label>
               </div>
