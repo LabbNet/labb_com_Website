@@ -19,10 +19,10 @@ export const metadata: Metadata = {
 // Graphics marked as placeholders show the file name to drop into /public/graphics.
 
 const story = [
-  { title: "Scan the ID", body: "The app reads the driver's license and fills in the paperwork.", g: "scan-1-id" },
-  { title: "Collect and set it down", body: "Collect the sample and place the kit on a table.", g: "scan-2-place" },
-  { title: "Capture the kit", body: "One photo in the app.", g: "scan-3-capture" },
-  { title: "Get the result", body: "An objective read, saved with the image.", g: "scan-4-result" },
+  { title: "Labb Mobile App", body: "The app walks your employees step-by-step through each test." },
+  { title: "Mobile App Scanner", body: "The app scans rapid test kits and provides a fast, unbiased result." },
+  { title: "Electronic Confirmation", body: "If the rapid test is non-negative, just package the sample for confirmation. There are no paper forms to fill out. Just pack and ship." },
+  { title: "Complete Program Support", body: "A Labb team member or partner will onboard and train your team. You will always get a single point of contact for all live training and support." },
 ];
 
 // Technology on the left, the outcome it produces on the right. Opening a tile shows how.
@@ -137,15 +137,11 @@ export default function Home() {
       <section className="band">
         <div className="wrap">
           <div className="band-head">
-            <h2>Technology in your pocket.</h2>
-            <p className="lede-sm">With Labb Station, any phone runs the whole test.</p>
+            <h2>Benefits of in-house testing.</h2>
           </div>
           <ScanStory
-            steps={story.map((s) => ({
-              title: s.title,
-              body: s.body,
-              graphic: <GraphicSlot src={`/graphics/station/${s.g}.webp`} alt={s.title} label={`Phone: ${s.title.toLowerCase()}`} w={1200} h={1200} />,
-            }))}
+            steps={story}
+            graphic={<GraphicSlot src="/graphics/home/benefits-phones.webp" alt="Three phone screens from the Labb mobile app: selecting an organization, choosing a UA:13A test kit, and the donor signature step" label="Labb mobile app screens" w={1600} h={1200} sizes="(max-width: 900px) 100vw, 50vw" />}
           />
         </div>
       </section>

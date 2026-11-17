@@ -679,7 +679,8 @@ p { margin: 0 0 1em; }
 .story-steps p { color: var(--muted); font-size: 1.05rem; max-width: 420px; }
 .band.dark .story-steps p { color: #d7dee3; }
 .story-inline { display: none; }
-@media (max-width: 900px) { .story { grid-template-columns: 1fr; } .story-stage { display: none; } .story-steps li { min-height: 0; opacity: 1; margin-bottom: 48px; } .story-inline { display: block; margin-top: 18px; } }
+.story-stage.single { top: 130px; }
+@media (max-width: 900px) { .story { grid-template-columns: 1fr; } .story-stage:not(.single) { display: none; } .story-stage.single { position: static; margin-bottom: 8px; } .story-steps li { min-height: 0; opacity: 1; margin-bottom: 48px; } .story-inline { display: block; margin-top: 18px; } }
 
 .cmp-stage { position: relative; border-radius: 18px; overflow: hidden; user-select: none; }
 .cmp-layer { display: block; }

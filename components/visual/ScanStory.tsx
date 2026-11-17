@@ -3,7 +3,8 @@
 import { useEffect, useRef, useState } from "react";
 
 // Scroll story: the graphic stays fixed while short steps scroll past; the graphic changes per step.
-export function ScanStory({ steps }: { steps: { title: string; body: string; graphic: React.ReactNode }[] }) {
+// Pass `graphic` instead to show one graphic for every step (shown once above the steps on small screens).
+export function ScanStory({ steps, graphic }: { steps: { title: string; body: string; graphic?: React.ReactNode }[]; graphic?: React.ReactNode }) {
   const [cur, setCur] = useState(0);
   const refs = useRef<(HTMLLIElement | null)[]>([]);
   useEffect(() => {
@@ -16,9 +17,9 @@ export function ScanStory({ steps }: { steps: { title: string; body: string; gra
   }, []);
   return (
     <div className="story">
-      <div className="story-stage" aria-hidden="true">
-        {steps.map((s, i) => (
-          <div key={s.title} className={`story-frame${i === cur ? " on" : ""}`}>{s.graphic}</div>
+      <div className={`story-stage${graphic ? " single" : ""}`}>
+        {graphic ? <div className="story-frame on">{graphic}</div> : steps.map((s, i) => (
+          <div key={s.title} className={`story-frame${i === cur ? " on" : ""}`} aria-hidden="true">{s.graphic}</div>
         ))}
       </div>
       <ol className="story-steps">
@@ -27,7 +28,7 @@ export function ScanStory({ steps }: { steps: { title: string; body: string; gra
             <span className="story-n">{String(i + 1).padStart(2, "0")}</span>
             <h3>{s.title}</h3>
             <p>{s.body}</p>
-            <div className="story-inline">{s.graphic}</div>
+            {!graphic && <div className="story-inline">{s.graphic}</div>}
           </li>
         ))}
       </ol>
