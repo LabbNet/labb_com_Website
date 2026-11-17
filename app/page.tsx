@@ -19,10 +19,10 @@ export const metadata: Metadata = {
 // Graphics marked as placeholders show the file name to drop into /public/graphics.
 
 const story = [
-  { title: "Labb Mobile App", body: "The app walks your employees step-by-step through each test." },
-  { title: "Mobile App Scanner", body: "The app scans rapid test kits and provides a fast, unbiased result." },
-  { title: "Electronic Confirmation", body: "If the rapid test is non-negative, just package the sample for confirmation. There are no paper forms to fill out. Just pack and ship." },
-  { title: "Complete Program Support", body: "A Labb team member or partner will onboard and train your team. You will always get a single point of contact for all live training and support." },
+  { title: "Labb Mobile App", body: "The app walks your employees step-by-step through each test.", src: "/graphics/home/benefits-phones.webp", w: 1600, h: 1200, alt: "Three phone screens from the Labb mobile app: selecting an organization, choosing a UA:13A test kit, and the donor signature step" },
+  { title: "Mobile App Scanner", body: "The app scans rapid test kits and provides a fast, unbiased result.", src: "/graphics/home/outcome-fewer-errors.webp", w: 800, h: 600, alt: "A tablet on a Labb testing stand scanning a UA:16C eTest Cup" },
+  { title: "Electronic Confirmation", body: "If the rapid test is non-negative, just package the sample for confirmation. There are no paper forms to fill out. Just pack and ship.", src: "/graphics/home/outcome-defensible.webp", w: 800, h: 600, alt: "A Labb electronic drug test result form" },
+  { title: "Complete Program Support", body: "A Labb team member or partner will onboard and train your team. You will always get a single point of contact for all live training and support.", src: "/graphics/home/outcome-growth.webp", w: 800, h: 600, alt: "Stacked blocks labeled background screens, physicals, drug testing, collections and emergency support" },
 ];
 
 // Technology on the left, the outcome it produces on the right. Opening a tile shows how.
@@ -140,8 +140,11 @@ export default function Home() {
             <h2>Benefits of in-house testing.</h2>
           </div>
           <ScanStory
-            steps={story}
-            graphic={<GraphicSlot src="/graphics/home/benefits-phones.webp" alt="Three phone screens from the Labb mobile app: selecting an organization, choosing a UA:13A test kit, and the donor signature step" label="Labb mobile app screens" w={1600} h={1200} sizes="(max-width: 900px) 100vw, 50vw" />}
+            steps={story.map((s) => ({
+              title: s.title,
+              body: s.body,
+              graphic: <GraphicSlot src={s.src} alt={s.alt} label={s.title} w={s.w} h={s.h} sizes="(max-width: 900px) 100vw, 50vw" />,
+            }))}
           />
         </div>
       </section>

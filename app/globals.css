@@ -668,7 +668,7 @@ p { margin: 0 0 1em; }
 @media (max-width: 900px) { .hotspots { grid-template-columns: 1fr; gap: 28px; } }
 
 .story { display: grid; grid-template-columns: 1fr 1fr; gap: 64px; }
-.story-stage { position: sticky; top: 110px; align-self: start; display: grid; }
+.story-stage { position: sticky; top: 19vh; align-self: start; display: grid; height: 62vh; align-items: center; }
 .story-frame { grid-area: 1 / 1; opacity: 0; transition: opacity 0.35s; }
 .story-frame.on { opacity: 1; }
 .story-steps { list-style: none; padding: 0; margin: 0; }
