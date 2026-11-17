@@ -10,6 +10,7 @@ import { drugSheets } from "@/lib/drugSheets";
 
 const GROUP_ICON: Record<string, () => React.JSX.Element> = {
   "Clinic Owners Handbooks": IconHandbook,
+  "Employer Guidebooks": IconHandbook,
   "Marketing sheets": IconMarketing,
   Reference: IconReference,
 };

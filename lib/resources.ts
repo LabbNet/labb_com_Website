@@ -91,7 +91,7 @@ export const resources: Resource[] = [
       { title: "HR and program administrators", body: "Run drug tests and background checks through one compliant process." },
       { title: "Supervisors and collectors", body: "Test fast after an incident, with a documented result." },
     ],
-    fileUrl: "https://drive.google.com/file/d/1HW4GQEiyKLdeY_eaE13RJgf3wQVlYJiK/view",
+    fileUrl: "https://drive.google.com/file/d/18yys9SpC10rh6LDHYiiCKfbbR4wl24l6/view",
     industry: "manufacturing",
   },
 ];
@@ -103,9 +103,20 @@ export const library = [
   {
     group: "Clinic Owners Handbooks",
     items: [
-      { title: "Drug Testing Handbook", url: "https://drive.google.com/file/d/1_flCkSbxa0xx6ZV2Li55e03CWoeLyFnP/view" },
-      { title: "Background Checks Handbook", url: "https://drive.google.com/file/d/1Z_gi-pco6aP6iq6vc8FQRJB3z5bseUm6/view" },
+      { title: "Clinic Owners Handbook (Drug Testing)", url: "/api/members/files/clinic-owners-handbook" },
+      { title: "Background Screening Guidebook", url: "/api/members/files/background-screening" },
       { title: "Drug Testing Cost Guidebook", url: "/api/members/files/cost-guidebook" },
+    ],
+  },
+  {
+    group: "Employer Guidebooks",
+    items: [
+      { title: "Employer's Guidebook (all industries)", url: "/api/members/files/employer-guidebook" },
+      { title: "Construction", url: "/api/members/files/employer-construction" },
+      { title: "Manufacturing", url: "/api/members/files/employer-manufacturing" },
+      { title: "Logistics and warehousing", url: "/api/members/files/employer-logistics" },
+      { title: "Healthcare", url: "/api/members/files/employer-healthcare" },
+      { title: "Hospitality", url: "/api/members/files/employer-hospitality" },
     ],
   },
   {
