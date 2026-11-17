@@ -5,6 +5,7 @@ import { absoluteUrl } from "@/lib/site";
 
 // Creates a 7-day setup link and emails it. Returns the link so an admin can share it by hand
 // if email isn't configured yet.
+import { cppEmail } from "@/lib/site";
 export async function sendInvite(m: { id: string; email: string; name: string; username: string }) {
   const token = await createToken(m.id, "invite");
   const link = absoluteUrl(`/account/setup?token=${token}`);
@@ -15,10 +16,12 @@ export async function sendInvite(m: { id: string; email: string; name: string; u
       "Your Labb member account is ready",
       `<p>Hi ${m.name.split(" ")[0]},</p>
        <p>Welcome to the Labb Channel Partner Program. Your member account gives you the Clinic Owners Guidebook, industry guidebooks, data sheets and member resources.</p>
-       <p>Your username is <strong>${m.username}</strong>. Use the button below to choose your password. The link works once and expires in 7 days.</p>`,
+       <p>Your username is <strong>${m.username}</strong>. Use the button below to choose your password. The link works once and expires in 7 days.</p>
+       <p>Questions? Reply to this email or write to <a href="mailto:${cppEmail}">${cppEmail}</a>.</p>`,
       { href: link, label: "Set up my account" },
     ),
-    `Welcome to the Labb Channel Partner Program.\nYour username is ${m.username}.\nSet your password here (expires in 7 days): ${link}`,
+    `Welcome to the Labb Channel Partner Program.\nYour username is ${m.username}.\nSet your password here (expires in 7 days): ${link}\nQuestions? Email ${cppEmail}.`,
+    { replyTo: cppEmail },
   );
   return { link, sent };
 }

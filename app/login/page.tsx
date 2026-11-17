@@ -11,7 +11,7 @@ export const dynamic = "force-dynamic";
 const errors: Record<string, string> = {
   "1": "That username or password didn't work. Check them and try again.",
   locked: "Too many sign-in attempts. Wait 15 minutes, then try again, or reset your password.",
-  unavailable: "Member sign-in isn't available yet. Email info@labb.com for help.",
+  unavailable: "Member sign-in isn't available yet. Email LCPPS@labb.com for help.",
   expired: "That link has expired or was already used. Ask Labb for a new one.",
 };
 

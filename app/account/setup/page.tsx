@@ -20,7 +20,7 @@ export default async function SetupPage({ searchParams }: { searchParams: Promis
           <SetPasswordForm token={token} purpose="invite" error={error} />
         </>
       ) : (
-        <Alert>This setup link has expired or was already used. Email info@labb.com and we&apos;ll send a new one.</Alert>
+        <Alert>This setup link has expired or was already used. Email LCPPS@labb.com and we&apos;ll send a new one.</Alert>
       )}
     </AuthCard>
   );

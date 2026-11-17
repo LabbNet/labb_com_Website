@@ -1,3 +1,4 @@
+import { cppEmail } from "@/lib/site";
 import { createToken, logEvent, recordAttempt, sameOrigin, tooManyAttempts } from "@/lib/auth";
 import { dbConfigured, sql } from "@/lib/db";
 import { field, go } from "@/lib/http";
@@ -23,6 +24,7 @@ export async function POST(req: Request) {
       "Reset your Labb member password",
       emailLayout("Reset your password", `<p>Hi ${m.name.split(" ")[0]},</p><p>Use the button below to choose a new password for your Labb member account. The link works once and expires in 1 hour.</p><p>If you didn't ask for this, you can ignore this email.</p>`, { href: link, label: "Choose a new password" }),
       `Reset your Labb member password: ${link}\nThe link works once and expires in 1 hour.`,
+      { replyTo: cppEmail },
     );
     await logEvent(m.id, "reset_requested");
   }

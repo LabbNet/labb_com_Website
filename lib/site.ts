@@ -83,5 +83,6 @@ export function absoluteUrl(path = "/") {
 }
 
 // CPP member support contacts (member area only).
-export const cppSupportEmails = ["Kelly.Ramsey@labb.com", "Angela@labb.com"];
+// CPP support inbox: shown on member pages and used as the reply-to on CPP emails.
+export const cppEmail = "LCPPS@labb.com";
 

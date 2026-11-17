@@ -1,8 +1,9 @@
+import { cppEmail } from "@/lib/site";
 import { currentMember, sameOrigin } from "@/lib/auth";
 import { setFlash } from "@/lib/admin";
 import { sql } from "@/lib/db";
 import { field, go } from "@/lib/http";
-import { esc, notifyAddresses } from "@/lib/leads";
+import { esc } from "@/lib/leads";
 import { emailLayout, sendMail } from "@/lib/mail";
 import { absoluteUrl } from "@/lib/site";
 import { BROCHURE_QTY, showDates } from "@/lib/tradeShows";
@@ -73,8 +74,8 @@ export async function POST(req: Request) {
     .join("")}</table>`;
   const text = rows.map(([k, val]) => `${k}: ${val}`).join("\n");
   try {
-    await sendMail(await notifyAddresses(), `Trade show request: ${show} (${m.clinic || m.name})`,
-      emailLayout("New CPP trade show request", table, { href: absoluteUrl("/admin/trade-shows"), label: "Review requests" }), text);
+    await sendMail([cppEmail], `Trade show request: ${show} (${m.clinic || m.name})`,
+      emailLayout("New CPP trade show request", table, { href: absoluteUrl("/admin/trade-shows"), label: "Review requests" }), text, { replyTo: m.email });
   } catch (e) {
     console.error("[trade-shows] notify failed", e);
   }

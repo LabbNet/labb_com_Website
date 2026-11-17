@@ -2,7 +2,7 @@ import { sql } from "@/lib/db";
 import { currentMember } from "@/lib/auth";
 import { fmtDate } from "@/lib/admin";
 import { money, PRICE_CATEGORIES, productLink, WALK_IN_SHARE, type PriceItem } from "@/lib/cppPricing";
-import { cppSupportEmails, site } from "@/lib/site";
+import { cppEmail, site } from "@/lib/site";
 
 export const dynamic = "force-dynamic";
 
@@ -20,7 +20,7 @@ export default async function MemberPricing() {
           Service Level 1 and Service Level 3 pricing, with MSRP and the online sale price, for products and services sold through the Channel Partner Program. Pricing is confidential to CPP
           members. Please don&apos;t share it outside your organization.
         </p>
-        {last && <p className="fine-print">Last updated {fmtDate(last)}. Questions on pricing or larger opportunities: <a href={site.phoneHref}>{site.phone}</a> or <a href={`mailto:${cppSupportEmails[0]}`}>{cppSupportEmails[0]}</a> or <a href={`mailto:${cppSupportEmails[1]}`}>{cppSupportEmails[1]}</a>.</p>}
+        {last && <p className="fine-print">Last updated {fmtDate(last)}. Questions on pricing or larger opportunities: <a href={site.phoneHref}>{site.phone}</a> or <a href={`mailto:${cppEmail}`}>{cppEmail}</a>.</p>}
         <nav className="price-jump" aria-label="Pricing categories">
           {PRICE_CATEGORIES.map((c) => <a key={c.value} href={`#${c.value}`}>{c.label}</a>)}
         </nav>

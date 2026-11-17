@@ -4,7 +4,7 @@ import { currentMember } from "@/lib/auth";
 import { publishedKits } from "@/lib/kits";
 import { library } from "@/lib/resources";
 import { lmsUrl } from "@/lib/commerce";
-import { cppSupportEmails, site } from "@/lib/site";
+import { cppEmail, site } from "@/lib/site";
 import { IconGuidebook, IconMarketing, IconReference, IconDataSheet, IconCertification, IconSupport, IconDrugProfile } from "@/components/ResourceIcons";
 import { drugSheets } from "@/lib/drugSheets";
 
@@ -70,7 +70,7 @@ export default async function MembersHome({ searchParams }: { searchParams: Prom
             <p style={{ marginTop: 12 }}>
               <a href={site.phoneHref}>{site.phone}</a>
               <br />
-              <a href={`mailto:${cppSupportEmails[0]}`}>{cppSupportEmails[0]}</a> or <a href={`mailto:${cppSupportEmails[1]}`}>{cppSupportEmails[1]}</a>
+              <a href={`mailto:${cppEmail}`}>{cppEmail}</a>
             </p>
             <p style={{ marginTop: 10, fontSize: "0.85rem" }}>Give Labb advance notice of any account over 500 tests a month.</p>
           </div>

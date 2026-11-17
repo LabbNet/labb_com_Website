@@ -1,4 +1,5 @@
 import "server-only";
+import { cppEmail } from "@/lib/site";
 import { dbConfigured, sql } from "@/lib/db";
 import { emailLayout, sendMail } from "@/lib/mail";
 import { SEGMENT_PATH, segmentLabel, statusLabel, type Segment } from "@/lib/segments";
@@ -206,7 +207,7 @@ export async function deliverLead(lead: Lead, existingId?: string) {
   );
   const text = r.filter(([, v]) => v).map(([k, v]) => `${k}: ${v}`).join("\n") + (id ? `\n\nOpen the lead: ${absoluteUrl(`/admin/leads/${id}`)}` : "");
 
-  const to = lead.type === "cpp-application" && process.env.CPP_LEAD_TO_EMAIL ? process.env.CPP_LEAD_TO_EMAIL.split(",") : await notifyAddresses();
+  const to = lead.type === "cpp-application" ? (process.env.CPP_LEAD_TO_EMAIL ? process.env.CPP_LEAD_TO_EMAIL.split(",") : [cppEmail]) : await notifyAddresses();
   const emailed = await sendMail(to, subject, html, text, { replyTo: lead.email, from: process.env.LEAD_FROM_EMAIL || "Labb Website <info@mail.labb.com>" });
 
   if (id) {
@@ -253,7 +254,7 @@ export async function emailPartner(partner: { email: string; name: string }, lea
     { href: link, label: "Open my leads" },
   );
   const text = `Labb has passed you a lead.\n\n${r.filter(([, v]) => v).map(([k, v]) => `${k}: ${v}`).join("\n")}\n\nUpdate its status: ${link}`;
-  return sendMail(partner.email, `New lead from Labb: ${leadName(lead)}`, html, text, { replyTo: "info@labb.com" });
+  return sendMail(partner.email, `New lead from Labb: ${leadName(lead)}`, html, text, { replyTo: cppEmail });
 }
 
 export { statusLabel };

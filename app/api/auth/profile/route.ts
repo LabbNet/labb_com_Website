@@ -1,3 +1,4 @@
+import { cppEmail } from "@/lib/site";
 import { checkPassword, currentMember, EMAIL_RE, logEvent, sameOrigin, startSession, USERNAME_RE } from "@/lib/auth";
 import { sql } from "@/lib/db";
 import { emailLayout, sendMail } from "@/lib/mail";
@@ -73,9 +74,9 @@ export async function POST(req: Request) {
 
   if (emailChanged) {
     // Tell the old address, so a hijacked account doesn't go unnoticed.
-    const body = `<p>The email address on your Labb CPP member account was changed to <strong>${email}</strong>.</p><p>If you made this change, no action is needed. If you didn't, contact info@labb.com right away.</p>`;
+    const body = `<p>The email address on your Labb CPP member account was changed to <strong>${email}</strong>.</p><p>If you made this change, no action is needed. If you didn't, contact LCPPS@labb.com right away.</p>`;
     await sendMail(m.email, "Your Labb account email was changed", emailLayout("Your account email was changed", body),
-      `The email address on your Labb CPP member account was changed to ${email}. If you didn't make this change, contact info@labb.com right away.`);
+      `The email address on your Labb CPP member account was changed to ${email}. If you didn't make this change, contact LCPPS@labb.com right away.`, { replyTo: cppEmail });
     await startSession(updated); // cookie carries the email
   }
   return go(req, `${BACK}?saved=1`);
