@@ -103,8 +103,8 @@ export const library = [
   {
     group: "Clinic Owners Handbooks",
     items: [
-      { title: "Drug Testing Handbook (211 pages)", url: "https://drive.google.com/file/d/1_flCkSbxa0xx6ZV2Li55e03CWoeLyFnP/view" },
-      { title: "Background Checks Handbook (83 pages)", url: "https://drive.google.com/file/d/1Z_gi-pco6aP6iq6vc8FQRJB3z5bseUm6/view" },
+      { title: "Drug Testing Handbook", url: "https://drive.google.com/file/d/1_flCkSbxa0xx6ZV2Li55e03CWoeLyFnP/view" },
+      { title: "Background Checks Handbook", url: "https://drive.google.com/file/d/1Z_gi-pco6aP6iq6vc8FQRJB3z5bseUm6/view" },
     ],
   },
   {
