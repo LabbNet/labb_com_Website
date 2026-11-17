@@ -111,7 +111,7 @@ export const library = [
   {
     group: "Employer Guidebooks",
     items: [
-      { title: "Employer's Guidebook (all industries)", url: "/api/members/files/employer-guidebook" },
+      { title: "Employers Handbook (all industries)", url: "/api/members/files/employer-guidebook" },
       { title: "Construction", url: "/api/members/files/employer-construction" },
       { title: "Manufacturing", url: "/api/members/files/employer-manufacturing" },
       { title: "Logistics and warehousing", url: "/api/members/files/employer-logistics" },
