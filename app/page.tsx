@@ -47,7 +47,7 @@ export default function Home() {
             <p className="lede">Your testing goals, our technology and support. In your office, at a clinic, or across your whole business.</p>
             <div className="btn-row">
               <a href="#who" className="btn btn-primary btn-lg">Who are you?</a>
-              <a href="#outcomes" className="btn btn-outline btn-lg">See the outcomes</a>
+              <a href="#services" className="btn btn-outline btn-lg">See services</a>
             </div>
           </div>
           <GraphicSlot src="/graphics/home/hero-technology.webp" alt="Labb Urine eTest cups UA:06B, UA:13A, UA:23A and UA:18C with the Oral eTest OR:06A oral fluid test" label="Hero: Labb test kit family" w={1565} h={758} priority />
@@ -88,7 +88,7 @@ export default function Home() {
         </div>
       </section>
 
-      <section className="band" id="outcomes">
+      <section className="band" id="services">
         <div className="wrap">
           <div className="band-head">
             <h2>Intelligent solutions for complete employment screening options.</h2>
