@@ -298,9 +298,11 @@ export const kits: Kit[] = [
       { code: "THC", name: "Marijuana", cutoff: "50" },
     ],
     validity: "OX, SG, pH",
-    image: "/kits/ua-13a/main.webp",
+    image: "/kits/ua-13a/main-v2.webp",
     gallery: [
-      { src: "/kits/ua-13a/side-1.webp", alt: "UA:13A cup, side 1 with the drug list and barcode", w: 1000, h: 1000 },
+      { src: "/kits/ua-13a/side-1-v2.webp", alt: "UA:13A cup, side 1 with the drug list, QR code and barcode", w: 1000, h: 1000 },
+      { src: "/kits/ua-13a/window-open.webp", alt: "UA:13A cup with the WAIT label removed, showing the result window", w: 1000, h: 1000 },
+      { src: "/kits/ua-13a/window-results.webp", alt: "UA:13A cup with test and control lines in the result window", w: 1000, h: 1000 },
       { src: "/kits/ua-13a/side-2.webp", alt: "UA:13A cup, side 2", w: 1000, h: 1000 },
       { src: "/kits/ua-13a/side-3.webp", alt: "UA:13A cup, side 3", w: 1000, h: 1000 },
     ],
