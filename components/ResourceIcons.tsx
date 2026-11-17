@@ -55,3 +55,12 @@ export const IconSupport = () => (
     <rect x="21" y="40" width="7" height="5" rx="2" />
   </svg>
 );
+
+export const IconDrugProfile = () => (
+  <svg {...common}>
+    <rect x="6" y="18" width="30" height="13" rx="6.5" transform="rotate(-35 21 24.5)" />
+    <path d="M17.5 16.5l7.5 10.7" />
+    <circle cx="37" cy="35" r="6" />
+    <path d="M33 39l8-8" />
+  </svg>
+);

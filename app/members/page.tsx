@@ -5,7 +5,8 @@ import { publishedKits } from "@/lib/kits";
 import { library } from "@/lib/resources";
 import { lmsUrl } from "@/lib/commerce";
 import { site } from "@/lib/site";
-import { IconHandbook, IconMarketing, IconReference, IconDataSheet, IconCertification, IconSupport } from "@/components/ResourceIcons";
+import { IconHandbook, IconMarketing, IconReference, IconDataSheet, IconCertification, IconSupport, IconDrugProfile } from "@/components/ResourceIcons";
+import { drugSheets } from "@/lib/drugSheets";
 
 const GROUP_ICON: Record<string, () => React.JSX.Element> = {
   "Clinic Owners Handbooks": IconHandbook,
@@ -72,6 +73,23 @@ export default async function MembersHome({ searchParams }: { searchParams: Prom
             </p>
             <p style={{ marginTop: 10, fontSize: "0.85rem" }}>Give Labb advance notice of any account over 500 tests a month.</p>
           </div>
+        </div>
+
+        <div id="drug-profiles" className="card top drug-profiles" style={{ background: "#fff", border: "1px solid var(--border)", borderTop: "4px solid var(--orange)", marginTop: 32 }}>
+          <CardHead Icon={IconDrugProfile} title="Drug Profile Series" />
+          <p style={{ marginTop: 0 }}>Two-page profiles for each drug on Labb rapid tests, with the Labb Screening Priority Index. Share them with employer clients to explain what a panel covers.</p>
+          <ol className="dp-list">
+            {drugSheets.map((d) => (
+              <li key={d.slug}>
+                <span className="dp-no">{String(d.no).padStart(2, "0")}</span>
+                <span className="dp-name">
+                  <a href={`/api/members/drug-sheets/${d.slug}`} target="_blank" rel="noopener">{d.drug}</a>
+                  <span className="sub">{d.drugClass} · v{d.version}</span>
+                </span>
+                <a className="dp-dl" href={`/api/members/drug-sheets/${d.slug}?download=1`} aria-label={`Download the ${d.drug} profile`}>Download</a>
+              </li>
+            ))}
+          </ol>
         </div>
       </div>
     </section>
