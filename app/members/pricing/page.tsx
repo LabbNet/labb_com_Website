@@ -1,7 +1,7 @@
 import { sql } from "@/lib/db";
 import { currentMember } from "@/lib/auth";
 import { fmtDate } from "@/lib/admin";
-import { money, PRICE_CATEGORIES, type PriceItem } from "@/lib/cppPricing";
+import { money, PRICE_CATEGORIES, productLink, WALK_IN_SHARE, type PriceItem } from "@/lib/cppPricing";
 import { cppSupportEmails, site } from "@/lib/site";
 
 export const dynamic = "force-dynamic";
@@ -17,7 +17,7 @@ export default async function MemberPricing() {
       <div className="wrap">
         <h1 style={{ fontSize: "clamp(2rem, 4vw, 2.8rem)", marginTop: 12 }}>CPP member pricing</h1>
         <p className="lede">
-          Service Level 1 and Service Level 3 pricing, with MSRP, for products and services sold through the Channel Partner Program. Pricing is confidential to CPP
+          Service Level 1 and Service Level 3 pricing, with MSRP and the online sale price, for products and services sold through the Channel Partner Program. Pricing is confidential to CPP
           members. Please don&apos;t share it outside your organization.
         </p>
         {last && <p className="fine-print">Last updated {fmtDate(last)}. Questions on pricing or larger opportunities: <a href={site.phoneHref}>{site.phone}</a> or <a href={`mailto:${cppSupportEmails[0]}`}>{cppSupportEmails[0]}</a> or <a href={`mailto:${cppSupportEmails[1]}`}>{cppSupportEmails[1]}</a>.</p>}
@@ -32,14 +32,16 @@ export default async function MemberPricing() {
               {list.length ? (
                 <div className="price-cards">
                   {list.map((i) => {
-                    const none = [i.sl1_cents, i.sl1_msrp_cents, i.sl3_cents, i.sl3_msrp_cents].every((c) => c == null);
+                    const none = [i.sl1_cents, i.sl1_msrp_cents, i.sl3_cents, i.sl3_msrp_cents, i.online_cents].every((c) => c == null);
+                    const link = productLink(i);
                     return (
                       <div key={i.id} className="price-card">
                         <div className="pc-info">
-                          <h3>{i.name}{i.sku && <span className="tag plain" style={{ marginLeft: 8 }}>{i.sku}</span>}</h3>
+                          <h3>{link ? <a href={link}>{i.name}</a> : i.name}{i.sku && <span className="tag plain" style={{ marginLeft: 8 }}>{i.sku}</span>}</h3>
                           {i.unit && <span className="pc-unit">{i.unit}</span>}
                           {i.description && <p>{i.description}</p>}
                           {i.notes && <p className="pc-note">{i.notes}</p>}
+                          {link && <a className="pc-link" href={link}>Product details <span aria-hidden="true">&rarr;</span></a>}
                         </div>
                         {none ? (
                           <div className="pc-contact">Contact Labb for pricing</div>
@@ -56,6 +58,12 @@ export default async function MemberPricing() {
                                 <span className="pc-msrp">MSRP <strong>{money(msrp) || "n/a"}</strong></span>
                               </div>
                             ))}
+                            {i.online_cents != null && (
+                              <div className="pc-online">
+                                <span><span className="pc-cost-label">Online sale price</span><strong>{money(i.online_cents)}</strong>{i.category === "rapid-kits" ? " per kit" : ""}</span>
+                                <span className="pc-payout">You earn {money(Math.round(i.online_cents * WALK_IN_SHARE))} ({WALK_IN_SHARE * 100}%) when you run a walk-in test sold online in your territory</span>
+                              </div>
+                            )}
                           </div>
                         )}
                       </div>
