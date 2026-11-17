@@ -11,6 +11,7 @@ export const memberFiles = [
   { slug: "employer-logistics", file: "labbhr-logistics-screening-guidebook-q4-2026-v1.70.pdf", title: "Logistics" },
   { slug: "etest-cup-booklet", file: "etest-cup-booklet-2026-labbhr-v9.00.pdf", title: "eTest Cup Booklet" },
   { slug: "etest-swab-booklet", file: "etest-swab-booklet-2026-labbhr-v9.00.pdf", title: "eTest Swab Booklet" },
+  { slug: "kiosk-brochure", file: "labbhr-kiosk-brochure-v3.40.pdf", title: "LabbHR Proctor Testing Kiosk Brochure" },
   { slug: "oraflo-booklet", file: "oraflo-booklet-2026-labbhr-v2.00.pdf", title: "OraFlo Rapid Drug Testing Booklet" },
   { slug: "regional-drug-use", file: "labb-regional-drug-use-testing-panels-2026.pdf", title: "Regional Drug Use and Recommended Testing Panels (2026)" },
 ];
