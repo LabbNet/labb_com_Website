@@ -25,18 +25,14 @@ export async function POST(req: Request) {
   } else if (action === "pricing") {
     const dollars = (k: string) => Math.round(Number(field(fd, k, 12).replace(/[$,\s]/g, "")) * 100);
     const p = {
-      screenMinCents: dollars("screenMin"),
-      screenMaxCents: dollars("screenMax"),
-      includedDrugs: Math.round(Number(field(fd, "included", 4))),
-      perDrugCents: dollars("perDrug"),
       shippingCents: dollars("shipping"),
       shipping2DayCents: dollars("shipping2"),
       shippingGroundCents: dollars("shippingGround"),
       proctorNonObservedCents: dollars("proctorNon"),
       proctorObservedCents: dollars("proctorObs"),
     };
-    const bad = Object.values(p).some((v) => !Number.isFinite(v) || v < 0) || p.screenMaxCents < p.screenMinCents || p.includedDrugs < 1;
-    if (bad) await flash("Check the prices: every field needs a number, and the highest screen fee can't be below the lowest.", "error");
+    const bad = Object.values(p).some((v) => !Number.isFinite(v) || v < 0);
+    if (bad) await flash("Check the prices: every field needs a number of 0 or more.", "error");
     else {
       await saveQtPricing(p, admin.id);
       await flash("Quick Test pricing saved.");

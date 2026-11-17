@@ -4,7 +4,7 @@ import { QuickTestForm } from "@/components/QuickTestForm";
 import { GraphicSlot } from "@/components/visual/GraphicSlot";
 import { RevealTiles } from "@/components/visual/Reveal";
 import { quickTestCheckoutReady } from "@/lib/commerce";
-import { money } from "@/lib/quickTest";
+import { money, lowestKitCents } from "@/lib/quickTest";
 import { getQtPricing } from "@/lib/qtPricing";
 
 export const metadata: Metadata = {
@@ -17,7 +17,7 @@ export const metadata: Metadata = {
 export const dynamic = "force-dynamic"; // checkout availability depends on runtime settings
 
 const faqs = [
-  { q: "What does it cost?", a: "Three parts: a screen fee based on the drugs you choose, shipping (overnight, second day or ground), and proctoring (observed or non-observed). You see the full price before you pay." },
+  { q: "What does it cost?", a: "Three parts: the price of the test kit for the drugs you choose, shipping (overnight, second day or ground), and proctoring (observed or non-observed). You see the full price before you pay." },
   { q: "Is the price the same at home and at a clinic?", a: "Yes. The price depends on the drugs you choose and whether the test is observed, not where you test." },
   { q: "Can I choose which drugs to test for?", a: "Yes. Pick a standard or expanded panel, or build a custom panel drug by drug. The price updates as you add drugs." },
   { q: "What is the difference between observed and non-observed?", a: "At home, an observed test means a Labb proctor watches the collection by video. Non-observed tests are completed on your own, with the proctor guiding the steps." },
@@ -28,7 +28,7 @@ const faqs = [
 export default async function QuickTest() {
   const ready = quickTestCheckoutReady();
   const pricing = await getQtPricing();
-  const from = money(pricing.screenMinCents + pricing.shippingCents + pricing.proctorNonObservedCents);
+  const from = money(lowestKitCents(pricing) + Math.min(pricing.shippingCents, pricing.shipping2DayCents, pricing.shippingGroundCents) + pricing.proctorNonObservedCents);
   return (
     <>
       <section className="hero-v2">

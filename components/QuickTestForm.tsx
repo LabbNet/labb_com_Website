@@ -197,7 +197,7 @@ export function QuickTestForm({ checkout, pricing }: { checkout: boolean; pricin
           </fieldset>
           <div className="qt-total full" aria-live="polite">
             <dl>
-              <div><dt>Screen fee{q.drugs.length ? ` (${q.drugs.length} drugs)` : ""}</dt><dd>{money(q.fees.screen)}</dd></div>
+              <div><dt>{q.kit ? `Test kit (${q.kit.code}, ${q.drugs.length} drugs)` : "Test kit, from"}</dt><dd>{money(q.fees.screen)}</dd></div>
               <div><dt>{f.shipping} shipping</dt><dd>{money(q.fees.shipping)}</dd></div>
               <div><dt>Proctoring{f.observation ? `, ${f.observation.toLowerCase()}` : ""}</dt><dd>{f.observation ? money(q.fees.proctoring) : "Choose collection"}</dd></div>
             </dl>
@@ -254,7 +254,7 @@ export function QuickTestForm({ checkout, pricing }: { checkout: boolean; pricin
                 ["Name", `${f.firstName} ${f.lastName}`],
                 ["Email", f.email],
                 [home ? "Ship to" : "Clinic near", home ? `${f.address1}${f.address2 ? `, ${f.address2}` : ""}, ${f.city}, ${f.state} ${f.zip}` : `ZIP ${f.clinicZip}${f.clinicName ? ` (${f.clinicName})` : ""}`],
-                ["Screen fee", money(q.fees.screen)],
+                [q.kit ? `Test kit (${q.kit.code})` : "Test kit, from", money(q.fees.screen)],
                 [`${f.shipping} shipping`, money(q.fees.shipping)],
                 ["Proctoring", money(q.fees.proctoring)],
                 ["Total", price],

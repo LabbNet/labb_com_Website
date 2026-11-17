@@ -4,25 +4,22 @@ import { publishedKits, type Kit } from "@/lib/kits";
 
 // Quick Test pricing. Admins edit it in /admin/settings (stored in site_settings as
 // "quick_test_pricing"); these are the defaults until it is saved. Amounts are in cents.
-// Total = screen fee + shipping (overnight, second day or ground) + proctoring.
-// Screen fee: starts at screenMinCents for up to includedDrugs drugs, adds perDrugCents for each
-// drug after that, and never goes above screenMaxCents.
+// Total = kit price + shipping (overnight, second day or ground) + proctoring.
+// Kit price: the online sale price set for that kit in Admin > CPP pricing (kitCents, by kit slug).
+// A kit with no online sale price yet falls back to FALLBACK_KIT_CENTS.
 export type QtPricing = {
-  screenMinCents: number;
-  screenMaxCents: number;
-  includedDrugs: number;
-  perDrugCents: number;
+  kitCents: Record<string, number>;
   shippingCents: number; // overnight
   shipping2DayCents: number;
   shippingGroundCents: number;
   proctorNonObservedCents: number;
   proctorObservedCents: number;
 };
+
+export const FALLBACK_KIT_CENTS = 3900;
+
 export const QT_DEFAULT_PRICING: QtPricing = {
-  screenMinCents: 3900,
-  screenMaxCents: 8900,
-  includedDrugs: 6,
-  perDrugCents: 500,
+  kitCents: {},
   shippingCents: 3900,
   shipping2DayCents: 2500,
   shippingGroundCents: 1500,
@@ -74,9 +71,11 @@ export function kitForSelection(specimen: Specimen, codes: string[]): Kit | null
 // A drug can be added only if some kit still covers the selection with it.
 export const canAdd = (specimen: Specimen, codes: string[], code: string) => Boolean(kitForSelection(specimen, [...codes, code]));
 
-export function screenFeeCents(drugCount: number, pr: QtPricing) {
-  const extra = Math.max(0, drugCount - pr.includedDrugs);
-  return Math.min(pr.screenMaxCents, pr.screenMinCents + extra * pr.perDrugCents);
+export const kitPriceCents = (kit: Kit | null | undefined, pr: QtPricing) => (kit && pr.kitCents[kit.slug]) || FALLBACK_KIT_CENTS;
+// Lowest kit price for a specimen (or across all kits), used for "Help me choose" and "From" prices.
+export function lowestKitCents(pr: QtPricing, specimen?: Specimen | null) {
+  const list = publishedKits.filter((k) => !specimen || k.specimen === specimen).map((k) => kitPriceCents(k, pr));
+  return list.length ? Math.min(...list) : FALLBACK_KIT_CENTS;
 }
 export const isObserved = (observation?: string) => Boolean(observation?.startsWith("Observed"));
 
@@ -97,7 +96,7 @@ export function quote(testType: string | undefined, panel: string | undefined, c
       if (!kit) error = "Those drugs can't be combined in one test. Remove one and try again.";
     }
   }
-  const screen = drugs.length ? screenFeeCents(drugs.length, pr) : pr.screenMinCents;
+  const screen = kit ? kitPriceCents(kit, pr) : lowestKitCents(pr, specimen);
   const shipping = shippingCents(method, pr);
   const proctoring = observation ? (isObserved(observation) ? pr.proctorObservedCents : pr.proctorNonObservedCents) : 0;
   return { drugs, kit, error, fees: { screen, shipping, proctoring }, cents: screen + shipping + proctoring };

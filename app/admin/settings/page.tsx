@@ -4,6 +4,8 @@ import { readFlash, requireAdmin } from "@/lib/admin";
 import { notifyAddresses } from "@/lib/leads";
 import { mailProviders } from "@/lib/mail";
 import { getQtPricing } from "@/lib/qtPricing";
+import { FALLBACK_KIT_CENTS, lowestKitCents } from "@/lib/quickTest";
+import { publishedKits } from "@/lib/kits";
 
 export const metadata: Metadata = { title: "Settings", robots: { index: false, follow: false } };
 export const dynamic = "force-dynamic";
@@ -11,6 +13,7 @@ export const dynamic = "force-dynamic";
 export default async function AdminSettings() {
   await requireAdmin("/admin/settings");
   const [emails, flash, pr] = await Promise.all([notifyAddresses(), readFlash(), getQtPricing()]);
+  const missing = publishedKits.filter((k) => !pr.kitCents[k.slug]).map((k) => k.code);
   const d = (c: number) => (c / 100).toFixed(2);
   const providers = mailProviders();
 
@@ -41,12 +44,8 @@ export default async function AdminSettings() {
             <form action="/api/admin/settings" method="post">
               <input type="hidden" name="action" value="pricing" />
               <h3>Quick Test pricing</h3>
-              <p className="fine" style={{ margin: 0 }}>Total = screen fee + shipping (the customer picks overnight, second day or ground) + proctoring. Same price at home or at a clinic. Changes apply to new orders right away.</p>
+              <p className="fine" style={{ margin: 0 }}>Total = kit price + shipping (the customer picks overnight, second day or ground) + proctoring. The kit price is the online sale price set for that kit in <a href="/admin/pricing#rapid-kits">CPP pricing</a>. Same price at home or at a clinic. Changes apply to new orders right away.</p>
               <div className="price-grid">
-                <label>Screen fee, lowest ($)<input name="screenMin" inputMode="decimal" defaultValue={d(pr.screenMinCents)} required /></label>
-                <label>Screen fee, highest ($)<input name="screenMax" inputMode="decimal" defaultValue={d(pr.screenMaxCents)} required /></label>
-                <label>Drugs included at the lowest fee<input name="included" inputMode="numeric" defaultValue={pr.includedDrugs} required /></label>
-                <label>Each additional drug ($)<input name="perDrug" inputMode="decimal" defaultValue={d(pr.perDrugCents)} required /></label>
                 <label>Overnight shipping ($)<input name="shipping" inputMode="decimal" defaultValue={d(pr.shippingCents)} required /></label>
                 <label>Second day shipping ($)<input name="shipping2" inputMode="decimal" defaultValue={d(pr.shipping2DayCents)} required /></label>
                 <label>Ground shipping ($)<input name="shippingGround" inputMode="decimal" defaultValue={d(pr.shippingGroundCents)} required /></label>
@@ -54,8 +53,8 @@ export default async function AdminSettings() {
                 <label>Proctoring, observed ($)<input name="proctorObs" inputMode="decimal" defaultValue={d(pr.proctorObservedCents)} required /></label>
               </div>
               <p className="fine" style={{ margin: 0 }}>
-                Example: {pr.includedDrugs} drugs, non-observed = ${d(pr.screenMinCents)} + ${d(pr.shippingCents)} + ${d(pr.proctorNonObservedCents)} = ${d(pr.screenMinCents + pr.shippingCents + pr.proctorNonObservedCents)}.
-                Largest panel, observed = ${d(pr.screenMaxCents + pr.shippingCents + pr.proctorObservedCents)}.
+                Example: lowest priced kit, non-observed, ground = ${d(lowestKitCents(pr))} + ${d(pr.shippingGroundCents)} + ${d(pr.proctorNonObservedCents)} = ${d(lowestKitCents(pr) + pr.shippingGroundCents + pr.proctorNonObservedCents)}.
+                {missing.length > 0 && <> No online sale price yet for {missing.join(", ")}; those kits use ${d(FALLBACK_KIT_CENTS)} until one is set.</>}
               </p>
               <button className="btn btn-primary" type="submit">Save pricing</button>
             </form>
