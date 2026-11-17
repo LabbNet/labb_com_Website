@@ -2,11 +2,12 @@ import { readFile } from "node:fs/promises";
 import path from "node:path";
 import { currentMember } from "@/lib/auth";
 import { drugSheet } from "@/lib/drugSheets";
+import { go } from "@/lib/http";
 
 // Serves a Drug Profile sheet to signed-in CPP members only. The PDFs are not in /public.
 export async function GET(req: Request, { params }: { params: Promise<{ slug: string }> }) {
   const m = await currentMember();
-  if (!m) return Response.redirect(new URL("/login?next=/members", req.url), 303);
+  if (!m) return go(req, "/login?next=/members");
   const { slug } = await params;
   const s = drugSheet(slug);
   if (!s) return new Response("Not found", { status: 404 });
