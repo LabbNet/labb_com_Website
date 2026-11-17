@@ -28,10 +28,7 @@ export const nav = [
       { href: "/employers", label: "Overview" },
       { href: "/employers#in-house", label: "Test in-house" },
       { href: "/employers#clinic", label: "Use a clinic" },
-      { heading: "Your industry" },
-      { href: "/industries/construction", label: "Construction" },
-      { href: "/industries/manufacturing", label: "Manufacturing" },
-      { href: "/industries/logistics-warehousing", label: "Logistics and warehousing" },
+      { href: "/employers#contact", label: "Request a consultation" },
     ],
   },
   {
