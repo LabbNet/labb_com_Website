@@ -119,7 +119,7 @@ export const library = [
     group: "Reference",
     items: [
       { title: "Drug Guide: top 50+ requested drugs", url: "https://online.fliphtml5.com/jamrg/swet/" },
-      { title: "Regional Drug Use and Testing Panels 2026", url: "/api/members/files/regional-drug-use" },
+      { title: "Regional Drug Use and Recommended Testing Panels (2026)", url: "/api/members/files/regional-drug-use" },
     ],
   },
 ];
