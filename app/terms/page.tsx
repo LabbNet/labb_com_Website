@@ -20,7 +20,7 @@ export default function Page() {
           <p>These terms apply to your use of labb.com, operated by {site.legalName}. By using the site you agree to them.</p>
           <h2>Information only</h2>
           <p>
-            Content on this site, including handbooks, data sheets and articles, is general information. It is not legal or medical
+            Content on this site, including guidebooks, data sheets and articles, is general information. It is not legal or medical
             advice. Talk to your attorney about your testing policy. Product data sheets summarize the package insert, which is the
             official document for product performance.
           </p>
@@ -31,7 +31,7 @@ export default function Page() {
           </p>
           <h2>Gated content and partner materials</h2>
           <p>
-            Handbooks and partner library materials are for your organization&apos;s internal use. Don&apos;t share partner library
+            Guidebooks and partner library materials are for your organization&apos;s internal use. Don&apos;t share partner library
             materials or passwords outside your organization.
           </p>
           <h2>Intellectual property</h2>

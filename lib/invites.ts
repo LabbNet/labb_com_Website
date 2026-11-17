@@ -14,7 +14,7 @@ export async function sendInvite(m: { id: string; email: string; name: string; u
     emailLayout(
       "Your Labb member account is ready",
       `<p>Hi ${m.name.split(" ")[0]},</p>
-       <p>Welcome to the Labb Channel Partner Program. Your member account gives you the Clinic Owners Handbook, guidebooks, data sheets and member resources.</p>
+       <p>Welcome to the Labb Channel Partner Program. Your member account gives you the Clinic Owners Guidebook, industry guidebooks, data sheets and member resources.</p>
        <p>Your username is <strong>${m.username}</strong>. Use the button below to choose your password. The link works once and expires in 7 days.</p>`,
       { href: link, label: "Set up my account" },
     ),

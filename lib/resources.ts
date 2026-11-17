@@ -23,15 +23,15 @@ export type Resource = {
 
 export const resources: Resource[] = [
   {
-    slug: "construction-screening-handbook",
-    title: "LabbHR Construction Screening Handbook",
-    shortTitle: "Construction Screening Handbook",
+    slug: "construction-screening-guidebook",
+    title: "LabbHR Construction Screening Guidebook",
+    shortTitle: "Construction Screening Guidebook",
     metaDescription:
-      "Free handbook for construction companies: bring drug and background screening in-house. 9 chapters on law, policy, collection, background checks and moving testing in-house.",
-    eyebrow: "Free handbook for construction companies",
+      "Free guidebook for construction companies: bring drug and background screening in-house. 9 chapters on law, policy, collection, background checks and moving testing in-house.",
+    eyebrow: "Free guidebook for construction companies",
     h1: "Bring drug and background screening in-house, and do it right.",
     lede: "A practical training guide for owners, safety managers and HR teams who want faster results and fewer jobsite delays, without cutting corners on compliance.",
-    cover: "/img/construction-handbook.webp",
+    cover: "/img/construction-guidebook.webp",
     coverW: 913,
     coverH: 1000,
     facts: [
@@ -60,15 +60,15 @@ export const resources: Resource[] = [
     industry: "construction",
   },
   {
-    slug: "manufacturing-screening-handbook",
-    title: "LabbHR Manufacturing Screening Handbook",
-    shortTitle: "Manufacturing Screening Handbook",
+    slug: "manufacturing-screening-guidebook",
+    title: "LabbHR Manufacturing Screening Guidebook",
+    shortTitle: "Manufacturing Screening Guidebook",
     metaDescription:
-      "Free handbook for manufacturers: run drug and background screening in-house. 9 chapters, 79 pages, with a certification practice exam.",
-    eyebrow: "Free handbook for manufacturers",
+      "Free guidebook for manufacturers: run drug and background screening in-house. 9 chapters, 79 pages, with a certification practice exam.",
+    eyebrow: "Free guidebook for manufacturers",
     h1: "Bring drug and background screening in-house, and do it right.",
     lede: "A practical training guide for owners, HR teams, program administrators, collectors and supervisors who want faster results and less downtime, without cutting corners on compliance.",
-    cover: "/img/manufacturing-handbook.webp",
+    cover: "/img/manufacturing-guidebook.webp",
     coverW: 935,
     coverH: 1210,
     facts: [
@@ -97,15 +97,15 @@ export const resources: Resource[] = [
     industry: "manufacturing",
   },
   {
-    slug: "logistics-screening-handbook",
-    title: "LabbHR Logistics Screening Handbook",
-    shortTitle: "Logistics Screening Handbook",
+    slug: "logistics-screening-guidebook",
+    title: "LabbHR Logistics Screening Guidebook",
+    shortTitle: "Logistics Screening Guidebook",
     metaDescription:
-      "Free handbook for warehouses, distribution centers and delivery fleets: run drug and background screening in-house. 9 chapters, 79 pages, with chapter reviews.",
-    eyebrow: "Free handbook for logistics and warehousing",
+      "Free guidebook for warehouses, distribution centers and delivery fleets: run drug and background screening in-house. 9 chapters, 79 pages, with chapter reviews.",
+    eyebrow: "Free guidebook for logistics and warehousing",
     h1: "Keep the dock moving with in-house screening done right.",
     lede: "A practical training guide for warehouse, distribution and delivery operations that want faster hiring, fast post-incident testing and a program that holds up.",
-    cover: "/img/logistics-handbook.webp",
+    cover: "/img/logistics-guidebook.webp",
     coverW: 900,
     coverH: 1165,
     facts: ["9 chapters, 79 pages", "Drug testing and background checks together", "Chapter reviews to check understanding", "A four-phase plan to move testing in-house"],
@@ -130,15 +130,15 @@ export const resources: Resource[] = [
     formIndustry: "Logistics and warehousing",
   },
   {
-    slug: "employers-handbook",
-    title: "LabbHR Employers Handbook",
-    shortTitle: "Employers Handbook",
+    slug: "employers-guidebook",
+    title: "LabbHR Employers Guidebook",
+    shortTitle: "Employers Guidebook",
     metaDescription:
       "Free employer's guidebook to workplace drug and alcohol testing: the law, the drugs, specimens, collection, results, policy and running the program. 16 chapters, 94 pages.",
     eyebrow: "Free guidebook for employers in any industry",
     h1: "Everything an employer needs to run workplace drug and alcohol testing.",
     lede: "A plain-language guide for HR managers, owners and program administrators who are starting a testing program or tightening up the one they have.",
-    cover: "/img/employers-handbook.webp",
+    cover: "/img/employers-guidebook.webp",
     coverW: 900,
     coverH: 1165,
     facts: ["16 chapters, 94 pages", "Written for any industry", "Setup checklist and timeline", "Real-world case scenarios"],
@@ -168,15 +168,15 @@ export const resources: Resource[] = [
     file: "employer-guidebook",
   },
   {
-    slug: "healthcare-screening-handbook",
-    title: "LabbHR Employer Handbook: Healthcare Edition",
+    slug: "healthcare-screening-guidebook",
+    title: "LabbHR Employer Guidebook: Healthcare Edition",
     shortTitle: "Healthcare Edition",
     metaDescription:
       "Free drug and alcohol testing guidebook for healthcare employers, with chapters on drug diversion, licensed professionals and medical staff. 19 chapters, 108 pages.",
     eyebrow: "Free guidebook for healthcare employers",
     h1: "Workplace drug testing built for healthcare.",
     lede: "For hospitals, clinics, long-term care and home health employers who need a testing program that addresses drug diversion and licensed staff.",
-    cover: "/img/healthcare-handbook.webp",
+    cover: "/img/healthcare-guidebook.webp",
     coverW: 900,
     coverH: 1165,
     facts: ["19 chapters, 108 pages", "Drug diversion and licensed professionals", "Setup checklist and timeline", "Real-world case scenarios"],
@@ -199,15 +199,15 @@ export const resources: Resource[] = [
     formIndustry: "Healthcare",
   },
   {
-    slug: "hospitality-screening-handbook",
-    title: "LabbHR Employer Handbook: Hospitality Edition",
+    slug: "hospitality-screening-guidebook",
+    title: "LabbHR Employer Guidebook: Hospitality Edition",
     shortTitle: "Hospitality Edition",
     metaDescription:
       "Free drug and alcohol testing guidebook for hotels, restaurants and event venues, with chapters on alcohol on the job, high-turnover hiring and special roles. 19 chapters, 108 pages.",
     eyebrow: "Free guidebook for hospitality employers",
     h1: "Workplace drug and alcohol testing built for hospitality.",
     lede: "For hotels, restaurants, resorts and event venues that hire fast, serve alcohol and need a program that fits a hospitality workforce.",
-    cover: "/img/hospitality-handbook.webp",
+    cover: "/img/hospitality-guidebook.webp",
     coverW: 900,
     coverH: 1165,
     facts: ["19 chapters, 108 pages", "Alcohol on the job: service, tasting and events", "Drivers, security and special roles", "Setup checklist and case scenarios"],
@@ -229,15 +229,15 @@ export const resources: Resource[] = [
     file: "employer-hospitality",
   },
   {
-    slug: "clinic-owners-handbook",
-    title: "LabbHR Clinic Owners Handbook",
-    shortTitle: "Clinic Owners Handbook",
+    slug: "clinic-owners-guidebook",
+    title: "LabbHR Clinic Owners Guidebook",
+    shortTitle: "Clinic Owners Guidebook",
     metaDescription:
-      "Free drug and alcohol testing handbook for clinic owners, operators and collectors: rapid test technology, collections, lab testing, MRO, alcohol, results and quality control. 11 chapters, 217 pages.",
-    eyebrow: "Free handbook for clinics and collection sites",
+      "Free drug and alcohol testing guidebook for clinic owners, operators and collectors: rapid test technology, collections, lab testing, MRO, alcohol, results and quality control. 11 chapters, 217 pages.",
+    eyebrow: "Free guidebook for clinics and collection sites",
     h1: "The complete drug and alcohol testing manual for clinic owners.",
     lede: "For clinic owners, operators and collectors who want to run rapid testing and collections at a professional standard, and grow employer accounts.",
-    cover: "/img/clinic-owners-handbook.webp",
+    cover: "/img/clinic-owners-guidebook.webp",
     coverW: 1400,
     coverH: 1263,
     facts: ["11 chapters, 217 pages", "Rapid tests, labs, MRO and alcohol", "Chapter reviews to train your staff", "Quality control and compliance"],
@@ -259,7 +259,7 @@ export const resources: Resource[] = [
       { title: "Operators and managers", body: "Standardize procedures across staff and sites." },
       { title: "Collectors", body: "Train on collections, reading and results." },
     ],
-    file: "clinic-owners-handbook",
+    file: "clinic-owners-guidebook",
   },
   {
     slug: "background-screening-guidebook",
@@ -329,9 +329,9 @@ export const getResource = (slug: string) => resources.find((r) => r.slug === sl
 // Partner library: member-gated (CPP members and clients). Not indexed.
 export const library = [
   {
-    group: "Clinic Owners Handbooks",
+    group: "Clinic Owners Guidebooks",
     items: [
-      { title: "Clinic Owners Handbook (Drug Testing)", url: "/api/members/files/clinic-owners-handbook" },
+      { title: "Clinic Owners Guidebook (Drug Testing)", url: "/api/members/files/clinic-owners-guidebook" },
       { title: "Background Screening Guidebook", url: "/api/members/files/background-screening" },
       { title: "Drug Testing Cost Guidebook", url: "/api/members/files/cost-guidebook" },
     ],
@@ -339,7 +339,7 @@ export const library = [
   {
     group: "Employer Guidebooks",
     items: [
-      { title: "Employers Handbook (all industries)", url: "/api/members/files/employer-guidebook" },
+      { title: "Employers Guidebook (all industries)", url: "/api/members/files/employer-guidebook" },
       { title: "Construction", url: "/api/members/files/employer-construction" },
       { title: "Manufacturing", url: "/api/members/files/employer-manufacturing" },
       { title: "Logistics and warehousing", url: "/api/members/files/employer-logistics" },

@@ -9,7 +9,7 @@ export type Industry = {
   facts: string[];
   reasons: { title: string; body: string }[];
   kitSlugs: string[];
-  handbook?: string; // resource slug
+  guidebook?: string; // resource slug
   faqs: { q: string; a: string }[];
 };
 
@@ -19,7 +19,7 @@ export const industries: Industry[] = [
     name: "Construction",
     metaTitle: "Construction Drug Testing On the Jobsite",
     metaDescription:
-      "Rapid oral fluid and urine drug testing for construction companies. Test on the jobsite, get results in minutes and keep crews working. Free construction screening handbook.",
+      "Rapid oral fluid and urine drug testing for construction companies. Test on the jobsite, get results in minutes and keep crews working. Free construction screening guidebook.",
     eyebrow: "Drug testing for construction",
     h1: "Test on the jobsite. Keep crews working.",
     lede:
@@ -49,7 +49,7 @@ export const industries: Industry[] = [
       },
     ],
     kitSlugs: ["orf-31c-oraflo", "or-14a-etest-swab", "ua-13a-svt"],
-    handbook: "construction-screening-handbook",
+    guidebook: "construction-screening-guidebook",
     faqs: [
       {
         q: "Can construction companies run their own drug tests?",
@@ -70,7 +70,7 @@ export const industries: Industry[] = [
     name: "Manufacturing",
     metaTitle: "Drug Testing for Manufacturers",
     metaDescription:
-      "In-house rapid drug testing for manufacturing plants. Cut hiring delays and downtime with oral fluid and urine screens and an objective digital read. Free manufacturing screening handbook.",
+      "In-house rapid drug testing for manufacturing plants. Cut hiring delays and downtime with oral fluid and urine screens and an objective digital read. Free manufacturing screening guidebook.",
     eyebrow: "Drug testing for manufacturing",
     h1: "Screen at the plant. Keep the line running.",
     lede:
@@ -100,7 +100,7 @@ export const industries: Industry[] = [
       },
     ],
     kitSlugs: ["ua-13a-svt", "ua-16c-svt", "orf-31c-oraflo"],
-    handbook: "manufacturing-screening-handbook",
+    guidebook: "manufacturing-screening-guidebook",
     faqs: [
       {
         q: "What drug panel should a manufacturer use?",
@@ -151,7 +151,7 @@ export const industries: Industry[] = [
       },
     ],
     kitSlugs: ["orf-31c-oraflo", "or-14a-etest-swab", "ua-06b-svt", "ua-13a-svt"],
-    handbook: "logistics-screening-handbook",
+    guidebook: "logistics-screening-guidebook",
     faqs: [
       {
         q: "Can we test drivers with Labb rapid screens?",

@@ -23,7 +23,7 @@ export default async function IndustryPage({ params }: { params: Promise<{ slug:
   const ind = getIndustry((await params).slug);
   if (!ind) notFound();
   const kits = ind.kitSlugs.map((s) => publishedKits.find((k) => k.slug === s)).filter((k) => !!k);
-  const handbook = ind.handbook ? getResource(ind.handbook) : undefined;
+  const guidebook = ind.guidebook ? getResource(ind.guidebook) : undefined;
 
   return (
     <>
@@ -71,21 +71,21 @@ export default async function IndustryPage({ params }: { params: Promise<{ slug:
         </div>
       </section>
 
-      {handbook && (
+      {guidebook && (
         <section className="section">
           <div className="wrap split">
             <div>
-              <span className="eyebrow">Free handbook</span>
-              <h2>{handbook.shortTitle}</h2>
-              <p className="intro">{handbook.lede}</p>
-              <Link href={`/resources/${handbook.slug}`} className="btn btn-primary">Get the free handbook</Link>
+              <span className="eyebrow">Free guidebook</span>
+              <h2>{guidebook.shortTitle}</h2>
+              <p className="intro">{guidebook.lede}</p>
+              <Link href={`/resources/${guidebook.slug}`} className="btn btn-primary">Get the free guidebook</Link>
             </div>
-            <Image src={handbook.cover} alt={`${handbook.title} cover`} width={handbook.coverW} height={handbook.coverH} sizes="380px" style={{ maxWidth: 360, margin: "0 auto" }} />
+            <Image src={guidebook.cover} alt={`${guidebook.title} cover`} width={guidebook.coverW} height={guidebook.coverH} sizes="380px" style={{ maxWidth: 360, margin: "0 auto" }} />
           </div>
         </section>
       )}
 
-      <section className={`section${handbook ? " soft" : ""}`}>
+      <section className={`section${guidebook ? " soft" : ""}`}>
         <div className="wrap" style={{ maxWidth: 860 }}>
           <span className="eyebrow">Questions</span>
           <h2>{ind.name} drug testing FAQ</h2>

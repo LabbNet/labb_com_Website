@@ -34,8 +34,8 @@ export const redirects: R[] = [
   r("/pages/contact-labb-1", "/contact"),
   r("/pages/thankyou", "/thank-you"),
   r("/pages/downloads", "/training"),
-  r("/pages/construction-handbook", "/resources/construction-screening-handbook"),
-  r("/pages/manufacturing", "/resources/manufacturing-screening-handbook"),
+  r("/pages/construction-handbook", "/resources/construction-screening-guidebook"),
+  r("/pages/manufacturing", "/resources/manufacturing-screening-guidebook"),
   r("/pages/logistics-warehousing", "/industries/logistics-warehousing"),
   r("/pages/library", "/library"),
   r("/pages/affiliate-assets", "/library"),
@@ -98,6 +98,15 @@ export const redirects: R[] = [
   r("/policies/refund-policy", "/terms"),
   r("/policies/shipping-policy", "/terms"),
   r("/policies/contact-information", "/contact"),
+
+  // Handbooks were renamed guidebooks (Nov 17, 2026)
+  r("/resources/construction-screening-handbook", "/resources/construction-screening-guidebook"),
+  r("/resources/manufacturing-screening-handbook", "/resources/manufacturing-screening-guidebook"),
+  r("/resources/logistics-screening-handbook", "/resources/logistics-screening-guidebook"),
+  r("/resources/employers-handbook", "/resources/employers-guidebook"),
+  r("/resources/healthcare-screening-handbook", "/resources/healthcare-screening-guidebook"),
+  r("/resources/hospitality-screening-handbook", "/resources/hospitality-screening-guidebook"),
+  r("/resources/clinic-owners-handbook", "/resources/clinic-owners-guidebook"),
 
   // Shopify system routes
   r("/cart", "/get-a-quote"),

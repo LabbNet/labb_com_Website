@@ -25,7 +25,7 @@ export default function Page() {
           <ul>
             <li><strong>Information you give us</strong> through our forms: name, work email, phone, company, state, testing volume and your message.</li>
             <li><strong>Usage information</strong> such as pages visited, referring site, campaign tags and device type, collected through cookies and analytics tools.</li>
-            <li><strong>Access cookies</strong> that remember when you have unlocked a handbook or signed in to the partner library.</li>
+            <li><strong>Access cookies</strong> that remember when you have unlocked a guidebook or signed in to the partner library.</li>
           </ul>
           <h2>How we use it</h2>
           <ul>

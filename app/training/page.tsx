@@ -7,32 +7,32 @@ import { publishedKits } from "@/lib/kits";
 import { resources } from "@/lib/resources";
 
 // Clinic-facing books have free landing pages but are presented in the clinic library, not the employer list.
-const CLINIC_BOOKS = ["clinic-owners-handbook", "background-screening-guidebook"];
+const CLINIC_BOOKS = ["clinic-owners-guidebook", "background-screening-guidebook"];
 import { articles } from "@/lib/articles";
 
 export const metadata: Metadata = {
-  title: "Drug Testing Training, Handbooks and Certification",
+  title: "Drug Testing Training, Guidebooks and Certification",
   description:
-    "Labb training for employers, clinics and collectors: free industry screening handbooks, the Clinic Owners Handbook, background screening guidebook, online certifications and kit data sheets.",
+    "Labb training for employers, clinics and collectors: free industry screening guidebooks, the Clinic Owners Guidebook, background screening guidebook, online certifications and kit data sheets.",
   alternates: { canonical: "/training" },
 };
 
 const memberBooks = [
   {
-    t: "Clinic Owners Handbook",
+    t: "Clinic Owners Guidebook",
     b: "The complete drug testing manual for clinic owners and operators: rapid test technology, lab testing, the MRO process, collections, package inserts, quality control, privacy, alcohol testing and drug classes. Updated every quarter.",
   },
   {
     t: "Background Screening Guidebook",
-    b: "How background checks work and what the law requires before you offer them, focused on workplace screening. The companion to the Clinic Owners Handbook.",
+    b: "How background checks work and what the law requires before you offer them, focused on workplace screening. The companion to the Clinic Owners Guidebook.",
   },
 ];
 
 const faqs = [
-  { q: "What format is Labb training?", a: "Labb training is written handbooks and guidebooks (PDF), each paired with an online certification exam. There are no videos to sit through, so your team can learn at its own pace." },
+  { q: "What format is Labb training?", a: "Labb training is written guidebooks (PDF), each paired with an online certification exam. There are no videos to sit through, so your team can learn at its own pace." },
   { q: "How does certification work?", a: "Labb has separate paid certifications: product, specimen collection, software and position. Each is an online exam built on Labb training documents, takes a 90% score to pass, and is valid for one year. Collectors take product, specimen and software certifications; owners and managers take the position certification for their role or industry." },
-  { q: "Who gets the Clinic Owners Handbook?", a: "The Clinic Owners Handbook and Background Screening Guidebook are available to Labb Channel Partner Program members. The Clinic Owner and Background Screening certifications are paid, like every Labb certification." },
-  { q: "Is this DOT training?", a: "No. Labb handbooks cover company (non-DOT) testing. DOT certification is being added as a benefit for Channel Partner Program members." },
+  { q: "Who gets the Clinic Owners Guidebook?", a: "The Clinic Owners Guidebook and Background Screening Guidebook are available to Labb Channel Partner Program members. The Clinic Owner and Background Screening certifications are paid, like every Labb certification." },
+  { q: "Is this DOT training?", a: "No. Labb guidebooks cover company (non-DOT) testing. DOT certification is being added as a benefit for Channel Partner Program members." },
 ];
 
 export default function TrainingPage() {
@@ -41,17 +41,17 @@ export default function TrainingPage() {
       <PageHero
         eyebrow="Training and education"
         title={<>Run screening in-house, and know you&apos;re doing it right.</>}
-        lede="Practical handbooks written for the people who run testing programs, each with an online certification so your team can prove what it knows."
-        primary={{ href: "#handbooks", label: "Get a free handbook" }}
+        lede="Practical guidebooks written for the people who run testing programs, each with an online certification so your team can prove what it knows."
+        primary={{ href: "#guidebooks", label: "Get a free guidebook" }}
         secondary={{ href: "/certifications", label: "Certifications" }}
-        image={{ src: "/img/clinic-owners-handbook.webp", alt: "Labb Clinic Owners Handbook", w: 1400, h: 1263 }}
+        image={{ src: "/img/clinic-owners-guidebook.webp", alt: "Labb Clinic Owners Guidebook", w: 1400, h: 1263 }}
       />
       <Breadcrumbs items={[{ name: "Training", href: "/training" }]} />
 
-      <section className="section" id="handbooks">
+      <section className="section" id="guidebooks">
         <div className="wrap">
           <span className="eyebrow">For employers · Free</span>
-          <h2>Industry screening handbooks</h2>
+          <h2>Industry screening guidebooks</h2>
           <p className="intro">For owners, HR teams, safety managers and supervisors who want to bring drug and background screening in-house.</p>
           <div className="grid g2">
             {resources.filter((r) => !CLINIC_BOOKS.includes(r.slug)).map((r) => (
@@ -60,7 +60,7 @@ export default function TrainingPage() {
                 <div>
                   <h3>{r.shortTitle}</h3>
                   <p>{r.facts.join(". ")}.</p>
-                  <span className="more">Get the free handbook</span>
+                  <span className="more">Get the free guidebook</span>
                 </div>
               </Link>
             ))}
@@ -105,7 +105,7 @@ export default function TrainingPage() {
             </div>
             <Link href="/certifications" className="btn btn-primary">See Certifications</Link>
           </div>
-          <Image src="/img/manufacturing-handbook.webp" alt="LabbHR Manufacturing Screening Handbook cover" width={935} height={1210} sizes="(max-width: 900px) 80vw, 380px" style={{ maxWidth: 360, margin: "0 auto" }} />
+          <Image src="/img/manufacturing-guidebook.webp" alt="LabbHR Manufacturing Screening Guidebook cover" width={935} height={1210} sizes="(max-width: 900px) 80vw, 380px" style={{ maxWidth: 360, margin: "0 auto" }} />
         </div>
       </section>
 

@@ -39,8 +39,8 @@ export const benefits = [
   },
   {
     tag: "Training",
-    t: "Handbooks and certifications",
-    b: <>Member access to the Clinic Owners Handbooks, industry guidebooks and Labb's paid online certification programs, with DOT certification being added.</>,
+    t: "Guidebooks and certifications",
+    b: <>Member access to the Clinic Owners Guidebook, industry guidebooks and Labb's paid online certification programs, with DOT certification being added.</>,
   },
   {
     tag: "Testing",
@@ -80,7 +80,7 @@ export const faqs = [
   },
   {
     q: "Can Labb help with compliance questions?",
-    a: "Labb provides general compliance information through its handbooks and guidebooks, and helps with pricing. Labb doesn't give legal advice or account-specific compliance guidance. Members use their own attorneys or home office for those.",
+    a: "Labb provides general compliance information through its guidebooks, and helps with pricing. Labb doesn't give legal advice or account-specific compliance guidance. Members use their own attorneys or home office for those.",
   },
   {
     q: "What if I land a large account?",

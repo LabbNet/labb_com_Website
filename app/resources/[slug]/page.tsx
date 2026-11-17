@@ -40,7 +40,7 @@ export default async function ResourcePage({ params }: { params: Promise<{ slug:
             </div>
           </div>
           <div className="hero-card" id="get">
-            <LeadForm variant="handbook" resource={r.slug} industry={r.formIndustry ?? (r.industry ? r.industry[0].toUpperCase() + r.industry.slice(1) : undefined)} title="Get the free handbook" subtitle="Fill out the form and your download link appears right away." submitLabel="Download Handbook" />
+            <LeadForm variant="handbook" resource={r.slug} industry={r.formIndustry ?? (r.industry ? r.industry[0].toUpperCase() + r.industry.slice(1) : undefined)} title="Get the free guidebook" subtitle="Fill out the form and your download link appears right away." submitLabel="Download Guidebook" />
           </div>
         </div>
       </section>

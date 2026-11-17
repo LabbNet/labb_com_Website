@@ -4,7 +4,7 @@ const common = {
   strokeWidth: 2.6, strokeLinecap: "round" as const, strokeLinejoin: "round" as const, "aria-hidden": true,
 };
 
-export const IconHandbook = () => (
+export const IconGuidebook = () => (
   <svg {...common}>
     <path d="M24 12c-4-3-10-4-17-3v29c7-1 13 0 17 3 4-3 10-4 17-3V9c-7-1-13 0-17 3z" />
     <path d="M24 12v29" />

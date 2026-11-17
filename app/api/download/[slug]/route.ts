@@ -5,8 +5,8 @@ import { memberFile } from "@/lib/memberFiles";
 import { COOKIE, verify } from "@/lib/session";
 import { go } from "@/lib/http";
 
-// Free handbook download. Unlocked by the signed cookie set when the visitor submits the lead form
-// on the handbook's landing page (or by being a signed-in CPP member).
+// Free guidebook download. Unlocked by the signed cookie set when the visitor submits the lead form
+// on the guidebook's landing page (or by being a signed-in CPP member).
 export async function GET(req: Request, { params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
   const r = getResource(slug);

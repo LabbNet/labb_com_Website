@@ -5,12 +5,12 @@ import { publishedKits } from "@/lib/kits";
 import { library } from "@/lib/resources";
 import { lmsUrl } from "@/lib/commerce";
 import { cppSupportEmails, site } from "@/lib/site";
-import { IconHandbook, IconMarketing, IconReference, IconDataSheet, IconCertification, IconSupport, IconDrugProfile } from "@/components/ResourceIcons";
+import { IconGuidebook, IconMarketing, IconReference, IconDataSheet, IconCertification, IconSupport, IconDrugProfile } from "@/components/ResourceIcons";
 import { drugSheets } from "@/lib/drugSheets";
 
 const GROUP_ICON: Record<string, () => React.JSX.Element> = {
-  "Clinic Owners Handbooks": IconHandbook,
-  "Employer Guidebooks": IconHandbook,
+  "Clinic Owners Guidebooks": IconGuidebook,
+  "Employer Guidebooks": IconGuidebook,
   "Marketing sheets": IconMarketing,
   Reference: IconReference,
 };
@@ -34,7 +34,7 @@ export default async function MembersHome({ searchParams }: { searchParams: Prom
         {welcome && <Alert kind="ok">Your account is set up. Welcome to the Labb Channel Partner Program.</Alert>}
         {reset && <Alert kind="ok">Your password has been changed.</Alert>}
         <h1 style={{ fontSize: "clamp(2rem, 4vw, 2.8rem)", marginTop: 12 }}>Welcome, {m.name.split(" ")[0]}.</h1>
-        <p className="lede">The current version of every handbook, guidebook, data sheet and drug profile for Labb partners. Please don&apos;t share these files or your login outside your organization.</p>
+        <p className="lede">The current version of every guidebook, data sheet and drug profile for Labb partners. Please don&apos;t share these files or your login outside your organization.</p>
 
         <div className="grid g3" style={{ marginTop: 32 }}>
           {library.map((g) => (

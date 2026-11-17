@@ -74,7 +74,7 @@ export default function Employers() {
         title: "Built for the industries that hire fast",
         body: (
           <div id="industries">
-            <p style={{ marginBottom: 12 }}>Free screening handbooks and industry pages for:</p>
+            <p style={{ marginBottom: 12 }}>Free screening guidebooks and industry pages for:</p>
             <ul className="checks">
               {industries.map((i) => <li key={i.slug}><Link href={`/industries/${i.slug}`}>{i.name}</Link></li>)}
             </ul>

@@ -37,7 +37,7 @@ export const certTypes: Record<CertType, { title: string; label: string; summary
   position: {
     title: "Position and industry certifications",
     label: "Position",
-    summary: "Drug testing knowledge for a role or industry, not tied to one product or software. Built on the matching Labb handbook.",
+    summary: "Drug testing knowledge for a role or industry, not tied to one product or software. Built on the matching Labb guidebook.",
   },
 };
 

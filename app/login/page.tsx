@@ -20,7 +20,7 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
   if (dbConfigured && (await currentMember())) redirect(next.startsWith("/") && !next.startsWith("//") ? next : "/members");
   return (
     <AuthCard title="Member sign in">
-      <p className="form-sub">Sign in to your CPP member account for handbooks, guidebooks, data sheets and member resources.</p>
+      <p className="form-sub">Sign in to your CPP member account for guidebooks, data sheets and member resources.</p>
       {signed_out && <Alert kind="ok">You&apos;re signed out.</Alert>}
       {error && <Alert>{errors[error] || errors["1"]}</Alert>}
       <form action="/api/auth/login" method="post">

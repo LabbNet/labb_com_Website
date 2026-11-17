@@ -51,7 +51,7 @@ export function LeadForm({ variant, title, subtitle, submitLabel, resource, indu
     setUtm(u);
   }, []);
 
-  const isHandbook = variant === "handbook";
+  const isGuidebook = variant === "handbook";
   const isWaitlist = variant === "certification-waitlist";
   const isClinic = variant === "clinic";
   const consult = CONSULT.includes(variant) && !compact;
@@ -96,7 +96,7 @@ export function LeadForm({ variant, title, subtitle, submitLabel, resource, indu
       if (!res.ok) throw new Error(data.error);
       // Analytics hook: fires only after a successful submission.
       (window as unknown as { dataLayer?: unknown[] }).dataLayer?.push({ event: "generate_lead", lead_type: variant, resource });
-      if (isHandbook && data.download) {
+      if (isGuidebook && data.download) {
         setDownload(data.download);
         setState("done");
       } else if (isWaitlist) {
@@ -114,11 +114,11 @@ export function LeadForm({ variant, title, subtitle, submitLabel, resource, indu
     return (
       <div className="done" role="status">
         <div className="ok" aria-hidden="true">✓</div>
-        {isHandbook ? (
+        {isGuidebook ? (
           <>
-            <h2 className="form-title">Your handbook is ready</h2>
+            <h2 className="form-title">Your guidebook is ready</h2>
             <p className="form-sub">Thanks for your interest. A Labb specialist may reach out to help with your program.</p>
-            <a className="btn btn-primary btn-block" href={download} target="_blank" rel="noopener">Open the handbook (PDF)</a>
+            <a className="btn btn-primary btn-block" href={download} target="_blank" rel="noopener">Open the guidebook (PDF)</a>
           </>
         ) : (
           <>
