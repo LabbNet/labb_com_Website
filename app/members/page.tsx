@@ -77,7 +77,7 @@ export default async function MembersHome({ searchParams }: { searchParams: Prom
 
         <div id="drug-profiles" className="card top drug-profiles" style={{ background: "#fff", border: "1px solid var(--border)", borderTop: "4px solid var(--orange)", marginTop: 32 }}>
           <CardHead Icon={IconDrugProfile} title="Drug Profile Series" />
-          <p style={{ marginTop: 0 }}>Two-page profiles for each drug on Labb rapid tests, with the Labb Screening Priority Index. Share them with employer clients to explain what a panel covers.</p>
+          <p style={{ marginTop: 0 }}>Two-page profiles for each drug and alcohol test on Labb rapid tests, with the Labb Screening Priority Index. Share them with employer clients to explain what a panel covers.</p>
           <ol className="dp-list">
             {drugSheets.map((d) => (
               <li key={d.slug}>
