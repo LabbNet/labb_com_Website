@@ -1,91 +1,92 @@
 import Link from "next/link";
 import type { Metadata } from "next";
 import { Breadcrumbs, CtaBand, Faq } from "@/components/ui";
-import { LeadForm } from "@/components/LeadForm";
-import { PageHero } from "@/components/PageHero";
-import { certs, certTypes, type CertType } from "@/lib/certifications";
+import { certs, certTypes, type Cert, type CertType } from "@/lib/certifications";
 
 export const metadata: Metadata = {
-  title: "Labb Certifications: Product, Specimen, Software and Position",
+  title: "Labb Certifications: Online Drug Testing Certification Courses",
   description:
-    "Labb offers separate paid online certifications: product certifications for each test kit series, specimen collection certifications, software certifications for Labb Station and LabbHR, and position certifications such as Clinic Owner.",
+    "Paid online certification courses from Labb, built on Labb's written training documents. Enroll in the Clinic Owner certification today.",
   alternates: { canonical: "/certifications" },
 };
 
-const order: CertType[] = ["product", "specimen", "software", "position"];
+const order: CertType[] = ["position", "product", "software", "specimen"];
 
 const faqs = [
-  { q: "Why are the certifications separate?", a: "Each one covers a different thing. A product certification proves someone knows how a specific device works. A software certification proves they can use Labb Station or LabbHR. A position certification covers drug testing knowledge for a role, such as clinic owner, regardless of product or software." },
-  { q: "Which certifications do my collectors need?", a: "Collectors take a product certification for each product series they collect with, plus the software certification for the Labb software your site uses. The clinic owner certification is for the owner, not the collectors." },
-  { q: "How do the exams work?", a: "Each certification is a paid online exam built on Labb's written training documents. You need about 85% on each chapter exam to pass, and the certification is valid for one year." },
-  { q: "What are specimen collection certifications?", a: "They cover collecting a specific specimen type correctly, starting with hair for the new LabbHR readers coming in 2027. They are separate from product and software certifications." },
-  { q: "Is any of this DOT training?", a: "No. Labb certifications cover company (non-DOT) testing. DOT certification is being added as a benefit for Channel Partner Program members." },
+  { q: "How do the courses work?", a: "Each certification is a paid online course built on Labb's written training documents. Every chapter ends with an exam. You need about 85% on each chapter exam to pass and open the next chapter." },
+  { q: "How do I get access after I pay?", a: "The learner gets an email to set up a Labb account. Progress saves to that account, so they can stop and pick up where they left off on any device." },
+  { q: "Are certifications included for Channel Partner Program members?", a: "Yes. Active CPP members can open the Clinic Owner certification at no charge by signing in to the member area." },
+  { q: "Is any of this DOT training?", a: "No. Labb certifications cover company (non-DOT) testing. They do not qualify anyone to perform a DOT or other regulated collection or alcohol test." },
 ];
 
+const money = (c: number) => `$${(c / 100).toLocaleString("en-US", { minimumFractionDigits: c % 100 ? 2 : 0 })}`;
+const available = (c: Cert) => Boolean(c.href && c.priceCents);
+
+function CertItem({ c }: { c: Cert }) {
+  return (
+    <article className="cert-item">
+      <div className="ci-main">
+        <span className="ci-type">{certTypes[c.type].label} certification</span>
+        <h3>{c.name}</h3>
+        <p>{c.overview ?? c.covers}</p>
+        <p className="ci-for"><strong>For:</strong> {c.forWho}</p>
+      </div>
+      <dl className="ci-specs">
+        <div><dt>Questions</dt><dd>{c.questions}</dd></div>
+        <div><dt>Pages</dt><dd>{c.pages}</dd></div>
+        <div><dt>Chapters</dt><dd>{c.chapters}</dd></div>
+      </dl>
+      <div className="ci-buy">
+        <div className="ci-price">{money(c.priceCents!)}<span>per learner</span></div>
+        <Link className="btn btn-primary" href={`${c.href}#enroll`}>Start now</Link>
+        <Link className="btn btn-outline" href={c.href!}>Learn more</Link>
+        <span className="ci-note">Included for CPP members</span>
+      </div>
+    </article>
+  );
+}
+
 export default function Page() {
+  const open = certs.filter(available);
+  const soon = order.flatMap((t) => certs.filter((c) => c.type === t && !available(c)));
   return (
     <>
-      <PageHero
-        eyebrow="Labb certifications"
-        title="The right certification for every role."
-        lede="Separate online certifications for each product, specimen, software and position. Your team takes the ones that match its work. Certifications are paid; enrollment opens soon."
-        aside={
-          <div className="hero-card" style={{ color: "var(--dark)" }}>
-            <LeadForm variant="certification-waitlist" title="Join the waitlist" subtitle="Be first to know when enrollment opens." submitLabel="Join the Waitlist" />
-          </div>
-        }
-      />
+      <section className="cert-head">
+        <div className="wrap">
+          <span className="eyebrow">Labb certifications</span>
+          <h1>Online certification courses</h1>
+          <p>Paid online courses built on Labb&apos;s training documents. Enroll, get your login by email, and start right away.</p>
+        </div>
+      </section>
       <Breadcrumbs items={[{ name: "Training", href: "/training" }, { name: "Certifications", href: "/certifications" }]} />
 
-      <section className="section" style={{ paddingTop: 32 }}>
+      <section className="section" style={{ paddingTop: 24 }}>
         <div className="wrap">
-          <span className="eyebrow">Four types</span>
-          <h2>Separate certifications for separate skills</h2>
-          <div className="grid g4" style={{ marginTop: 28 }}>
-            {order.map((t, i) => (
-              <a key={t} href={`#${t}`} className="card card-link top">
-                <div className="icon-dot" aria-hidden="true">{i + 1}</div>
-                <h3>{certTypes[t].title}</h3>
-                <p>{certTypes[t].summary}</p>
-                <span className="more-row">See {certTypes[t].label.toLowerCase()} certifications →</span>
-              </a>
-            ))}
+          <div className="cert-bar">
+            <h2>Available now <span>{open.length}</span></h2>
           </div>
-          <div className="stats" style={{ marginTop: 28 }}>
-            <div><strong>Paid</strong><span>Priced per certification</span></div>
-            <div><strong>Online</strong><span>Exam built on Labb training documents</span></div>
-            <div><strong>85%</strong><span>Score to pass each chapter</span></div>
-            <div><strong>1 year</strong><span>Certification valid</span></div>
+          <div className="cert-list">
+            {open.map((c) => <CertItem key={c.sku} c={c} />)}
           </div>
         </div>
       </section>
 
-      {order.map((t, idx) => (
-        <section key={t} id={t} className={`section${idx % 2 ? " soft" : ""}`} style={{ scrollMarginTop: 110 }}>
-          <div className="wrap">
-            <span className="eyebrow">{certTypes[t].label} certifications</span>
-            <h2>{certTypes[t].title}</h2>
-            <p className="intro">{certTypes[t].summary}</p>
-            <div className="grid" style={{ gridTemplateColumns: "repeat(auto-fill, minmax(min(300px, 100%), 1fr))" }}>
-              {certs.filter((c) => c.type === t).map((c) => (
-                <div key={c.sku} className="card top" style={{ background: "#fff", border: "1px solid var(--border)", borderTop: "4px solid var(--orange)" }}>
-                  <span className="mini">{certTypes[t].label}{c.sku === "cert-clinic-owners" ? " · Enrollment open" : c.status ? ` · ${c.status}` : ""}</span>
-                  <h3>{c.name}</h3>
-                  <p>{c.covers}</p>
-                  <p style={{ marginTop: 12, fontSize: "0.88rem" }}><strong style={{ color: "var(--dark)" }}>For:</strong> {c.forWho}</p>
-                  {c.sku === "cert-clinic-owners" && (
-                    <p style={{ marginTop: 14 }}><Link className="btn btn-primary" href="/certifications/clinic-owners">Enroll now: $199</Link></p>
-                  )}
-                </div>
-              ))}
-            </div>
-            {t === "product" && <p style={{ marginTop: 20 }}><Link href="/test-kits" className="text-link" style={{ textDecoration: "underline" }}>See the products →</Link></p>}
-            {t === "specimen" && <p style={{ marginTop: 20 }}><Link href="/#readers" className="text-link" style={{ textDecoration: "underline" }}>About the 2027 readers →</Link></p>}
-            {t === "software" && <p style={{ marginTop: 20 }}><Link href="/compare" className="text-link" style={{ textDecoration: "underline" }}>Compare Labb Station and LabbHR →</Link></p>}
-            {t === "position" && <p style={{ marginTop: 20 }}><Link href="/training" className="text-link" style={{ textDecoration: "underline" }}>See the guidebooks behind these certifications →</Link></p>}
+      <section className="section soft">
+        <div className="wrap">
+          <div className="cert-bar">
+            <h2>Coming soon <span>{soon.length}</span></h2>
           </div>
-        </section>
-      ))}
+          <div className="cert-soon">
+            {soon.map((c) => (
+              <div key={c.sku} className="cs-item">
+                <span className="ci-type">{certTypes[c.type].label}{c.status ? ` · ${c.status}` : ""}</span>
+                <h3>{c.name}</h3>
+                <p>{c.covers}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
 
       <section className="section">
         <div className="wrap" style={{ maxWidth: 860 }}>

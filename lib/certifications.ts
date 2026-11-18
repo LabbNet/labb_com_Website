@@ -16,6 +16,13 @@ export type Cert = {
   priceEnv: string; // Stripe Price ID env var, used when checkout launches
   lmsCourse: string;
   status?: string; // e.g. "Coming 2027"
+  // Catalog listing. A cert is purchasable only when it has a course page (href) and a price.
+  href?: string;
+  priceCents?: number;
+  questions?: number;
+  pages?: number;
+  chapters?: number;
+  overview?: string;
 };
 
 export const certTypes: Record<CertType, { title: string; label: string; summary: string }> = {
@@ -53,7 +60,7 @@ export const certs: Cert[] = [
   { sku: "cert-software-labbhr", type: "software", name: "LabbHR", covers: "Sales, marketing, contracting and accounting tools, plus every Labb Station workflow and background checks.", forWho: "Drug testing business owners, staff and collectors", priceEnv: "STRIPE_PRICE_CERT_SOFTWARE_LABBHR", lmsCourse: "software-labbhr" },
   { sku: "cert-software-labbpo", type: "software", name: "LabbPO", covers: "Caseloads, random selection and notification, the offender portal, fee collection and the guaranteed result system.", forWho: "Probation and parole officers and corrections administrators", priceEnv: "STRIPE_PRICE_CERT_SOFTWARE_LABBPO", lmsCourse: "software-labbpo" },
   // Position / industry
-  { sku: "cert-clinic-owners", type: "position", name: "Clinic Owner", covers: "Drug testing in general: rapid and lab testing, the MRO process, collections, package inserts, quality control and privacy.", forWho: "Clinic owners and operators", priceEnv: "STRIPE_PRICE_CERT_CLINIC_OWNERS", lmsCourse: "clinic-owners" },
+  { sku: "cert-clinic-owners", type: "position", name: "Clinic Owner", covers: "Drug testing in general: rapid and lab testing, the MRO process, collections, package inserts, quality control and privacy.", forWho: "Clinic owners and operators", priceEnv: "STRIPE_PRICE_CERT_CLINIC_OWNERS", lmsCourse: "clinic-owners", href: "/certifications/clinic-owners", priceCents: 19900, questions: 225, pages: 200, chapters: 11, overview: "Everything a clinic owner or operator needs to know about workplace drug testing, from how a rapid test works to the MRO process, privacy and quality control." },
   { sku: "cert-background", type: "position", name: "Background Screening", covers: "How background checks work and what the law requires before you offer or order them.", forWho: "Clinic owners and HR teams", priceEnv: "STRIPE_PRICE_CERT_BACKGROUND", lmsCourse: "background-screening" },
   { sku: "cert-drug-testing-cost", type: "position", name: "Drug Testing Cost", covers: "How positive rates by specimen drive lab confirmation and MRO costs, and how to price a program.", forWho: "Owners and finance teams", priceEnv: "STRIPE_PRICE_CERT_COST", lmsCourse: "drug-testing-cost" },
   { sku: "cert-construction", type: "position", name: "Construction Screening", covers: "Drug and background screening for construction companies, from policy to moving testing in-house.", forWho: "Construction owners, safety managers and HR", priceEnv: "STRIPE_PRICE_CERT_CONSTRUCTION", lmsCourse: "construction" },
