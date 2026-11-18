@@ -66,8 +66,10 @@ export async function isActiveCpp(m: Member | null) {
   const [row] = await sql()<{ cpp_status: string | null }[]>`select cpp_status from members where id = ${m.id}`;
   return row?.cpp_status === "active";
 }
+// Free for CPP members: included, or a 100% discount.
+export const cppFree = (c: Course) => c.cppIncluded || c.cppDiscountPct >= 100;
 export function cppPriceCents(c: Course) {
-  if (c.priceCents === null || c.cppIncluded || !c.cppDiscountPct) return null;
+  if (c.priceCents === null || cppFree(c) || !c.cppDiscountPct) return null;
   return Math.round((c.priceCents * (100 - c.cppDiscountPct)) / 100);
 }
 
@@ -105,7 +107,7 @@ export async function courseAccess(m: Member, c: Course): Promise<Enrollment | n
   if (e) return e;
   const [row] = await db<{ cpp_status: string | null }[]>`select cpp_status from members where id = ${m.id}`;
   const cpp = m.role === "member" && row?.cpp_status === "active";
-  if ((cpp && c.cppIncluded && c.status === "live") || m.role === "admin") {
+  if ((cpp && (c.cppIncluded || c.cppDiscountPct >= 100) && c.status === "live") || m.role === "admin") {
     const [n] = await db<Enrollment[]>`
       insert into course_enrollments (member_id, course, source) values (${m.id}, ${c.slug}, ${m.role === "admin" ? "admin" : "cpp"})
       on conflict (member_id, course) do update set updated_at = now() returning *`;

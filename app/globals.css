@@ -1097,3 +1097,5 @@ td.acts { white-space: nowrap; }
 .ac-item .status { justify-self: start; }
 .course-hero .fine { text-align: left; }
 .enroll-price .was { font-size: 1rem; color: var(--muted); font-weight: 500; margin-left: 6px; }
+.ci-price s { font-size: 1rem; font-weight: 500; color: var(--muted); margin-left: 8px; }
+.ci-price s + span { display: block; margin: 4px 0 0; }

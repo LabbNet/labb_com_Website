@@ -1,7 +1,8 @@
 import Link from "next/link";
 import type { Metadata } from "next";
 import { Breadcrumbs, CtaBand, Faq } from "@/components/ui";
-import { COURSE_TYPES, listCourses, type Course } from "@/lib/courses";
+import { currentMember } from "@/lib/auth";
+import { COURSE_TYPES, cppFree, cppPriceCents, isActiveCpp, listCourses, type Course } from "@/lib/courses";
 
 export const dynamic = "force-dynamic";
 
@@ -20,7 +21,10 @@ const faqs = [
 ];
 
 const money = (c: number) => `$${(c / 100).toLocaleString("en-US", { minimumFractionDigits: c % 100 ? 2 : 0 })}`;
-function CertItem({ c }: { c: Course }) {
+function CertItem({ c, cpp }: { c: Course; cpp: boolean }) {
+  const free = cppFree(c);
+  const cppCents = cppPriceCents(c);
+  const mine = cpp ? (free ? 0 : cppCents) : null;
   const href = `/certifications/${c.slug}`;
   return (
     <article className="cert-item">
@@ -36,17 +40,25 @@ function CertItem({ c }: { c: Course }) {
         <div><dt>To pass</dt><dd>{c.passPct}%</dd></div>
       </dl>
       <div className="ci-buy">
-        <div className="ci-price">{money(c.priceCents!)}<span>per learner</span></div>
-        <Link className="btn btn-primary" href={`${href}#enroll`}>Start now</Link>
+        {mine !== null ? (
+          <div className="ci-price">{money(mine)}<s>{money(c.priceCents!)}</s><span>your CPP price</span></div>
+        ) : (
+          <div className="ci-price">{money(c.priceCents!)}<span>per learner</span></div>
+        )}
+        {cpp && free ? (
+          <a className="btn btn-primary" href={`/learn/${c.slug}/play`}>Open course</a>
+        ) : (
+          <Link className="btn btn-primary" href={`${href}#enroll`}>Start now</Link>
+        )}
         <Link className="btn btn-outline" href={href}>Learn more</Link>
-        {c.cppIncluded ? <span className="ci-note">Included for CPP members</span> : c.cppDiscountPct ? <span className="ci-note">{c.cppDiscountPct}% off for CPP members</span> : null}
+        {!cpp && (free ? <span className="ci-note">Included for CPP members</span> : cppCents !== null ? <span className="ci-note">CPP members pay {money(cppCents)} ({c.cppDiscountPct}% off)</span> : null)}
       </div>
     </article>
   );
 }
 
 export default async function Page() {
-  const all = await listCourses();
+  const [all, cpp] = await Promise.all([listCourses(), currentMember().then(isActiveCpp)]);
   const open = all.filter((c) => c.forSale);
   const soon = all.filter((c) => !c.forSale && c.status !== "draft");
   return (
@@ -67,7 +79,7 @@ export default async function Page() {
           </div>
           {!open.length && <p>New certifications are on the way. Call {"(877) 868-9967"} or email info@labb.com with questions.</p>}
           <div className="cert-list">
-            {open.map((c) => <CertItem key={c.slug} c={c} />)}
+            {open.map((c) => <CertItem key={c.slug} c={c} cpp={cpp} />)}
           </div>
         </div>
       </section>

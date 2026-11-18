@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { currentMember } from "@/lib/auth";
 import { sql } from "@/lib/db";
-import { courseAccess, listCourses, type Course, type Enrollment } from "@/lib/courses";
+import { courseAccess, cppFree, listCourses, type Course, type Enrollment } from "@/lib/courses";
 
 const fmt = (d: Date | null) => (d ? new Date(d).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }) : "");
 
@@ -12,7 +12,7 @@ export default async function MyCourses() {
   const list: { c: Course; e: Enrollment | null }[] = [];
   for (const c of await listCourses()) {
     if (!c.hasFile) continue;
-    const e = rows.find((r) => r.course === c.slug) ?? (c.cppIncluded && c.status === "live" && m.role !== "learner" ? await courseAccess(m, c) : null);
+    const e = rows.find((r) => r.course === c.slug) ?? (cppFree(c) && c.status === "live" && m.role !== "learner" ? await courseAccess(m, c) : null);
     if (e) list.push({ c, e });
   }
   return (
