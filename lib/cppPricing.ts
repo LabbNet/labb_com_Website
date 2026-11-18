@@ -55,6 +55,23 @@ export const PRODUCT_PAGES: { group: string; options: { path: string; label: str
 ];
 const ALL_PATHS = new Set(PRODUCT_PAGES.flatMap((g) => g.options.map((o) => o.path)));
 export const isProductPath = (v: string) => ALL_PATHS.has(v);
+// Kit behind a price item's product page, if it is a kit page.
+export function productKit(path: string | null) {
+  const m = path?.match(/^\/test-kits\/([a-z0-9-]+)$/);
+  return m ? publishedKits.find((k) => k.slug === m[1]) ?? null : null;
+}
+const PAGE_IMAGES: Record<string, string> = {
+  "/test-kits/urine-etest": "/kits/ua-13a/main-v2.webp",
+  "/test-kits/oral-etest": "/kits/or-14a.webp",
+  "/test-kits/oraflo": "/kits/orf-31c/main.webp",
+  "/labb-station": "/graphics/home/outcome-fewer-errors.webp",
+  "/labbhr": "/img/labbhr-dashboard.webp",
+};
+// Picture for a price item: the kit's product shot, or the product page's image.
+export function productImage(path: string | null): string | null {
+  if (!path) return null;
+  return productKit(path)?.image ?? PAGE_IMAGES[path] ?? null;
+}
 // Saved link, or a kit page whose code matches the SKU.
 export function productLink(i: Pick<PriceItem, "product_path" | "sku">): string | null {
   if (i.product_path && isProductPath(i.product_path)) return i.product_path;

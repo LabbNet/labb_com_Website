@@ -1,7 +1,7 @@
 import { sql } from "@/lib/db";
 import { currentMember } from "@/lib/auth";
 import { fmtDate } from "@/lib/admin";
-import { money, PRICE_CATEGORIES, productLink, WALK_IN_SHARE, type PriceItem } from "@/lib/cppPricing";
+import { money, PRICE_CATEGORIES, productImage, productKit, productLink, WALK_IN_SHARE, type PriceItem } from "@/lib/cppPricing";
 import { cppEmail, site } from "@/lib/site";
 
 export const dynamic = "force-dynamic";
@@ -34,13 +34,31 @@ export default async function MemberPricing() {
                   {list.map((i) => {
                     const none = [i.sl1_cents, i.sl1_msrp_cents, i.sl3_cents, i.sl3_msrp_cents, i.online_cents].every((c) => c == null);
                     const link = productLink(i);
+                    const kit = productKit(link);
+                    const img = productImage(link);
                     return (
                       <div key={i.id} className="price-card">
+                        <div className="pc-media">
+                          {img ? <img src={img} alt="" loading="lazy" /> : <span className="pc-media-ph" aria-hidden="true">{c.label.split(" ")[0]}</span>}
+                        </div>
                         <div className="pc-info">
-                          <h3>{link ? <a href={link}>{i.name}</a> : i.name}{i.sku && <span className="tag plain" style={{ marginLeft: 8 }}>{i.sku}</span>}</h3>
-                          {i.unit && <span className="pc-unit">{i.unit}</span>}
-                          {i.description && <p>{i.description}</p>}
-                          {i.notes && <p className="pc-note">{i.notes}</p>}
+                          <div className="pc-title">
+                            <h3>{link ? <a href={link}>{i.name}</a> : i.name}</h3>
+                            {i.sku && <span className="pc-sku">{i.sku}</span>}
+                          </div>
+                          <div className="pc-meta">
+                            {i.unit && <span className="pc-pill">{i.unit}</span>}
+                            {kit && <span className="pc-pill">{kit.specimen}</span>}
+                            {kit && <span className="pc-pill">{kit.drugCount} {kit.drugCount === 1 ? "test" : "tests"}</span>}
+                            {kit && <span className="pc-pill">{kit.use}</span>}
+                          </div>
+                          {i.description && <p className="pc-desc">{i.description}</p>}
+                          {kit && (
+                            <ul className="pc-drugs" aria-label="Drugs on this kit">
+                              {kit.drugs.map((d) => <li key={d.code} title={`${d.name}, cutoff ${d.cutoff}`}>{d.code}</li>)}
+                            </ul>
+                          )}
+                          {i.notes && <p className="pc-note"><strong>Note:</strong> {i.notes}</p>}
                           {link && <a className="pc-link" href={link}>Product details <span aria-hidden="true">&rarr;</span></a>}
                         </div>
                         {none ? (

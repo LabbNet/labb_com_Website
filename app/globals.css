@@ -861,7 +861,7 @@ td.acts { white-space: nowrap; }
 @media (max-width: 600px) { .dp-list { grid-template-columns: 1fr; } }
 /* CPP pricing cards: cost and MSRP clearly separated */
 .price-cards { display: grid; gap: 16px; }
-.price-card { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 24px; align-items: center; background: #fff; border: 1px solid var(--border); border-radius: var(--radius-card); padding: 22px 24px; }
+.price-card { display: grid; grid-template-columns: 132px minmax(0, 1fr); gap: 18px 24px; align-items: start; background: #fff; border: 1px solid var(--border); border-radius: var(--radius-card); padding: 22px 24px; }
 .pc-info h3 { margin: 0 0 4px; font-size: 1.15rem; display: flex; align-items: center; flex-wrap: wrap; }
 .pc-unit { display: inline-block; font-size: .85rem; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: .04em; }
 .pc-info p { margin: 8px 0 0; color: var(--muted); font-size: .95rem; }
@@ -927,3 +927,22 @@ td.acts { white-space: nowrap; }
 .lib-support .fine { font-size: .85rem; color: rgba(255,255,255,.7); }
 @media (max-width: 800px) { .lib-support { grid-template-columns: 1fr; } }
 .lib-support .fine { text-align: left; }
+
+/* CPP pricing card details */
+.pc-media { grid-row: span 2; width: 132px; aspect-ratio: 1; border-radius: 12px; background: #f6f7f8; display: grid; place-items: center; overflow: hidden; }
+.pc-media img { width: 100%; height: 100%; object-fit: contain; padding: 8px; mix-blend-mode: multiply; }
+.pc-media-ph { font-weight: 800; color: var(--muted); font-size: .85rem; text-transform: uppercase; letter-spacing: .06em; }
+.pc-title { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 10px; }
+.pc-title h3 { margin: 0; font-size: 1.2rem; }
+.pc-title h3 a { color: inherit; text-decoration: none; }
+.pc-title h3 a:hover { color: var(--orange); text-decoration: underline; }
+.pc-sku { padding: 3px 9px; border-radius: 6px; background: var(--dark); color: #fff; font-size: .75rem; font-weight: 700; letter-spacing: .03em; }
+.pc-meta { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+.pc-pill { padding: 3px 10px; border-radius: 999px; background: var(--tint-10); color: var(--dark); font-size: .78rem; font-weight: 600; }
+.pc-info .pc-desc { margin: 12px 0 0; color: var(--dark); font-size: .95rem; line-height: 1.55; }
+.pc-drugs { list-style: none; display: flex; flex-wrap: wrap; gap: 5px; margin: 12px 0 0; padding: 0; }
+.pc-drugs li { padding: 2px 7px; border: 1px solid var(--border); border-radius: 6px; font-size: .74rem; font-weight: 700; color: var(--muted); }
+.pc-info .pc-note { margin: 12px 0 0; padding: 10px 12px; border-radius: 8px; background: #f6f7f8; border-left: 3px solid var(--orange); font-style: normal; color: var(--dark); font-size: .88rem; }
+.price-card .pc-levels, .price-card .pc-contact { grid-column: 2; }
+.price-card .pc-levels { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+@media (max-width: 800px) { .price-card { grid-template-columns: 88px minmax(0, 1fr); } .pc-media { width: 88px; grid-row: auto; } .price-card .pc-levels, .price-card .pc-contact { grid-column: 1 / -1; } }
