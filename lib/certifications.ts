@@ -3,7 +3,7 @@
 //   specimen  - collecting a specimen type for the 2027 readers (e.g. hair)
 //   software  - how to use a specific Labb software (software specific)
 //   position  - general knowledge for a role or industry (e.g. clinic owner)
-// Every certification is paid. Online exam: 90% to pass, valid one year.
+// Every certification is paid. Online exam: about 85% per chapter exam to pass, valid one year.
 
 export type CertType = "product" | "specimen" | "software" | "position";
 

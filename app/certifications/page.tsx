@@ -17,7 +17,7 @@ const order: CertType[] = ["product", "specimen", "software", "position"];
 const faqs = [
   { q: "Why are the certifications separate?", a: "Each one covers a different thing. A product certification proves someone knows how a specific device works. A software certification proves they can use Labb Station or LabbHR. A position certification covers drug testing knowledge for a role, such as clinic owner, regardless of product or software." },
   { q: "Which certifications do my collectors need?", a: "Collectors take a product certification for each product series they collect with, plus the software certification for the Labb software your site uses. The clinic owner certification is for the owner, not the collectors." },
-  { q: "How do the exams work?", a: "Each certification is a paid online exam built on Labb's written training documents. You need 90% to pass, and the certification is valid for one year." },
+  { q: "How do the exams work?", a: "Each certification is a paid online exam built on Labb's written training documents. You need about 85% on each chapter exam to pass, and the certification is valid for one year." },
   { q: "What are specimen collection certifications?", a: "They cover collecting a specific specimen type correctly, starting with hair for the new LabbHR readers coming in 2027. They are separate from product and software certifications." },
   { q: "Is any of this DOT training?", a: "No. Labb certifications cover company (non-DOT) testing. DOT certification is being added as a benefit for Channel Partner Program members." },
 ];
@@ -54,7 +54,7 @@ export default function Page() {
           <div className="stats" style={{ marginTop: 28 }}>
             <div><strong>Paid</strong><span>Priced per certification</span></div>
             <div><strong>Online</strong><span>Exam built on Labb training documents</span></div>
-            <div><strong>90%</strong><span>Score to pass</span></div>
+            <div><strong>85%</strong><span>Score to pass each chapter</span></div>
             <div><strong>1 year</strong><span>Certification valid</span></div>
           </div>
         </div>
