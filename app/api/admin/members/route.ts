@@ -22,26 +22,40 @@ export async function POST(req: Request) {
     const name = field(fd, "name", 120);
     const email = field(fd, "email", 160).toLowerCase();
     const clinic = field(fd, "clinic", 160) || null;
-    const username = (field(fd, "new_member_username", 40) || field(fd, "username", 40) || email.split("@")[0]).toLowerCase().replace(/[^a-z0-9._-]/g, "");
     const role = fd.get("role") === "admin" ? "admin" : "member";
     const cppStart = /^\d{4}-\d{2}-\d{2}$/.test(field(fd, "cpp_start", 10)) ? field(fd, "cpp_start", 10) : null;
     if (!name || !EMAIL_RE.test(email)) {
-      await flash("Enter a name and a valid email address.", undefined, "error");
+      await flash(`Enter a name and a valid email address (received "${email || "blank"}").`, undefined, "error");
       return go(req, "/admin/members");
     }
-    if (!USERNAME_RE.test(username)) {
-      await flash("Usernames are 3 to 40 characters: lowercase letters, numbers, dots, dashes or underscores.", undefined, "error");
+    // Email must be new.
+    const [byEmail] = await db<{ name: string }[]>`select name from members where lower(email) = ${email} limit 1`;
+    if (byEmail) {
+      await flash(`${byEmail.name} already has an account with ${email}. Open them in the list below instead of adding them again.`, undefined, "error");
       return go(req, "/admin/members");
     }
-    const clash = await db<{ email: string; username: string; name: string }[]>`select email, username, name from members where lower(email) = ${email} or lower(username) = ${username} limit 1`;
-    if (clash.length) {
-      const c = clash[0];
-      await flash(
-        c.email.toLowerCase() === email
-          ? `${c.name} already has an account with ${email}. Open them in the list below instead of adding them again.`
-          : `The username "${username}" is taken by ${c.name}. Enter a different username, or leave it blank to use the part of the email before @.`,
-        undefined, "error");
-      return go(req, "/admin/members");
+    // Username: a typed one must be valid and free. A browser that autofills the admin's own
+    // sign-in name is ignored. A blank one is built from the email and made unique automatically.
+    let typed = (field(fd, "new_member_username", 40) || "").toLowerCase().trim();
+    if (typed && typed === admin.username.toLowerCase()) typed = "";
+    let username: string;
+    if (typed) {
+      if (!USERNAME_RE.test(typed)) {
+        await flash(`The username "${typed}" isn't valid. Use 3 to 40 lowercase letters, numbers, dots, dashes or underscores, or leave it blank.`, undefined, "error");
+        return go(req, "/admin/members");
+      }
+      const [byUser] = await db<{ name: string }[]>`select name from members where lower(username) = ${typed} limit 1`;
+      if (byUser) {
+        await flash(`The username "${typed}" is taken by ${byUser.name}. Enter a different username, or leave it blank.`, undefined, "error");
+        return go(req, "/admin/members");
+      }
+      username = typed;
+    } else {
+      let base = email.split("@")[0].replace(/[^a-z0-9._-]/g, "").slice(0, 34);
+      if (base.length < 3) base = (base + "member").slice(0, 34);
+      const taken = new Set((await db<{ username: string }[]>`select lower(username) as username from members where lower(username) like ${base + "%"}`).map((r) => r.username));
+      username = base;
+      for (let n = 2; taken.has(username); n++) username = `${base}${n}`;
     }
     const [m] = await db<{ id: string; email: string; name: string; username: string }[]>`
       insert into members (username, email, name, clinic, role, created_by, cpp_start_date) values (${username}, ${email}, ${name}, ${clinic}, ${role}, ${admin.id}, ${cppStart})
