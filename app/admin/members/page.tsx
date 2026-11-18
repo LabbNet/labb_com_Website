@@ -17,7 +17,7 @@ export default async function AdminMembers({ searchParams }: { searchParams: Pro
   if (!admin) redirect("/login?next=/admin/members");
   if (admin.role !== "admin") redirect("/members");
 
-  const { q = "", show = "all", cpp = "all" } = await searchParams;
+  const { q = "", show = "current", cpp = "all" } = await searchParams;
   const like = `%${q.toLowerCase().slice(0, 80)}%`;
   const rows = await sql()<(Member & { cpp_status: string; cpp_start: string | null; contracts: number })[]>`
     select id, username, email, name, clinic, role, status, session_version, created_at, last_login_at, cpp_status,
@@ -25,7 +25,7 @@ export default async function AdminMembers({ searchParams }: { searchParams: Pro
       (select count(*)::int from member_contracts c where c.member_id = members.id) as contracts
     from members
     where (${q} = '' or lower(name) like ${like} or lower(email) like ${like} or lower(username) like ${like} or lower(coalesce(clinic, '')) like ${like})
-      and (${show} = 'all' or status = ${show})
+      and (${show} = 'all' or (${show} = 'current' and status <> 'disabled') or status = ${show})
       and (${cpp} = 'all' or (role = 'member' and cpp_status = ${cpp}))
     order by status = 'disabled', status <> 'invited', lower(name)`;
   const counts = await sql()<{ status: string; n: number }[]>`select status, count(*)::int as n from members group by status`;
@@ -112,10 +112,11 @@ export default async function AdminMembers({ searchParams }: { searchParams: Pro
               <form method="get" className="admin-search">
                 <input name="q" defaultValue={q} placeholder="Search name, email, username or clinic" aria-label="Search members" />
                 <select name="show" defaultValue={show} aria-label="Filter by status">
-                  <option value="all">All</option>
+                  <option value="current">Active and invited</option>
                   <option value="active">Active</option>
                   <option value="invited">Invited</option>
                   <option value="disabled">Disabled</option>
+                  <option value="all">All, including disabled</option>
                 </select>
                 <select name="cpp" defaultValue={cpp} aria-label="Filter by CPP status">
                   <option value="all">Any CPP status</option>
