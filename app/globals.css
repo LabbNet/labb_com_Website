@@ -489,6 +489,12 @@ p { margin: 0 0 1em; }
 .linkish { background: none; border: 0; padding: 0; font: 600 0.95rem Poppins, sans-serif; color: var(--blue); cursor: pointer; text-decoration: underline; text-underline-offset: 3px; }
 .member-bar .linkish { color: var(--dark); text-decoration: none; }
 .linkish.danger { color: var(--red); }
+.icon-act { position: relative; display: inline-grid; place-items: center; width: 34px; height: 34px; margin-right: 4px; border: 1px solid var(--border); border-radius: 8px; background: #fff; color: var(--dark); cursor: pointer; }
+.icon-act:hover, .icon-act:focus-visible { border-color: var(--orange); color: var(--orange); }
+.icon-act.danger:hover, .icon-act.danger:focus-visible { border-color: var(--red); color: var(--red); }
+.icon-act::after { content: attr(data-tip); position: absolute; bottom: calc(100% + 6px); left: 50%; transform: translateX(-50%); white-space: nowrap; padding: 4px 8px; border-radius: 6px; background: var(--dark); color: #fff; font: 600 .75rem Poppins, sans-serif; opacity: 0; pointer-events: none; transition: opacity .12s; z-index: 5; }
+.icon-act:hover::after, .icon-act:focus-visible::after { opacity: 1; }
+td.acts { white-space: nowrap; }
 .form-ok { background: #eaf7ef; border: 1px solid var(--green); color: var(--dark); border-radius: 8px; padding: 12px 14px; margin-top: 14px; font-size: 0.95rem; }
 .copy-link { display: block; width: 100%; margin-top: 10px; padding: 10px 12px; border: 1px solid var(--gray); border-radius: 8px; font: 400 0.85rem ui-monospace, Menlo, monospace; background: #fff; }
 .admin-search { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 4px; }

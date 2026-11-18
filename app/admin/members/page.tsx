@@ -39,11 +39,22 @@ export default async function AdminMembers({ searchParams }: { searchParams: Pro
     if (raw) flash = JSON.parse(raw);
   } catch {}
 
+  // Row actions as icon buttons; the label shows as a hover hint and is read by screen readers.
+  const ICONS: Record<string, React.ReactNode> = {
+    resend: <path d="M3 6h18v12H3zM3 6l9 7 9-7" />,
+    reset: <><circle cx="8" cy="15" r="4" /><path d="M11 12l9-9M17 6l3 3M15 8l2 2" /></>,
+    disable: <><circle cx="12" cy="12" r="9" /><path d="M5.6 5.6l12.8 12.8" /></>,
+    enable: <><circle cx="12" cy="12" r="9" /><path d="M8 12.5l3 3 5-6" /></>,
+    promote: <><path d="M12 3l8 3v6c0 4.5-3.4 8.2-8 9-4.6-.8-8-4.5-8-9V6z" /><path d="M12 9v6M9 12h6" /></>,
+    demote: <><path d="M12 3l8 3v6c0 4.5-3.4 8.2-8 9-4.6-.8-8-4.5-8-9V6z" /><path d="M9 12h6" /></>,
+  };
   const act = (id: string, action: string, label: string, danger = false) => (
     <form action="/api/admin/members" method="post" style={{ display: "inline" }}>
       <input type="hidden" name="id" value={id} />
       <input type="hidden" name="action" value={action} />
-      <button type="submit" className={`linkish${danger ? " danger" : ""}`}>{label}</button>
+      <button type="submit" className={`icon-act${danger ? " danger" : ""}`} aria-label={label} data-tip={label}>
+        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">{ICONS[action]}</svg>
+      </button>
     </form>
   );
 
