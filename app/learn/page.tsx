@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { currentMember } from "@/lib/auth";
 import { sql } from "@/lib/db";
-import { courseAccess, COURSES, type Enrollment } from "@/lib/courses";
+import { courseAccess, listCourses, type Course, type Enrollment } from "@/lib/courses";
 
 const fmt = (d: Date | null) => (d ? new Date(d).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }) : "");
 
@@ -9,9 +9,10 @@ const fmt = (d: Date | null) => (d ? new Date(d).toLocaleDateString("en-US", { m
 export default async function MyCourses() {
   const m = (await currentMember())!;
   const rows = await sql()<Enrollment[]>`select * from course_enrollments where member_id = ${m.id}`;
-  const list: { c: (typeof COURSES)[number]; e: Enrollment | null }[] = [];
-  for (const c of COURSES) {
-    const e = rows.find((r) => r.course === c.slug) ?? (c.cppIncluded && m.role !== "learner" ? await courseAccess(m, c) : null);
+  const list: { c: Course; e: Enrollment | null }[] = [];
+  for (const c of await listCourses()) {
+    if (!c.hasFile) continue;
+    const e = rows.find((r) => r.course === c.slug) ?? (c.cppIncluded && c.status === "live" && m.role !== "learner" ? await courseAccess(m, c) : null);
     if (e) list.push({ c, e });
   }
   return (
@@ -20,11 +21,11 @@ export default async function MyCourses() {
         <h1 style={{ fontSize: "clamp(2rem, 4vw, 2.6rem)" }}>My courses</h1>
         <p className="lede">Your progress saves to your account as you go, so you can stop and pick up where you left off on any device.</p>
         {!list.length && (
-          <p className="hero-card">You aren&apos;t enrolled in a course yet. <Link href="/certifications/clinic-owners">See the Clinic Owners Course</Link>.</p>
+          <p className="hero-card">You aren&apos;t enrolled in a course yet. <Link href="/certifications">See the certification courses</Link>.</p>
         )}
         <div className="course-list">
           {list.map(({ c, e }) => {
-            const pct = Math.round(((e?.chapters_done ?? 0) / c.chapters) * 100);
+            const pct = Math.round(((e?.chapters_done ?? 0) / Math.max(1, c.chapters)) * 100);
             return (
               <div key={c.slug} className="course-card">
                 <div>

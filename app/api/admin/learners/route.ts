@@ -9,10 +9,10 @@ export async function POST(req: Request) {
   if (!admin || admin.role !== "admin") return go(req, "/login?next=/admin/learners");
   if (!(await sameOrigin())) return go(req, "/admin/learners");
   const fd = await req.formData();
-  const c = getCourse(field(fd, "course", 40));
+  const c = await getCourse(field(fd, "course", 60));
   const name = field(fd, "name", 120);
   const email = field(fd, "email", 160).toLowerCase();
-  if (!c || !name || !EMAIL_RE.test(email)) {
+  if (!c || !c.hasFile || !name || !EMAIL_RE.test(email)) {
     await setFlash(`Enter a name and a valid email (received "${email || "blank"}").`, "error", undefined, "/admin");
     return go(req, "/admin/learners");
   }

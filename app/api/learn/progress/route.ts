@@ -12,7 +12,7 @@ export async function POST(req: Request) {
   if (raw.length > 400_000) return NextResponse.json({ ok: false }, { status: 413 });
   let body: { course?: string; state?: Record<string, unknown> };
   try { body = JSON.parse(raw); } catch { return NextResponse.json({ ok: false }, { status: 400 }); }
-  const c = getCourse(String(body.course || ""));
+  const c = await getCourse(String(body.course || ""));
   if (!c || !body.state || typeof body.state !== "object") return NextResponse.json({ ok: false }, { status: 400 });
   const s = summarize(c, body.state);
   const rows = await sql()`

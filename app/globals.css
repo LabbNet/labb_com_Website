@@ -1068,3 +1068,31 @@ td.acts { white-space: nowrap; }
   .cert-item { grid-template-columns: 1fr; gap: 18px; }
   .ci-specs { align-self: start; }
 }
+
+/* Admin: courses */
+.admin-courses { display: grid; gap: 10px; }
+.ac-item { background: #fff; border: 1px solid var(--border); border-radius: var(--radius-card); }
+.ac-item[open] { box-shadow: var(--shadow); }
+.ac-item > summary { list-style: none; cursor: pointer; display: grid; grid-template-columns: minmax(220px, 1.4fr) 110px 90px minmax(200px, 1.4fr) minmax(130px, 1fr) 44px; gap: 16px; align-items: center; padding: 16px 20px; }
+.ac-item > summary::-webkit-details-marker { display: none; }
+.ac-name strong { display: block; font-size: 1.05rem; color: var(--dark); }
+.ac-name .sub { display: block; font-size: .82rem; color: var(--muted); }
+.ac-price { font-weight: 800; color: var(--dark); }
+.ac-facts { font-size: .86rem; color: var(--muted); }
+.ac-edit { font-size: .85rem; font-weight: 700; color: var(--blue); text-align: right; }
+.ac-item[open] .ac-edit { color: var(--muted); }
+.ac-form { border-top: 1px solid var(--border); padding: 20px; }
+.ac-form .fields { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.ac-form .check { display: flex; align-items: center; gap: 10px; font-weight: 600; }
+.ac-form .check input { width: 20px; height: 20px; min-height: 0; accent-color: var(--orange); margin: 0; }
+.ac-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; margin-top: 18px; }
+@media (max-width: 980px) {
+  .ac-item > summary { grid-template-columns: 1fr auto; }
+  .ac-facts { grid-column: 1 / -1; }
+  .ac-edit { display: none; }
+  .ac-form .fields { grid-template-columns: 1fr; }
+}
+.cert-item h3 a, .cs-item h3 a { color: inherit; text-decoration: none; }
+.cert-item h3 a:hover, .cs-item h3 a:hover { color: var(--orange); }
+.ac-item .status { justify-self: start; }
+.course-hero .fine { text-align: left; }

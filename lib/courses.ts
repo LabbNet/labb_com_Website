@@ -4,34 +4,82 @@ import path from "node:path";
 import { sql } from "@/lib/db";
 import type { Member } from "@/lib/auth";
 
-// Online courses hosted on labb.com. The course file is a self-contained player; the site
+// Online courses hosted on labb.com. Each course file is a self-contained player; the site
 // gates it, stores progress per learner and records completion.
-export type Course = {
-  slug: string;
-  title: string;
-  short: string;
-  priceCents: number;
-  file: string; // in private/courses
-  storageKey: string; // localStorage key the player uses for its state
-  chapters: number;
-  cppIncluded: boolean;
-  version: string;
+// What is built into a file (chapters, questions, pass mark, storage key) lives here.
+// What admins edit (name, overview, price, pages, CPP access, status) lives in the courses table.
+type CourseFile = { file: string; storageKey: string; version: string; chapters: number; questions: number; passPct: number };
+
+export const COURSE_FILES: Record<string, CourseFile> = {
+  "clinic-owners": { file: "labbhr-clinic-owners-course-v4.0.0.html", storageKey: "labbhr-clinic-course-v2", version: "4.0.0", chapters: 11, questions: 225, passPct: 85 },
+  employer: { file: "labbhr-employer-course-v1.2.1.html", storageKey: "labbhr-employer-course-v1-2", version: "1.2.1", chapters: 16, questions: 320, passPct: 85 },
+  "employer-healthcare": { file: "labbhr-employer-healthcare-course-v1.2.1.html", storageKey: "labbhr-employer-hc-course-v1-2", version: "1.2.1", chapters: 19, questions: 380, passPct: 85 },
+  "employer-hospitality": { file: "labbhr-employer-hospitality-course-v1.2.1.html", storageKey: "labbhr-employer-hosp-course-v1-2", version: "1.2.1", chapters: 19, questions: 380, passPct: 85 },
+  construction: { file: "labbhr-construction-screening-course-v1.7.1.html", storageKey: "labbhr-construction-course-v1-70", version: "1.7.1", chapters: 9, questions: 180, passPct: 85 },
+  manufacturing: { file: "labbhr-manufacturing-screening-course-v1.7.1.html", storageKey: "labbhr-manufacturing-course-v1-70", version: "1.7.1", chapters: 9, questions: 180, passPct: 85 },
+  logistics: { file: "labbhr-logistics-screening-course-v1.7.1.html", storageKey: "labbhr-logistics-course-v1-70", version: "1.7.1", chapters: 9, questions: 180, passPct: 85 },
+  "rapid-test": { file: "labbhr-rapid-test-course-v1.2.html", storageKey: "labbhr-rapid-course-v1-2", version: "1.2", chapters: 11, questions: 220, passPct: 85 },
+  "specimen-collector": { file: "labbhr-specimen-collector-course-v1.2.html", storageKey: "labbhr-collector-course-v12", version: "1.2", chapters: 16, questions: 320, passPct: 85 },
+  "train-the-trainer": { file: "labbhr-train-the-trainer-course-v1.2.html", storageKey: "labbhr-ttt-course-v1-2", version: "1.2", chapters: 16, questions: 320, passPct: 85 },
 };
 
-export const COURSES: Course[] = [
-  {
-    slug: "clinic-owners",
-    title: "LabbHR Clinic Owners Course",
-    short: "Clinic Owner certification",
-    priceCents: 19900,
-    file: "labbhr-clinic-owners-course-v4.0.0.html",
-    storageKey: "labbhr-clinic-course-v2",
-    chapters: 11,
-    cppIncluded: true,
-    version: "4.0.0",
-  },
-];
-export const getCourse = (slug: string) => COURSES.find((c) => c.slug === slug);
+export type CourseType = "position" | "product" | "software" | "specimen";
+export type CourseStatus = "live" | "coming" | "draft";
+export const COURSE_TYPES: Record<CourseType, string> = { position: "Position", product: "Product", software: "Software", specimen: "Specimen collection" };
+
+type CourseRow = {
+  slug: string; title: string; short: string; type: CourseType; overview: string; for_who: string; price_cents: number | null;
+  pages: number | null; cpp_included: boolean; status: CourseStatus; sort: number; updated_at: Date;
+};
+
+export type Course = {
+  slug: string; title: string; short: string; type: CourseType; overview: string; forWho: string;
+  priceCents: number | null; pages: number | null; cppIncluded: boolean; status: CourseStatus; sort: number; updatedAt: Date;
+  hasFile: boolean; file: string; storageKey: string; version: string; chapters: number; questions: number; passPct: number;
+  forSale: boolean; // live, priced and has a course file
+};
+
+function toCourse(r: CourseRow): Course {
+  const f = COURSE_FILES[r.slug];
+  return {
+    slug: r.slug, title: r.title, short: r.short, type: r.type, overview: r.overview, forWho: r.for_who, priceCents: r.price_cents,
+    pages: r.pages, cppIncluded: r.cpp_included, status: r.status, sort: r.sort, updatedAt: r.updated_at,
+    hasFile: !!f, file: f?.file ?? "", storageKey: f?.storageKey ?? "", version: f?.version ?? "", chapters: f?.chapters ?? 0,
+    questions: f?.questions ?? 0, passPct: f?.passPct ?? 0,
+    forSale: !!f && r.status === "live" && r.price_cents !== null,
+  };
+}
+
+export async function listCourses(): Promise<Course[]> {
+  const rows = await sql()<CourseRow[]>`select * from courses order by sort, title`;
+  return rows.map(toCourse);
+}
+export async function getCourse(slug: string): Promise<Course | null> {
+  if (!/^[a-z0-9-]{1,60}$/.test(slug)) return null;
+  const [r] = await sql()<CourseRow[]>`select * from courses where slug = ${slug}`;
+  return r ? toCourse(r) : null;
+}
+
+// Chapter outline read from the course file, cached per file.
+export type Chapter = { n: number; title: string; part: string; desc: string };
+const outlines = new Map<string, Chapter[]>();
+export async function courseOutline(c: Course): Promise<Chapter[]> {
+  if (!c.hasFile) return [];
+  const hit = outlines.get(c.file);
+  if (hit) return hit;
+  const html = await readFile(path.join(process.cwd(), "private", "courses", c.file), "utf8");
+  const m = html.match(/id="courseData" type="application\/json">([\s\S]*?)<\/script>/);
+  let list: Chapter[] = [];
+  if (m) {
+    try {
+      const d = JSON.parse(m[1]) as { chapters: { n: number | string; title: string; part?: string; desc?: string }[] };
+      const clean = (t: string) => t.replace(/\u2014/g, ":").replace(/<[^>]+>/g, "");
+      list = d.chapters.map((ch) => ({ n: Number(ch.n), title: clean(ch.title), part: clean(ch.part ?? ""), desc: clean(ch.desc ?? "") }));
+    } catch { list = []; }
+  }
+  outlines.set(c.file, list);
+  return list;
+}
 
 export type Enrollment = {
   id: string; member_id: string; course: string; source: string; chapters_done: number; started_at: Date | null;
@@ -40,12 +88,13 @@ export type Enrollment = {
 
 // Access: an enrollment, or an active CPP member for courses included with the program (enrolled on first open), or a Labb admin.
 export async function courseAccess(m: Member, c: Course): Promise<Enrollment | null> {
+  if (!c.hasFile) return null;
   const db = sql();
   const [e] = await db<Enrollment[]>`select * from course_enrollments where member_id = ${m.id} and course = ${c.slug}`;
   if (e) return e;
   const [row] = await db<{ cpp_status: string | null }[]>`select cpp_status from members where id = ${m.id}`;
   const cpp = m.role === "member" && row?.cpp_status === "active";
-  if ((cpp && c.cppIncluded) || m.role === "admin") {
+  if ((cpp && c.cppIncluded && c.status === "live") || m.role === "admin") {
     const [n] = await db<Enrollment[]>`
       insert into course_enrollments (member_id, course, source) values (${m.id}, ${c.slug}, ${m.role === "admin" ? "admin" : "cpp"})
       on conflict (member_id, course) do update set updated_at = now() returning *`;

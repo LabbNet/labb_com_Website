@@ -1,7 +1,9 @@
 import Link from "next/link";
 import type { Metadata } from "next";
 import { Breadcrumbs, CtaBand, Faq } from "@/components/ui";
-import { certs, certTypes, type Cert, type CertType } from "@/lib/certifications";
+import { COURSE_TYPES, listCourses, type Course } from "@/lib/courses";
+
+export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
   title: "Labb Certifications: Online Drug Testing Certification Courses",
@@ -10,45 +12,43 @@ export const metadata: Metadata = {
   alternates: { canonical: "/certifications" },
 };
 
-const order: CertType[] = ["position", "product", "software", "specimen"];
-
 const faqs = [
   { q: "How do the courses work?", a: "Each certification is a paid online course built on Labb's written training documents. Every chapter ends with an exam. You need about 85% on each chapter exam to pass and open the next chapter." },
   { q: "How do I get access after I pay?", a: "The learner gets an email to set up a Labb account. Progress saves to that account, so they can stop and pick up where they left off on any device." },
-  { q: "Are certifications included for Channel Partner Program members?", a: "Yes. Active CPP members can open the Clinic Owner certification at no charge by signing in to the member area." },
+  { q: "Are certifications included for Channel Partner Program members?", a: "Some are. Certifications marked \"Included for CPP members\" open at no charge for active Channel Partner Program members who sign in to the member area." },
   { q: "Is any of this DOT training?", a: "No. Labb certifications cover company (non-DOT) testing. They do not qualify anyone to perform a DOT or other regulated collection or alcohol test." },
 ];
 
 const money = (c: number) => `$${(c / 100).toLocaleString("en-US", { minimumFractionDigits: c % 100 ? 2 : 0 })}`;
-const available = (c: Cert) => Boolean(c.href && c.priceCents);
-
-function CertItem({ c }: { c: Cert }) {
+function CertItem({ c }: { c: Course }) {
+  const href = `/certifications/${c.slug}`;
   return (
     <article className="cert-item">
       <div className="ci-main">
-        <span className="ci-type">{certTypes[c.type].label} certification</span>
-        <h3>{c.name}</h3>
-        <p>{c.overview ?? c.covers}</p>
+        <span className="ci-type">{COURSE_TYPES[c.type]} certification</span>
+        <h3><Link href={href}>{c.short}</Link></h3>
+        <p>{c.overview}</p>
         <p className="ci-for"><strong>For:</strong> {c.forWho}</p>
       </div>
       <dl className="ci-specs">
         <div><dt>Questions</dt><dd>{c.questions}</dd></div>
-        <div><dt>Pages</dt><dd>{c.pages}</dd></div>
-        <div><dt>Chapters</dt><dd>{c.chapters}</dd></div>
+        {c.pages ? <div><dt>Pages</dt><dd>{c.pages}</dd></div> : <div><dt>Chapters</dt><dd>{c.chapters}</dd></div>}
+        <div><dt>To pass</dt><dd>{c.passPct}%</dd></div>
       </dl>
       <div className="ci-buy">
         <div className="ci-price">{money(c.priceCents!)}<span>per learner</span></div>
-        <Link className="btn btn-primary" href={`${c.href}#enroll`}>Start now</Link>
-        <Link className="btn btn-outline" href={c.href!}>Learn more</Link>
-        <span className="ci-note">Included for CPP members</span>
+        <Link className="btn btn-primary" href={`${href}#enroll`}>Start now</Link>
+        <Link className="btn btn-outline" href={href}>Learn more</Link>
+        {c.cppIncluded && <span className="ci-note">Included for CPP members</span>}
       </div>
     </article>
   );
 }
 
-export default function Page() {
-  const open = certs.filter(available);
-  const soon = order.flatMap((t) => certs.filter((c) => c.type === t && !available(c)));
+export default async function Page() {
+  const all = await listCourses();
+  const open = all.filter((c) => c.forSale);
+  const soon = all.filter((c) => !c.forSale && c.status !== "draft");
   return (
     <>
       <section className="cert-head">
@@ -65,8 +65,9 @@ export default function Page() {
           <div className="cert-bar">
             <h2>Available now <span>{open.length}</span></h2>
           </div>
+          {!open.length && <p>New certifications are on the way. Call {"(877) 868-9967"} or email info@labb.com with questions.</p>}
           <div className="cert-list">
-            {open.map((c) => <CertItem key={c.sku} c={c} />)}
+            {open.map((c) => <CertItem key={c.slug} c={c} />)}
           </div>
         </div>
       </section>
@@ -78,10 +79,10 @@ export default function Page() {
           </div>
           <div className="cert-soon">
             {soon.map((c) => (
-              <div key={c.sku} className="cs-item">
-                <span className="ci-type">{certTypes[c.type].label}{c.status ? ` · ${c.status}` : ""}</span>
-                <h3>{c.name}</h3>
-                <p>{c.covers}</p>
+              <div key={c.slug} className="cs-item">
+                <span className="ci-type">{COURSE_TYPES[c.type]}</span>
+                <h3>{c.hasFile ? <Link href={`/certifications/${c.slug}`}>{c.short}</Link> : c.short}</h3>
+                <p>{c.overview}</p>
               </div>
             ))}
           </div>

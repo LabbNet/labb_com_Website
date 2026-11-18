@@ -11,7 +11,7 @@ export default async function Purchased({ searchParams }: { searchParams: Promis
   let ok = false, email = "";
   if (stripeEnabled && session_id && /^cs_[A-Za-z0-9_]+$/.test(session_id)) {
     const s = await stripe().checkout.sessions.retrieve(session_id);
-    const c = getCourse(s.metadata?.course || "");
+    const c = await getCourse(s.metadata?.course || "");
     email = s.customer_details?.email || s.customer_email || "";
     if (s.payment_status === "paid" && c && email) {
       await grantCourse({ email, name: s.metadata?.name || "", course: c, source: "purchase", stripeSession: s.id, amountCents: s.amount_total ?? undefined });

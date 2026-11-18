@@ -7,8 +7,8 @@ import { absoluteUrl } from "@/lib/site";
 // Starts Stripe Checkout for a course. Until Stripe is set up, sends the buyer to request enrollment instead.
 export async function POST(req: Request) {
   const fd = await req.formData();
-  const c = getCourse(field(fd, "course", 40));
-  if (!c) return go(req, "/certifications");
+  const c = await getCourse(field(fd, "course", 60));
+  if (!c || !c.forSale || c.priceCents === null) return go(req, "/certifications");
   const name = field(fd, "name", 120);
   const email = field(fd, "email", 160).toLowerCase();
   const back = `/certifications/${c.slug}`;

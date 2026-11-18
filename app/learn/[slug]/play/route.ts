@@ -6,8 +6,8 @@ import { go } from "@/lib/http";
 // The course player, served whole (it has its own layout). Only for enrolled learners.
 export async function GET(req: Request, { params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
-  const c = getCourse(slug);
-  if (!c) return new Response("Not found", { status: 404 });
+  const c = await getCourse(slug);
+  if (!c || !c.hasFile) return new Response("Not found", { status: 404 });
   const m = await currentMember();
   if (!m) return go(req, `/login?next=${encodeURIComponent(`/learn/${slug}/play`)}`);
   const e = await courseAccess(m, c);

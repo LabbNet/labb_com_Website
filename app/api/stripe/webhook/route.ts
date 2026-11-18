@@ -25,7 +25,7 @@ export async function POST(req: Request) {
 
     // Labb Learning course purchase: create or find the learner and enroll them.
     if (s.metadata?.kind === "course" && email && s.payment_status === "paid") {
-      const c = getCourse(s.metadata.course || "");
+      const c = await getCourse(s.metadata.course || "");
       if (c) await grantCourse({ email, name: s.metadata.name || "", course: c, source: "purchase", stripeSession: s.id, amountCents: s.amount_total ?? undefined });
     }
 
