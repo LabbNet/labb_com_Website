@@ -98,6 +98,7 @@ export const kits: Kit[] = [
       { code: "THC", name: "Marijuana", cutoff: "12" },
     ],
     image: "/kits/or-06a.webp",
+    dataSheet: "/data-sheets/labb-etest-swab-or06a-data-sheet-v4.00.pdf",
     gallery: [
       { src: "/kits/or-06a/hero.webp", alt: "OR:06A oral fluid cup with the swab and cap beside it", w: 1000, h: 1000 },
       { src: "/kits/or-06a/closed.webp", alt: "OR:06A cup closed, ready to read", w: 1000, h: 1000 },
@@ -157,6 +158,7 @@ export const kits: Kit[] = [
       { code: "THC", name: "Marijuana", cutoff: "12" },
     ],
     image: "/kits/or-12a.webp",
+    dataSheet: "/data-sheets/labb-etest-swab-or12a-data-sheet-v4.00.pdf",
     gallery: [
       { src: "/kits/or-12a/hero.webp", alt: "OR:12A oral fluid cup with the swab and cap beside it", w: 1000, h: 1000 },
       { src: "/kits/or-12a/closed.webp", alt: "OR:12A cup closed, ready to read", w: 1000, h: 1000 },
@@ -219,7 +221,7 @@ export const kits: Kit[] = [
       { src: "/kits/or-14a/box-closed.webp", alt: "OR:14A case of 25, closed", w: 1000, h: 1000 },
       { src: "/kits/or-14a/box-open.webp", alt: "OR:14A case of 25, open, showing the pouches", w: 1000, h: 1000 },
     ],
-    dataSheet: drive("11IX959oT-UOp8m-AKBoLLgMGg5MJJnob"),
+    dataSheet: "/data-sheets/labb-etest-swab-or14a-data-sheet-v4.00.pdf",
     goodFor: ["Post-accident", "Reasonable suspicion", "Alcohol plus drugs"],
     published: true,
   },
