@@ -25,7 +25,7 @@ export async function POST(req: Request) {
   const pagesRaw = field(fd, "pages", 6);
   const sortRaw = field(fd, "sort", 6) || String(c.sort);
   const cpp = fd.get("cpp_included") === "on";
-  const discRaw = field(fd, "cpp_discount", 4) || "0";
+  const discRaw = fd.has("cpp_discount") ? field(fd, "cpp_discount", 4) || "0" : String(c.cppDiscountPct);
   const disc = /^\d{1,3}$/.test(discRaw) && Number(discRaw) <= 100 ? Number(discRaw) : NaN;
 
   const price = priceRaw === "" ? null : /^\d+(\.\d{1,2})?$/.test(priceRaw) ? Math.round(Number(priceRaw) * 100) : NaN;
