@@ -24,6 +24,8 @@ const INDUSTRY = ["Construction", "Manufacturing", "Logistics and warehousing", 
 
 // Consultation forms ask about the visitor's program first, then where testing happens, then contact details.
 const IMPROVE = ["Lower cost per test", "Faster results", "Fewer errors and disputed results", "Less paperwork", "Easier lab confirmations", "Compliance and documentation", "Grow my testing business", "Something else"];
+// Only testing businesses grow a testing business; everyone else doesn't see that choice.
+const GROW_SEGMENTS = ["tpa", "collection-site"];
 const LOCATION = ["At a clinic or collection site", "In-house, at our location", "Both", "Not sure yet"];
 const CONSULT: Variant[] = ["demo", "quote", "contact", "early-access", "clinic"];
 
@@ -33,6 +35,7 @@ export function LeadForm({ variant, title, subtitle, submitLabel, resource, indu
   const [state, setState] = useState<"idle" | "sending" | "done">("idle");
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [error, setError] = useState("");
+  const [improveOther, setImproveOther] = useState(false);
   const [download, setDownload] = useState<string>();
   const [utm, setUtm] = useState<Record<string, string>>({});
   const isClinicVariant = variant === "clinic";
@@ -73,7 +76,8 @@ export function LeadForm({ variant, title, subtitle, submitLabel, resource, indu
         const v = String(fd.get(k) || "").trim();
         if (v) details[k] = v;
       }
-      const imp = fd.getAll("improve").map(String);
+      const other = String(fd.get("improveOther") || "").trim();
+      const imp = fd.getAll("improve").map(String).filter((o) => o !== "Grow my testing business" || GROW_SEGMENTS.includes(segment)).map((o) => (o === "Something else" && other ? `Something else: ${other}` : o));
       if (imp.length) details.improve = imp.join(", ");
     }
     if (Object.keys(details).length) body.details = details;
@@ -189,8 +193,16 @@ export function LeadForm({ variant, title, subtitle, submitLabel, resource, indu
             </div>
             <fieldset className="field full check-grid">
               <legend>What would you like to improve?</legend>
-              {IMPROVE.map((o) => <label key={o}><input type="checkbox" name="improve" value={o} /> {o}</label>)}
+              {IMPROVE.filter((o) => o !== "Grow my testing business" || GROW_SEGMENTS.includes(segment)).map((o) => (
+                <label key={o}><input type="checkbox" name="improve" value={o} onChange={o === "Something else" ? (e) => setImproveOther(e.target.checked) : undefined} /> {o}</label>
+              ))}
             </fieldset>
+            {improveOther && (
+              <div className="field full">
+                <label htmlFor="f-improveOther">What else would you like to improve?</label>
+                <input id="f-improveOther" name="improveOther" maxLength={300} autoFocus />
+              </div>
+            )}
             <div className="field">
               <label htmlFor="f-costPerTest">Current cost per test</label>
               <input id="f-costPerTest" name="costPerTest" inputMode="decimal" placeholder="$45 or not sure" />
