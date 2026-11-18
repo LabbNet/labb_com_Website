@@ -352,6 +352,7 @@ export const library = [
     items: [
       { title: "OraFlo Rapid Drug Testing Booklet (2026)", url: "/api/members/files/oraflo-booklet" },
       { title: "eTest Cup Booklet (2026)", url: "/api/members/files/etest-cup-booklet" },
+      { title: "eTest Cup Product Lineup: every cup, all four sides", url: "/api/members/files/etest-cup-lineup" },
       { title: "eTest Swab Booklet (2026)", url: "/api/members/files/etest-swab-booklet" },
       { title: "LabbHR Proctor Testing Kiosk Brochure (coming 2027)", url: "/api/members/files/kiosk-brochure" },
     ],
