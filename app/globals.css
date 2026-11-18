@@ -1013,3 +1013,8 @@ td.acts { white-space: nowrap; }
 .lead-pass-form { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin-top: 10px; }
 .lead-pass-form select { min-width: 280px; }
 .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+.ts-brochures { display: grid; gap: 8px; }
+.ts-brochures legend .fine { font-weight: 400; }
+.ts-broch-row { display: grid; grid-template-columns: 1fr 96px; align-items: center; gap: 12px; padding: 8px 12px; border: 1px solid var(--border); border-radius: 10px; background: #fff; font-weight: 500; }
+.ts-broch-row input { width: 96px; text-align: right; }

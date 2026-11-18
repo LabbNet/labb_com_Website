@@ -72,10 +72,27 @@ export function productImage(path: string | null): string | null {
   if (!path) return null;
   return productKit(path)?.image ?? PAGE_IMAGES[path] ?? null;
 }
-// Saved link, or a kit page whose code matches the SKU.
-export function productLink(i: Pick<PriceItem, "product_path" | "sku">): string | null {
+// Saved link, or the kit whose code matches the SKU or the product name.
+// Codes compare on letters and digits only, so "UA:23A", "UA-23A-SVT", "ua23a" and "UA:23" all find UA:23A.
+const norm = (v: string | null | undefined) => (v || "").toUpperCase().replace(/[^A-Z0-9]/g, "");
+function kitFor(text: string | null | undefined) {
+  const t = norm(text);
+  if (t.length < 3) return null;
+  const exact = publishedKits.find((k) => t.includes(norm(k.code)));
+  if (exact) return exact;
+  // A short code like "UA:18" or "OR:06" finds the one kit it starts.
+  const starts = publishedKits.filter((k) => norm(k.code).startsWith(t) || (/^[A-Z]+\d+$/.test(t) && norm(k.code).startsWith(t)));
+  if (starts.length === 1) return starts[0];
+  const tokens = (text || "").toUpperCase().match(/[A-Z]{2,3}[:\s-]?\d{2}[A-Z]?/g) || [];
+  for (const tok of tokens) {
+    const n = norm(tok);
+    const hit = publishedKits.filter((k) => norm(k.code) === n || norm(k.code).startsWith(n));
+    if (hit.length === 1) return hit[0];
+  }
+  return null;
+}
+export function productLink(i: Pick<PriceItem, "product_path" | "sku"> & { name?: string | null }): string | null {
   if (i.product_path && isProductPath(i.product_path)) return i.product_path;
-  const code = (i.sku || "").replace(/[\s-]/g, "").toUpperCase();
-  const k = code && publishedKits.find((k) => k.code.replace(/[\s-]/g, "").toUpperCase() === code);
+  const k = kitFor(i.sku) ?? kitFor(i.name);
   return k ? `/test-kits/${k.slug}` : null;
 }

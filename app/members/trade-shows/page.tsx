@@ -1,8 +1,9 @@
+import { site } from "@/lib/site";
 import { Flash } from "@/components/AdminBar";
 import { readFlash } from "@/lib/admin";
 import { currentMember } from "@/lib/auth";
 import { sql } from "@/lib/db";
-import { BROCHURE_QTY, showDates, TS_COLUMNS, TS_LIMIT_NOTE, tsStatusLabel, type TsRow } from "@/lib/tradeShows";
+import { showDates, TS_COLUMNS, TS_LIMIT_NOTE, tsStatusLabel, type TsRow, TS_BROCHURES, BROCHURE_LIMIT, brochureSummary } from "@/lib/tradeShows";
 
 export const dynamic = "force-dynamic";
 
@@ -45,12 +46,15 @@ export default async function TradeShows() {
               <div className="field full"><label htmlFor="t-url">Show website</label><input id="t-url" name="show_url" maxLength={300} placeholder="https://" /></div>
 
               <h3 className="form-group full">What you need</h3>
-              <div className="field">
-                <label htmlFor="t-broch">Brochures</label>
-                <select id="t-broch" name="brochures" defaultValue="100">
-                  {BROCHURE_QTY.map((q) => <option key={q} value={q}>{q === 0 ? "None" : q}</option>)}
-                </select>
-              </div>
+              <fieldset className="field full ts-brochures">
+                <legend>Booklets and brochures <span className="fine">(up to {BROCHURE_LIMIT} total. Need more? Call Labb at <a href={site.phoneHref}>{site.phone}</a>.)</span></legend>
+                {TS_BROCHURES.map((b) => (
+                  <label key={b.value} className="ts-broch-row">
+                    <span>{b.label}</span>
+                    <input type="number" name={`broch_${b.value}`} min={0} max={BROCHURE_LIMIT} step={1} defaultValue={0} inputMode="numeric" aria-label={`${b.label} quantity`} />
+                  </label>
+                ))}
+              </fieldset>
               <div className="field">
                 <label htmlFor="t-banner">Pop-up banner stands</label>
                 <select id="t-banner" name="banner_stands" defaultValue="yes">
@@ -85,7 +89,7 @@ export default async function TradeShows() {
                     <strong>{r.show_name}</strong>
                     <span className="sub">{r.show_city}, {r.show_state} · {showDates(r)}</span>
                     <span className="sub">
-                      {[r.brochures ? `${r.brochures} brochures` : "", r.banner_stands ? "Banner stands" : "", r.other_items ? "Other items" : ""].filter(Boolean).join(" · ")}
+                      {[brochureSummary(r.brochure_items, r.brochures), r.banner_stands ? "Banner stands" : "", r.other_items ? "Other items" : ""].filter(Boolean).join(" · ")}
                     </span>
                     {r.admin_note && <span className="sub">Labb: {r.admin_note}</span>}
                   </div>

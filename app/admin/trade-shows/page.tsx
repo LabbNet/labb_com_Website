@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { AdminBar, Flash } from "@/components/AdminBar";
 import { fmtDate, readFlash, requireAdmin } from "@/lib/admin";
 import { sql } from "@/lib/db";
-import { showDates, fmtDay, TS_STATUSES, tsStatusLabel, type TsRow } from "@/lib/tradeShows";
+import { showDates, fmtDay, TS_STATUSES, tsStatusLabel, type TsRow, brochureLabel } from "@/lib/tradeShows";
 
 export const metadata: Metadata = { title: "Trade Show Requests", robots: { index: false, follow: false } };
 export const dynamic = "force-dynamic";
@@ -14,7 +14,7 @@ export default async function AdminTradeShows({ searchParams }: { searchParams: 
   const { show = "open" } = await searchParams;
   const filter = ["open", "all", "requested", "approved", "shipped", "declined"].includes(show) ? show : "open";
   const cols = `t.id, t.member_id, t.show_name, t.show_city, t.show_state, t.venue, t.show_url,
-    to_char(t.start_date, 'YYYY-MM-DD') as start_date, to_char(t.end_date, 'YYYY-MM-DD') as end_date, t.brochures, t.banner_stands, t.other_items,
+    to_char(t.start_date, 'YYYY-MM-DD') as start_date, to_char(t.end_date, 'YYYY-MM-DD') as end_date, t.brochures, t.brochure_items, t.banner_stands, t.other_items,
     t.ship_name, t.ship_line1, t.ship_line2, t.ship_city, t.ship_state, t.ship_zip, to_char(t.need_by, 'YYYY-MM-DD') as need_by, t.notes, t.status, t.admin_note, t.created_at`;
   const [rows, flash] = await Promise.all([
     sql().unsafe(
@@ -63,7 +63,7 @@ export default async function AdminTradeShows({ searchParams }: { searchParams: 
                   <div>
                     <span className="eyebrow">Items</span>
                     <ul>
-                      {r.brochures > 0 && <li>{r.brochures} brochures</li>}
+                      {r.brochure_items?.length ? r.brochure_items.map((i) => <li key={i.item}>{i.qty} × {brochureLabel(i.item)}</li>) : r.brochures > 0 && <li>{r.brochures} brochures</li>}
                       {r.banner_stands && <li>1 set of pop-up banner stands</li>}
                       {r.other_items && <li>Other: {r.other_items}</li>}
                     </ul>

@@ -1,3 +1,4 @@
+import { site } from "@/lib/site";
 import { cppEmail } from "@/lib/site";
 import { currentMember, sameOrigin } from "@/lib/auth";
 import { setFlash } from "@/lib/admin";
@@ -6,7 +7,7 @@ import { field, go } from "@/lib/http";
 import { esc } from "@/lib/leads";
 import { emailLayout, sendMail } from "@/lib/mail";
 import { absoluteUrl } from "@/lib/site";
-import { BROCHURE_QTY, showDates } from "@/lib/tradeShows";
+import { showDates, TS_BROCHURES, BROCHURE_LIMIT, brochureSummary, type BrochureItem } from "@/lib/tradeShows";
 
 // A CPP member requests sponsored materials for a trade show. Stored, then emailed to the Labb notification address.
 const DATE = /^\d{4}-\d{2}-\d{2}$/;
@@ -26,8 +27,15 @@ export async function POST(req: Request) {
   const end = field(fd, "end_date", 10);
   if (!show || !city || !state || !DATE.test(start)) return err("Enter the show name, city, state and start date.");
   if (end && (!DATE.test(end) || end < start)) return err("The end date must be on or after the start date.");
-  const brochures = Number(field(fd, "brochures", 5)) || 0;
-  if (!BROCHURE_QTY.includes(brochures)) return err("Choose a brochure quantity from the list.");
+  const brochureItems: BrochureItem[] = [];
+  for (const b of TS_BROCHURES) {
+    const raw = field(fd, `broch_${b.value}`, 6);
+    const qty = raw ? Number(raw) : 0;
+    if (!Number.isInteger(qty) || qty < 0 || qty > BROCHURE_LIMIT) return err(`Enter a whole number from 0 to ${BROCHURE_LIMIT} for the ${b.label}.`);
+    if (qty) brochureItems.push({ item: b.value, qty });
+  }
+  const brochures = brochureItems.reduce((t, i) => t + i.qty, 0);
+  if (brochures > BROCHURE_LIMIT) return err(`Requests are limited to ${BROCHURE_LIMIT} booklets and brochures in total. For more, call Labb at ${site.phone}.`);
   const banners = fd.get("banner_stands") === "yes";
   const other = field(fd, "other_items", 1000);
   if (!brochures && !banners && !other) return err("Choose at least one item: brochures, banner stands or other items.");
@@ -50,13 +58,13 @@ export async function POST(req: Request) {
   const db = sql();
   const [prior] = await db<{ n: number }[]>`select count(*)::int as n from trade_show_requests where member_id = ${m.id} and status <> 'declined'`;
   const [r] = await db<{ id: string }[]>`
-    insert into trade_show_requests (member_id, show_name, show_city, show_state, venue, show_url, start_date, end_date, brochures, banner_stands,
+    insert into trade_show_requests (member_id, show_name, show_city, show_state, venue, show_url, start_date, end_date, brochures, brochure_items, banner_stands,
       other_items, ship_name, ship_line1, ship_line2, ship_city, ship_state, ship_zip, need_by, notes)
-    values (${m.id}, ${show}, ${city}, ${state}, ${v.venue}, ${v.url}, ${start}, ${end || null}, ${brochures}, ${banners},
+    values (${m.id}, ${show}, ${city}, ${state}, ${v.venue}, ${v.url}, ${start}, ${end || null}, ${brochures}, ${db.json(brochureItems)}, ${banners},
       ${other || null}, ${v.shipName}, ${v.line1}, ${v.line2}, ${v.sCity}, ${v.sState}, ${v.zip}, ${v.needBy}, ${v.notes})
     returning id`;
 
-  const items = [brochures ? `${brochures} brochures` : "", banners ? "1 set of pop-up banner stands" : "", other ? `Other: ${other}` : ""].filter(Boolean).join("; ");
+  const items = [brochureSummary(brochureItems, brochures), banners ? "1 set of pop-up banner stands" : "", other ? `Other: ${other}` : ""].filter(Boolean).join("; ");
   const rows: [string, string][] = [
     ["Member", m.clinic ? `${m.name} (${m.clinic})` : m.name],
     ["Email", m.email],
