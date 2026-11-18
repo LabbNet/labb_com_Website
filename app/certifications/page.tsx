@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 import { Breadcrumbs, CtaBand, Faq } from "@/components/ui";
 import { LeadForm } from "@/components/LeadForm";
 import { PageHero } from "@/components/PageHero";
-import { certs, certTypes, paths, type CertType } from "@/lib/certifications";
+import { certs, certTypes, type CertType } from "@/lib/certifications";
 
 export const metadata: Metadata = {
   title: "Labb Certifications: Product, Specimen, Software and Position",
@@ -56,36 +56,6 @@ export default function Page() {
             <div><strong>Online</strong><span>Exam built on Labb training documents</span></div>
             <div><strong>85%</strong><span>Score to pass each chapter</span></div>
             <div><strong>1 year</strong><span>Certification valid</span></div>
-          </div>
-        </div>
-      </section>
-
-      <section className="section soft">
-        <div className="wrap">
-          <span className="eyebrow">Who takes what</span>
-          <h2>Find your certifications by role</h2>
-          <p className="intro">For example: a clinic owner takes the Clinic Owner certification. That clinic&apos;s collectors take the product, specimen and software certifications. They are separate.</p>
-          <div className="compare-wrap">
-            <table className="compare paths">
-              <thead>
-                <tr>
-                  <th scope="col" style={{ textAlign: "left" }}>Your role</th>
-                  <th scope="col">Position</th>
-                  <th scope="col">Product</th>
-                  <th scope="col">Software</th>
-                </tr>
-              </thead>
-              <tbody>
-                {paths.map((p) => (
-                  <tr key={p.role}>
-                    <th scope="row">{p.role}</th>
-                    {[p.position, p.product, p.software].map((v, i) => (
-                      <td key={i} className={v === "Not required" ? "" : "on"}>{v === "Not required" ? <span className="no">Not required</span> : v}</td>
-                    ))}
-                  </tr>
-                ))}
-              </tbody>
-            </table>
           </div>
         </div>
       </section>
