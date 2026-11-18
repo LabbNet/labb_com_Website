@@ -33,7 +33,16 @@ export default async function QuoteAnalytics({ searchParams }: { searchParams: P
       and (${status} = '' or q.status = ${status})
       and (${days} = 0 or q.quoted_on >= current_date - ${days}::int)`;
 
-  const [byProduct, byState, byIndustry, recent, opts] = await Promise.all([
+  const forecastQ = db<{ key: string; product_name: string; category: string | null; accepted: string; pipeline: string; quotes: number }[]>`
+      with f as (${base})
+      select coalesce(i.price_item_id::text, 'other:' || lower(i.product_name)) as key, min(i.product_name) as product_name, min(i.category) as category,
+        coalesce(sum(i.monthly_volume) filter (where f.status = 'accepted'), 0)::bigint as accepted,
+        coalesce(sum(i.monthly_volume) filter (where f.status in ('sent', 'draft')), 0)::bigint as pipeline,
+        count(distinct f.id)::int as quotes
+      from f join member_quote_items i on i.quote_id = f.id
+      where i.monthly_volume is not null and (${category} = '' or i.category = ${category}) and (${product} = '' or i.price_item_id::text = ${product})
+      group by 1 order by accepted desc, pipeline desc`;
+  const [byProduct, byState, byIndustry, recent, opts, forecast] = await Promise.all([
     db<{ key: string; product_name: string; sku: string | null; quotes: number; units: string; avg_cents: number; wavg_cents: number; min_cents: number; max_cents: number; msrp_cents: number | null }[]>`
       with f as (${base})
       select coalesce(i.price_item_id::text, 'other:' || lower(i.product_name)) as key, min(i.product_name) as product_name, min(i.sku) as sku,
@@ -65,7 +74,15 @@ export default async function QuoteAnalytics({ searchParams }: { searchParams: P
       union select 'industry', coalesce(nullif(industry, ''), segment) from member_quotes where coalesce(nullif(industry, ''), segment) is not null
       union select 'product', price_item_id::text || '|' || min(product_name) from member_quote_items where price_item_id is not null group by price_item_id
       order by 1, 2`,
+    forecastQ,
   ]);
+  const catLabel = (v: string | null) => PRICE_CATEGORIES.find((c) => c.value === v)?.label ?? "Other";
+  const byCat = Object.values(forecast.reduce<Record<string, { label: string; accepted: number; pipeline: number }>>((acc, r) => {
+    const k = r.category || "other";
+    acc[k] ??= { label: catLabel(r.category), accepted: 0, pipeline: 0 };
+    acc[k].accepted += Number(r.accepted); acc[k].pipeline += Number(r.pipeline);
+    return acc;
+  }, {}));
   const states = opts.filter((o) => o.kind === "state").map((o) => o.v);
   const industries = opts.filter((o) => o.kind === "industry").map((o) => o.v);
   const products = opts.filter((o) => o.kind === "product").map((o) => { const [id, ...n] = o.v.split("|"); return { id, name: n.join("|") }; });
@@ -131,6 +148,28 @@ export default async function QuoteAnalytics({ searchParams }: { searchParams: P
                     ))}
                   </tbody>
                 </table>
+              </div>
+
+              <h2 className="qa-h">Testing volume forecast (per month)</h2>
+              <p className="fine" style={{ marginTop: -6 }}>Expected monthly volume from member quotes. Accepted quotes are committed; sent and draft quotes are pipeline.</p>
+              <div className="qa-split">
+                <div className="compare-wrap">
+                  <table className="compare admin-table">
+                    <thead><tr><th scope="col" style={{ textAlign: "left" }}>Product type</th><th scope="col">Accepted</th><th scope="col">Pipeline</th><th scope="col">Total</th></tr></thead>
+                    <tbody>
+                      {byCat.map((r) => <tr key={r.label}><th scope="row">{r.label}</th><td><strong>{r.accepted.toLocaleString()}</strong></td><td>{r.pipeline.toLocaleString()}</td><td>{(r.accepted + r.pipeline).toLocaleString()}</td></tr>)}
+                      {!byCat.length && <tr><td colSpan={4}>No expected volumes recorded yet.</td></tr>}
+                    </tbody>
+                  </table>
+                </div>
+                <div className="compare-wrap">
+                  <table className="compare admin-table">
+                    <thead><tr><th scope="col" style={{ textAlign: "left" }}>Product</th><th scope="col">Accepted</th><th scope="col">Pipeline</th><th scope="col">Quotes</th></tr></thead>
+                    <tbody>
+                      {forecast.map((r) => <tr key={r.key}><th scope="row">{r.product_name}</th><td><strong>{Number(r.accepted).toLocaleString()}</strong></td><td>{Number(r.pipeline).toLocaleString()}</td><td>{r.quotes}</td></tr>)}
+                    </tbody>
+                  </table>
+                </div>
               </div>
 
               <div className="qa-split">

@@ -25,6 +25,8 @@ export default async function MemberLeads() {
     select id, name, sku, unit, category, sl1_msrp_cents from cpp_price_items where active order by category, sort, lower(name)`)
     .map((p): QuoteProduct => ({ id: String(p.id), name: p.name, sku: p.sku, unit: p.unit, category: p.category, msrpCents: p.sl1_msrp_cents }));
   const groups = PRICE_CATEGORIES.map((c) => ({ value: c.value, label: c.label }));
+  const others = await sql()<{ id: string; name: string; clinic: string | null }[]>`
+    select id, name, clinic from members where id <> ${m.id} and role = 'member' and status = 'active' and cpp_status = 'active' order by lower(coalesce(clinic, name))`;
 
   return (
     <section className="section" style={{ paddingTop: 32 }}>
@@ -72,6 +74,22 @@ export default async function MemberLeads() {
                 </div>
                 <button className="btn btn-outline-dark" type="submit" style={{ justifySelf: "start" }}>Save update</button>
               </form>
+              {others.length > 0 && (
+                <details className="lead-pass">
+                  <summary>Pass this lead to another CPP member</summary>
+                  <form action="/api/members/leads" method="post" className="lead-pass-form">
+                    <input type="hidden" name="action" value="pass" />
+                    <input type="hidden" name="id" value={l.id} />
+                    <label htmlFor={`pp-${l.id}`} className="sr-only">CPP member</label>
+                    <select id={`pp-${l.id}`} name="partner" required defaultValue="">
+                      <option value="" disabled>Choose a CPP member</option>
+                      {others.map((o) => <option key={o.id} value={o.id}>{o.clinic ? `${o.clinic} (${o.name})` : o.name}</option>)}
+                    </select>
+                    <button className="btn btn-outline-dark" type="submit">Pass lead</button>
+                  </form>
+                  <p className="fine">The lead moves to their account and they&apos;re emailed. Your quotes for it stay in My quotes.</p>
+                </details>
+              )}
               <div className="lead-quotes">
                 <h3>Quotes <span className="fine">· for your records and Labb&apos;s pricing reports. Never sent to the client.</span></h3>
                 <QuoteList quotes={quotes.filter((q) => q.lead_id === String(l.id))} />

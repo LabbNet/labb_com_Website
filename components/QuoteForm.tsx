@@ -3,9 +3,9 @@
 import { useState } from "react";
 
 export type QuoteProduct = { id: string; name: string; sku: string | null; unit: string | null; category: string; msrpCents: number | null };
-type Row = { pid: string; name: string; qty: string; price: string };
+type Row = { pid: string; name: string; qty: string; price: string; vol: string };
 
-const blank = (): Row => ({ pid: "", name: "", qty: "1", price: "" });
+const blank = (): Row => ({ pid: "", name: "", qty: "1", price: "", vol: "" });
 const cents = (v: string) => Math.round(parseFloat(v.replace(/[$,\s]/g, "")) * 100);
 const fmt = (c: number) => (c / 100).toLocaleString("en-US", { style: "currency", currency: "USD" });
 
@@ -24,7 +24,7 @@ export function QuoteForm({ leadId, products, groups }: { leadId: string; produc
       <input type="hidden" name="action" value="create" />
       <input type="hidden" name="lead" value={leadId} />
       <div className="qf-rows">
-        <div className="qf-row qf-headrow" aria-hidden="true"><span>Product or service</span><span>Qty</span><span>Unit price</span><span>Line total</span><span /></div>
+        <div className="qf-row qf-headrow" aria-hidden="true"><span>Product or service</span><span>Qty</span><span>Unit price</span><span>Expected per month</span><span>Line total</span><span /></div>
         {rows.map((r, i) => {
           const q = parseInt(r.qty, 10), p = cents(r.price);
           return (
@@ -49,6 +49,7 @@ export function QuoteForm({ leadId, products, groups }: { leadId: string; produc
               <input name="item_price" aria-label={`Unit price ${i + 1}`} inputMode="decimal" pattern="\$?[0-9,]*(\.[0-9]{1,2})?" title="A price like 12.50" value={r.price} required
                 placeholder={(() => { const pr = products.find((x) => x.id === r.pid); return pr?.msrpCents != null ? `MSRP ${(pr.msrpCents / 100).toFixed(2)}` : "$0.00"; })()}
                 onChange={(e) => set(i, { price: e.target.value })} />
+              <input name="item_vol" aria-label={`Expected tests or units per month, line ${i + 1}`} inputMode="numeric" pattern="[0-9,]{1,9}" placeholder="e.g. 40" value={r.vol} required onChange={(e) => set(i, { vol: e.target.value })} />
               <span className="qf-line">{q > 0 && p >= 0 ? fmt(q * p) : ""}</span>
               <button type="button" className="icon-act" aria-label="Remove line" data-tip="Remove line" disabled={rows.length === 1} onClick={() => setRows((r2) => r2.filter((_, j) => j !== i))}>
                 <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" /></svg>
@@ -57,6 +58,7 @@ export function QuoteForm({ leadId, products, groups }: { leadId: string; produc
           );
         })}
       </div>
+      <p className="fine" style={{ margin: "8px 0 0" }}>Expected per month: how many tests (or units) the client expects to use each month. Labb uses it to forecast supply by product.</p>
       <div className="qf-foot">
         <button type="button" className="btn btn-outline-dark" onClick={() => setRows((r) => [...r, blank()])}>+ Add a line</button>
         <span className="qf-total">Quote total <strong>{fmt(total)}</strong></span>

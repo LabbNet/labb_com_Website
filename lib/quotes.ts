@@ -11,7 +11,7 @@ export type QuoteStatus = (typeof QUOTE_STATUSES)[number]["value"];
 export const isQuoteStatus = (v: string): v is QuoteStatus => QUOTE_STATUSES.some((s) => s.value === v);
 export const quoteStatusLabel = (v: string) => QUOTE_STATUSES.find((s) => s.value === v)?.label ?? v;
 
-export type QuoteItem = { product_name: string; sku: string | null; category: string | null; unit: string | null; quantity: number; unit_price_cents: number };
+export type QuoteItem = { product_name: string; sku: string | null; category: string | null; unit: string | null; quantity: number; unit_price_cents: number; monthly_volume: number | null };
 export type Quote = {
   id: string; lead_id: string; member_id: string; status: QuoteStatus; quoted_on: string; state: string | null; industry: string | null;
   segment: string | null; notes: string | null; total_cents: number; created_at: Date; items: QuoteItem[];
@@ -28,7 +28,7 @@ export async function quotesFor(where: { memberId?: string; leadIds?: string[] }
     order by created_at desc`;
   if (!rows.length) return [] as Quote[];
   const items = await db<(QuoteItem & { quote_id: string })[]>`
-    select quote_id, product_name, sku, category, unit, quantity, unit_price_cents from member_quote_items
+    select quote_id, product_name, sku, category, unit, quantity, unit_price_cents, monthly_volume from member_quote_items
     where quote_id = any(${rows.map((r) => r.id)}::bigint[]) order by id`;
   return rows.map((r) => ({ ...r, items: items.filter((i) => i.quote_id === r.id) })) as Quote[];
 }

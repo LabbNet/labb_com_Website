@@ -37,16 +37,19 @@ export async function POST(req: Request) {
     const names = fd.getAll("item_name").map(String);
     const qtys = fd.getAll("item_qty").map(String);
     const prices = fd.getAll("item_price").map(String);
+    const vols = fd.getAll("item_vol").map(String);
     const catalog = await db<{ id: string; name: string; sku: string | null; category: string; unit: string | null }[]>`
       select id, name, sku, category, unit from cpp_price_items where id = any(${pids.filter((p) => /^\d+$/.test(p))}::bigint[])`;
-    const items: { pid: string | null; name: string; sku: string | null; category: string | null; unit: string | null; qty: number; cents: number }[] = [];
+    const items: { pid: string | null; name: string; sku: string | null; category: string | null; unit: string | null; qty: number; cents: number; vol: number }[] = [];
     for (let i = 0; i < Math.min(pids.length, 40); i++) {
       const qty = parseInt(qtys[i] || "", 10);
       const cents = toCents(prices[i] || "");
       if (!(qty > 0 && qty < 10_000_000) || cents == null) return fail(`Line ${i + 1} needs a quantity and a unit price.`);
+      const vol = parseInt((vols[i] || "").replace(/,/g, ""), 10);
+      if (!(vol >= 0 && vol < 100_000_000)) return fail(`Line ${i + 1} needs the expected tests or units per month.`);
       const p = catalog.find((c) => String(c.id) === pids[i]);
-      if (p) items.push({ pid: String(p.id), name: p.name, sku: p.sku, category: p.category, unit: p.unit, qty, cents });
-      else if (pids[i] === "other" && names[i]?.trim()) items.push({ pid: null, name: names[i].trim().slice(0, 160), sku: null, category: "other", unit: null, qty, cents });
+      if (p) items.push({ pid: String(p.id), name: p.name, sku: p.sku, category: p.category, unit: p.unit, qty, cents, vol });
+      else if (pids[i] === "other" && names[i]?.trim()) items.push({ pid: null, name: names[i].trim().slice(0, 160), sku: null, category: "other", unit: null, qty, cents, vol });
       else return fail(`Choose a product for line ${i + 1}.`);
     }
     if (!items.length) return fail("Add at least one line to the quote.");
@@ -60,8 +63,8 @@ export async function POST(req: Request) {
         ${lead.state ? lead.state.trim().toUpperCase().slice(0, 40) : null}, ${lead.industry}, ${lead.segment}, ${field(fd, "notes", 1000) || null}, ${total})
       returning id`;
     for (const i of items) {
-      await db`insert into member_quote_items (quote_id, price_item_id, product_name, sku, category, unit, quantity, unit_price_cents)
-        values (${q.id}, ${i.pid}, ${i.name}, ${i.sku}, ${i.category}, ${i.unit}, ${i.qty}, ${i.cents})`;
+      await db`insert into member_quote_items (quote_id, price_item_id, product_name, sku, category, unit, quantity, unit_price_cents, monthly_volume)
+        values (${q.id}, ${i.pid}, ${i.name}, ${i.sku}, ${i.category}, ${i.unit}, ${i.qty}, ${i.cents}, ${i.vol})`;
     }
     await logLeadEvent(lead.id, "note", `Quote recorded: ${items.length} line${items.length > 1 ? "s" : ""}, ${money(total)} (${quoteStatusLabel(status)})`, actor);
     await setFlash(`Saved a ${money(total)} quote for ${lead.company || lead.email}.`, "ok", undefined, "/members");

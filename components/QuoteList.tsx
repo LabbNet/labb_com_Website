@@ -18,13 +18,14 @@ export function QuoteList({ quotes, back, leadNames }: { quotes: Quote[]; back?:
             <span className="quote-total">{money(q.total_cents)}</span>
           </div>
           <table className="quote-items">
-            <thead><tr><th scope="col">Product</th><th scope="col">Qty</th><th scope="col">Unit price</th><th scope="col">Line total</th></tr></thead>
+            <thead><tr><th scope="col">Product</th><th scope="col">Qty</th><th scope="col">Unit price</th><th scope="col">Per month</th><th scope="col">Line total</th></tr></thead>
             <tbody>
               {q.items.map((i, n) => (
                 <tr key={n}>
                   <td>{i.product_name}{i.sku ? <span className="fine"> · {i.sku}</span> : null}{i.unit ? <span className="fine"> · {i.unit}</span> : null}</td>
                   <td>{i.quantity.toLocaleString()}</td>
                   <td>{money(i.unit_price_cents)}</td>
+                  <td>{i.monthly_volume != null ? i.monthly_volume.toLocaleString() : ""}</td>
                   <td>{money(i.quantity * i.unit_price_cents)}</td>
                 </tr>
               ))}
@@ -42,6 +43,9 @@ export function QuoteList({ quotes, back, leadNames }: { quotes: Quote[]; back?:
               </select>
               <button className="btn btn-outline-dark btn-sm" type="submit">Update</button>
             </form>
+            <a className="icon-act" href={`/members/quotes/${q.id}/print`} target="_blank" rel="noopener" aria-label={`Print quote ${q.id}`} data-tip="Print quote">
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M7 9V3h10v6M7 17H4v-7h16v7h-3M7 14h10v7H7z" /></svg>
+            </a>
             <form action="/api/members/quotes" method="post">
               <input type="hidden" name="action" value="delete" />
               <input type="hidden" name="id" value={q.id} />

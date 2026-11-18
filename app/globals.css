@@ -955,7 +955,7 @@ td.acts { white-space: nowrap; }
 .quote-add[open] summary { margin-bottom: 14px; }
 .quote-form { padding: 18px; border: 1px solid var(--border); border-radius: 12px; background: #fafbfb; }
 .qf-rows { display: grid; gap: 8px; }
-.qf-row { display: grid; grid-template-columns: minmax(0, 1fr) 80px 120px 110px 36px; gap: 10px; align-items: start; }
+.qf-row { display: grid; grid-template-columns: minmax(0, 1fr) 76px 116px 116px 104px 36px; gap: 10px; align-items: start; }
 .qf-headrow { font-size: .78rem; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; color: var(--muted); }
 .qf-product { display: grid; gap: 6px; }
 .qf-row select, .qf-row input { width: 100%; }
@@ -971,10 +971,45 @@ td.acts { white-space: nowrap; }
 .quote-items th { font-size: .75rem; text-transform: uppercase; letter-spacing: .05em; color: var(--muted); }
 .quote-items td:nth-child(n+2), .quote-items th:nth-child(n+2) { text-align: right; white-space: nowrap; }
 .quote-notes { margin: 10px 0 0; font-size: .9rem; color: var(--muted); }
-.quote-actions { display: flex; justify-content: space-between; align-items: center; gap: 10px; margin-top: 10px; }
+.quote-actions { display: flex; align-items: center; gap: 10px; margin-top: 10px; }
+.quote-actions .quote-status { margin-right: auto; }
 .quote-status { display: flex; align-items: center; gap: 8px; }
 .btn-sm { padding: 6px 12px; font-size: .85rem; }
 .qa-filters { flex-wrap: wrap; }
 .qa-h { font-size: 1.25rem; margin: 30px 0 12px; }
 .qa-split { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
-@media (max-width: 900px) { .qa-split { grid-template-columns: 1fr; } .qf-row { grid-template-columns: 1fr 70px 100px; } .qf-line, .qf-row .icon-act { display: none; } .qf-headrow { display: none; } }
+@media (max-width: 900px) { .qa-split { grid-template-columns: 1fr; } .qf-row { grid-template-columns: 1fr 64px 92px 92px; } .qf-line, .qf-row .icon-act { display: none; } .qf-headrow { display: none; } }
+
+/* Printable quote */
+.pq-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px; }
+.pq-sheet { background: #fff; border: 1px solid var(--border); border-radius: 12px; padding: 40px 44px; }
+.pq-head { display: flex; justify-content: space-between; gap: 24px; align-items: flex-start; border-bottom: 3px solid var(--orange); padding-bottom: 18px; }
+.pq-head h1 { margin: 0; font-size: 2.2rem; }
+.pq-meta { margin: 4px 0 0; color: var(--muted); }
+.pq-from, .pq-to { display: flex; flex-direction: column; gap: 2px; }
+.pq-from { text-align: right; }
+.pq-to { margin: 22px 0; }
+.pq-label { font-size: .75rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--orange); margin-bottom: 4px; }
+.pq-table { width: 100%; border-collapse: collapse; font-size: .95rem; }
+.pq-table th, .pq-table td { padding: 10px 8px; border-bottom: 1px solid var(--border); text-align: right; }
+.pq-table th:first-child, .pq-table td:first-child { text-align: left; }
+.pq-table thead th { font-size: .75rem; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); border-bottom: 2px solid var(--dark); }
+.pq-sub { display: block; font-size: .8rem; color: var(--muted); }
+.pq-table tfoot th, .pq-table tfoot td { font-weight: 800; font-size: 1.1rem; border-bottom: 0; }
+.pq-table tfoot th { text-align: right; }
+.pq-table tfoot .pq-monthly th, .pq-table tfoot .pq-monthly td { font-weight: 600; font-size: .9rem; color: var(--muted); }
+.pq-notes { margin-top: 22px; display: flex; flex-direction: column; }
+.pq-notes p { margin: 0; }
+.pq-foot { margin-top: 30px; font-size: .82rem; color: var(--muted); }
+@media print {
+  .site-header, .site-footer, .member-bar, .no-print, .topbar, .utility-bar { display: none !important; }
+  .print-quote { padding: 0 !important; }
+  .pq-sheet { border: 0; padding: 0; }
+  body { background: #fff; }
+}
+
+.lead-pass { margin-top: 14px; }
+.lead-pass summary { cursor: pointer; font-weight: 600; color: var(--blue); }
+.lead-pass-form { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin-top: 10px; }
+.lead-pass-form select { min-width: 280px; }
+.sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
