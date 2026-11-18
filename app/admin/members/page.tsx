@@ -21,13 +21,13 @@ export default async function AdminMembers({ searchParams }: { searchParams: Pro
   const like = `%${q.toLowerCase().slice(0, 80)}%`;
   const rows = await sql()<(Member & { cpp_status: string; cpp_start: string | null; contracts: number })[]>`
     select id, username, email, name, clinic, role, status, session_version, created_at, last_login_at, cpp_status,
-      to_char(cpp_start_date, 'Mon DD, YYYY') as cpp_start,
+      to_char(cpp_start_date, 'Mon FMDD, YYYY') as cpp_start,
       (select count(*)::int from member_contracts c where c.member_id = members.id) as contracts
     from members
     where (${q} = '' or lower(name) like ${like} or lower(email) like ${like} or lower(username) like ${like} or lower(coalesce(clinic, '')) like ${like})
       and (${show} = 'all' or status = ${show})
       and (${cpp} = 'all' or (role = 'member' and cpp_status = ${cpp}))
-    order by status = 'disabled', lower(name)`;
+    order by status = 'disabled', status <> 'invited', lower(name)`;
   const counts = await sql()<{ status: string; n: number }[]>`select status, count(*)::int as n from members group by status`;
   const c = Object.fromEntries(counts.map((r) => [r.status, r.n]));
   const cppCounts = await sql()<{ cpp_status: string; n: number }[]>`select cpp_status, count(*)::int as n from members where role = 'member' group by cpp_status`;
@@ -70,13 +70,20 @@ export default async function AdminMembers({ searchParams }: { searchParams: Pro
             </div>
           )}
 
-          <div className="split" style={{ alignItems: "start", gridTemplateColumns: "1fr 1.6fr" }}>
-            <div className="hero-card">
-              <h2 className="form-title">Add a member</h2>
-              <p className="form-sub">Creates the account and emails a setup link. Add members after their CPP agreement is signed, then open the member to upload the contract.</p>
+          <div className="members-top">
+              <div className="stats" >
+                <div><strong>{c.active || 0}</strong><span>Active</span></div>
+                <div><strong>{c.invited || 0}</strong><span>Invited, not set up</span></div>
+                <div><strong>{c.disabled || 0}</strong><span>Disabled</span></div>
+                <div><strong>{cc.active || 0}</strong><span>CPP active</span></div>
+                <div><strong>{cc.inactive || 0}</strong><span>CPP inactive</span></div>
+              </div>
+              <details className="hero-card add-member" open={rows.length === 0}>
+                <summary className="btn btn-primary">+ Add a member</summary>
+                <p className="form-sub" style={{ marginTop: 14 }}>Creates the account and emails a setup link. Add members after their CPP agreement is signed, then open the member to upload the contract.</p>
               <form action="/api/admin/members" method="post" autoComplete="off">
                 <input type="hidden" name="action" value="create" />
-                <div className="fields" style={{ gridTemplateColumns: "1fr" }}>
+                <div className="fields add-member-fields">
                   <div className="field"><label htmlFor="a-name">Full name</label><input id="a-name" name="name" required /></div>
                   <div className="field"><label htmlFor="a-email">Email</label><input id="a-email" name="email" type="email" autoComplete="off" required /></div>
                   <div className="field"><label htmlFor="a-clinic">Clinic or business</label><input id="a-clinic" name="clinic" /></div>
@@ -96,18 +103,12 @@ export default async function AdminMembers({ searchParams }: { searchParams: Pro
                     </select>
                   </div>
                 </div>
-                <button className="btn btn-primary btn-block" style={{ marginTop: 18 }} type="submit">Create account and send invite</button>
+                <button className="btn btn-primary" style={{ marginTop: 18 }} type="submit">Create account and send invite</button>
               </form>
-            </div>
+              </details>
+          </div>
 
-            <div>
-              <div className="stats" style={{ marginBottom: 18 }}>
-                <div><strong>{c.active || 0}</strong><span>Active</span></div>
-                <div><strong>{c.invited || 0}</strong><span>Invited, not set up</span></div>
-                <div><strong>{c.disabled || 0}</strong><span>Disabled</span></div>
-                <div><strong>{cc.active || 0}</strong><span>CPP active</span></div>
-                <div><strong>{cc.inactive || 0}</strong><span>CPP inactive</span></div>
-              </div>
+          <div>
               <form method="get" className="admin-search">
                 <input name="q" defaultValue={q} placeholder="Search name, email, username or clinic" aria-label="Search members" />
                 <select name="show" defaultValue={show} aria-label="Filter by status">
@@ -126,20 +127,20 @@ export default async function AdminMembers({ searchParams }: { searchParams: Pro
               <div className="compare-wrap">
                 <table className="compare admin-table">
                   <thead>
-                    <tr><th scope="col" style={{ textAlign: "left" }}>Member</th><th scope="col">CPP</th><th scope="col">Account</th><th scope="col">Last sign in</th><th scope="col">Actions</th></tr>
+                    <tr><th scope="col" style={{ textAlign: "left" }}>Member</th><th scope="col">CPP</th><th scope="col">Account</th><th scope="col">Last sign-in</th><th scope="col">Actions</th></tr>
                   </thead>
                   <tbody>
                     {rows.map((m) => (
                       <tr key={m.id}>
                         <th scope="row">
-                          <Link href={`/admin/members/${m.id}`}>{m.name}</Link> {m.role === "admin" && <span className="tag plain">Admin</span>}
-                          <span className="sub">{m.username} · {m.email}{m.clinic ? ` · ${m.clinic}` : ""}</span>
+                          <Link href={`/admin/members/${m.id}`}>{m.name}</Link>{m.clinic ? <span className="clinic"> · {m.clinic}</span> : null} {m.role === "admin" && <span className="tag plain">Admin</span>}
+                          <span className="sub">{m.email} · {m.username}</span>
                         </th>
                         <td>
                           {m.role === "member" ? (
                             <>
-                              <span className={`status ${m.cpp_status === "active" ? "s-active" : "s-disabled"}`}>{m.cpp_status === "active" ? "Active" : "Inactive"}</span>
-                              <span className="sub">{m.cpp_start ? `Since ${m.cpp_start}` : "No start date"} · {m.contracts ? `${m.contracts} contract${m.contracts > 1 ? "s" : ""}` : "No contract"}</span>
+                              <span className={`status ${m.cpp_status === "active" ? "s-active" : "s-disabled"}`}>{m.cpp_status === "active" ? "Active" : "Inactive"}</span>{" "}
+                              <span className="inline-sub">{m.cpp_start ? `since ${m.cpp_start}` : "no start date"} · {m.contracts ? `${m.contracts} contract${m.contracts > 1 ? "s" : ""}` : "no contract"}</span>
                             </>
                           ) : <span className="sub">Labb staff</span>}
                         </td>
@@ -158,7 +159,6 @@ export default async function AdminMembers({ searchParams }: { searchParams: Pro
                   </tbody>
                 </table>
               </div>
-            </div>
           </div>
         </div>
       </section>

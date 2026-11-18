@@ -503,6 +503,19 @@ td.acts { white-space: nowrap; }
 .admin-table th[scope="row"] { font-weight: 600; }
 .admin-table .sub { display: block; font-weight: 400; font-size: 0.82rem; color: var(--muted); }
 .admin-table td.acts { white-space: nowrap; }
+.admin-table td { white-space: nowrap; }
+.admin-table .clinic { font-weight: 500; color: var(--muted); }
+.admin-table .inline-sub { font-size: .85rem; color: var(--muted); }
+.members-top { display: flex; flex-wrap: wrap; align-items: start; justify-content: space-between; gap: 18px; margin-bottom: 22px; }
+.members-top .stats { margin: 0; flex: 1 1 0; min-width: 0; grid-template-columns: repeat(5, minmax(0, 1fr)); }
+.members-top .stats div { padding: 16px 18px; }
+@media (max-width: 900px) { .members-top .stats { flex-basis: 100%; grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.add-member { flex: 1 1 100%; padding: 18px 22px; }
+.add-member summary { display: inline-flex; list-style: none; cursor: pointer; }
+.add-member summary::-webkit-details-marker { display: none; }
+.add-member:not([open]) { background: none; border: 0; box-shadow: none; padding: 0; flex: 0 0 auto; }
+.add-member-fields { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+@media (max-width: 900px) { .add-member-fields { grid-template-columns: 1fr; } }
 .admin-table td.acts form + form { margin-left: 12px; }
 .status { display: inline-block; font-size: 0.78rem; font-weight: 700; border-radius: 999px; padding: 2px 10px; }
 .s-active { background: #eaf7ef; color: #1c7a37; }
