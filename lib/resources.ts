@@ -331,7 +331,7 @@ export const library = [
   {
     group: "Clinic Owners Guidebooks",
     items: [
-      { title: "Clinic Owners Guidebook (Drug Testing)", url: "/api/members/files/clinic-owners-guidebook" },
+      { title: "Drug Testing Guidebook", url: "/api/members/files/clinic-owners-guidebook" },
       { title: "Background Screening Guidebook", url: "/api/members/files/background-screening" },
       { title: "Drug Testing Cost Guidebook", url: "/api/members/files/cost-guidebook" },
     ],

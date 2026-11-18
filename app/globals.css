@@ -886,3 +886,44 @@ td.acts { white-space: nowrap; }
 .pc-payout { font-size: .85rem; color: var(--muted); }
 @media (max-width: 760px) { .price-card { grid-template-columns: 1fr; } .pc-levels { grid-template-columns: 1fr 1fr; } }
 @media (max-width: 420px) { .pc-levels { grid-template-columns: 1fr; } }
+
+/* CPP member library */
+.lib-jump { position: sticky; top: 0; z-index: 4; display: flex; flex-wrap: wrap; gap: 8px; margin: 28px 0 8px; padding: 12px 0; background: var(--bg, #fff); border-bottom: 1px solid var(--border); }
+.lib-jump a { padding: 8px 16px; border-radius: 999px; border: 1px solid var(--border); background: #fff; font-weight: 600; font-size: .9rem; color: var(--dark); text-decoration: none; }
+.lib-jump a:hover { border-color: var(--orange); color: var(--orange); }
+.lib-section { margin-top: 44px; padding-top: 8px; }
+.lib-head { display: flex; gap: 16px; align-items: flex-start; padding: 22px 24px; border-radius: 14px; background: var(--tint-10); border-left: 5px solid var(--orange); margin-bottom: 20px; scroll-margin-top: 80px; }
+.lib-head h2 { margin: 2px 0 4px; font-size: 1.5rem; }
+.lib-kicker { margin: 0; font-size: .75rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--orange); }
+.lib-text { margin: 0; color: var(--muted); max-width: 70ch; }
+.lib-sub { font-size: .8rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); margin: 22px 0 10px; }
+.doc-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 14px; }
+.doc-tile { position: relative; display: flex; flex-direction: column; gap: 8px; min-height: 128px; padding: 18px 18px 16px; border: 1px solid var(--border); border-radius: 12px; background: #fff; color: var(--dark); text-decoration: none; transition: border-color .15s, box-shadow .15s, transform .15s; }
+.doc-tile:hover { border-color: var(--orange); box-shadow: 0 8px 22px rgba(64,73,81,.10); transform: translateY(-2px); }
+.doc-type { align-self: flex-start; padding: 2px 8px; border-radius: 6px; background: var(--dark); color: #fff; font-size: .7rem; font-weight: 700; letter-spacing: .05em; }
+.doc-title { font-weight: 600; line-height: 1.35; }
+.doc-tag { position: absolute; top: 16px; right: 16px; font-size: .72rem; font-weight: 700; color: var(--orange); }
+.doc-open { margin-top: auto; font-size: .85rem; font-weight: 600; color: var(--orange); }
+.kit-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 14px; }
+.kit-tile { display: flex; flex-direction: column; align-items: center; text-align: center; padding: 14px 10px 14px; border: 1px solid var(--border); border-radius: 12px; background: #fff; color: var(--dark); text-decoration: none; transition: border-color .15s, transform .15s; }
+.kit-tile:hover { border-color: var(--orange); transform: translateY(-2px); }
+.kit-tile img { width: 100%; max-width: 120px; aspect-ratio: 1; object-fit: contain; margin-bottom: 8px; }
+.kit-name { font-weight: 800; }
+.kit-sub { font-size: .8rem; color: var(--muted); }
+.dp-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 10px; }
+.dp-tile { display: grid; grid-template-columns: 34px 1fr auto; grid-template-rows: auto auto; align-items: center; column-gap: 10px; padding: 12px 14px; border: 1px solid var(--border); border-radius: 10px; background: #fff; }
+.dp-tile .dp-no { grid-row: 1 / 3; font-weight: 800; color: var(--orange); }
+.dp-drug { font-weight: 600; color: var(--dark); text-decoration: none; }
+.dp-drug:hover { color: var(--orange); text-decoration: underline; }
+.dp-class { grid-column: 2; font-size: .8rem; color: var(--muted); }
+.dp-tile .dp-dl { grid-row: 1 / 3; grid-column: 3; display: grid; place-items: center; width: 32px; height: 32px; border-radius: 8px; border: 1px solid var(--border); color: var(--dark); }
+.dp-tile .dp-dl:hover { border-color: var(--orange); color: var(--orange); }
+.lib-support { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 52px; scroll-margin-top: 80px; }
+.lib-support > div { padding: 28px; border-radius: 16px; background: var(--dark); color: #fff; }
+.lib-support h2 { color: #fff; font-size: 1.35rem; margin: 14px 0 6px; }
+.lib-support p { color: rgba(255,255,255,.85); }
+.lib-support a:not(.btn) { color: #fff; font-weight: 600; }
+.lib-support .res-icon { background: rgba(255,255,255,.12); color: #fff; }
+.lib-support .fine { font-size: .85rem; color: rgba(255,255,255,.7); }
+@media (max-width: 800px) { .lib-support { grid-template-columns: 1fr; } }
+.lib-support .fine { text-align: left; }
