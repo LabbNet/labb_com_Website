@@ -50,7 +50,7 @@ export async function quickTestCheckout(leadId: string, lead: Lead) {
       [
         ["Test kit", lead.details?.screenFee, `${lead.details?.testType || "Test"}: ${lead.details?.drugs || "Labb to recommend"}`],
         [`${lead.details?.shipping || "Overnight"} shipping`, lead.details?.shippingFee, home ? "Kit shipped to you" : "Test shipped to your clinic"],
-        ["Proctoring", lead.details?.proctoringFee, lead.details?.observation || ""],
+        [lead.details?.fulfillment === "At a clinic" ? "Collection fee" : "Proctoring", lead.details?.proctoringFee, lead.details?.observation || ""],
       ] as [string, string | undefined, string][]
     )
       .map(([name, amt, desc]) => ({ name, cents: Math.round(Number((amt || "0").replace(/[^0-9.]/g, "")) * 100), desc }))

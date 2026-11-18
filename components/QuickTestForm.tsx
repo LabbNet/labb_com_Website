@@ -7,7 +7,7 @@ import { PANELS, canAdd, drugCatalog, money, presetDrugs, quote, specimenOf, typ
 // Quick Test checkout for individuals, in four steps: where, your test, your details, review and pay.
 // The order is saved, then the buyer pays on Stripe Checkout. Same price at home or at a clinic.
 const WHERE = [
-  { v: "At home", t: "At home", b: "We overnight the kit to you. A Labb proctor runs the test with you by video." },
+  { v: "At home", t: "At home", b: "We ship the kit to you. A Labb proctor runs the test with you by video." },
   { v: "At a clinic", t: "At a clinic", b: "We send the rapid test to a clinic near you. You test there." },
 ];
 const TEST_TYPES = ["Oral fluid (mouth swab)", "Urine (cup)", "Help me choose"];
@@ -28,6 +28,8 @@ export function QuickTestForm({ checkout, pricing }: { checkout: boolean; pricin
   const [sending, setSending] = useState(false);
   const [custom, setCustom] = useState<string[]>([]);
   const home = f.fulfillment === "At home";
+  // Same price either way; at a clinic the fee is a collection fee, at home it is proctoring.
+  const feeName = home || !f.fulfillment ? "Proctoring" : "Collection fee";
   const specimen = specimenOf(f.testType);
   const q = quote(f.testType, f.panel, custom, f.observation, pricing, f.shipping);
   const price = money(q.cents);
@@ -199,7 +201,7 @@ export function QuickTestForm({ checkout, pricing }: { checkout: boolean; pricin
             <dl>
               <div><dt>{q.kit ? `Test kit (${q.kit.code}, ${q.drugs.length} drugs)` : "Test kit, from"}</dt><dd>{money(q.fees.screen)}</dd></div>
               <div><dt>{f.shipping} shipping</dt><dd>{money(q.fees.shipping)}</dd></div>
-              <div><dt>Proctoring{f.observation ? `, ${f.observation.toLowerCase()}` : ""}</dt><dd>{f.observation ? money(q.fees.proctoring) : "Choose collection"}</dd></div>
+              <div><dt>{feeName}{f.observation ? `, ${f.observation.toLowerCase()}` : ""}</dt><dd>{f.observation ? money(q.fees.proctoring) : "Choose collection"}</dd></div>
             </dl>
             <div className="qt-sum"><span>Total</span><strong>{price}</strong></div>
           </div>
@@ -256,7 +258,7 @@ export function QuickTestForm({ checkout, pricing }: { checkout: boolean; pricin
                 [home ? "Ship to" : "Clinic near", home ? `${f.address1}${f.address2 ? `, ${f.address2}` : ""}, ${f.city}, ${f.state} ${f.zip}` : `ZIP ${f.clinicZip}${f.clinicName ? ` (${f.clinicName})` : ""}`],
                 [q.kit ? `Test kit (${q.kit.code})` : "Test kit, from", money(q.fees.screen)],
                 [`${f.shipping} shipping`, money(q.fees.shipping)],
-                ["Proctoring", money(q.fees.proctoring)],
+                [feeName, money(q.fees.proctoring)],
                 ["Total", price],
               ] as [string, string][]).map(([k, v]) => <tr key={k}><th scope="row">{k}</th><td>{v}</td></tr>)}
             </tbody>

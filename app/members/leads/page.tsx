@@ -5,6 +5,10 @@ import { currentMember } from "@/lib/auth";
 import { sql } from "@/lib/db";
 import { leadName, type LeadRow } from "@/lib/leads";
 import { LEAD_STATUSES, segmentLabel, statusLabel } from "@/lib/segments";
+import { quotesFor } from "@/lib/quotes";
+import { PRICE_CATEGORIES } from "@/lib/cppPricing";
+import { QuoteForm, type QuoteProduct } from "@/components/QuoteForm";
+import { QuoteList } from "@/components/QuoteList";
 
 export const metadata: Metadata = { title: "My leads", robots: { index: false, follow: false } };
 export const dynamic = "force-dynamic";
@@ -16,6 +20,11 @@ export default async function MemberLeads() {
     sql()<LeadRow[]>`select * from leads where partner_id = ${m.id} and owner = 'partner' and not archived order by passed_at desc nulls last, created_at desc`,
     readFlash(),
   ]);
+  const quotes = rows.length ? await quotesFor({ memberId: m.id, leadIds: rows.map((l) => String(l.id)) }) : [];
+  const products = (await sql()<{ id: string; name: string; sku: string | null; unit: string | null; category: string; sl1_msrp_cents: number | null }[]>`
+    select id, name, sku, unit, category, sl1_msrp_cents from cpp_price_items where active order by category, sort, lower(name)`)
+    .map((p): QuoteProduct => ({ id: String(p.id), name: p.name, sku: p.sku, unit: p.unit, category: p.category, msrpCents: p.sl1_msrp_cents }));
+  const groups = PRICE_CATEGORIES.map((c) => ({ value: c.value, label: c.label }));
 
   return (
     <section className="section" style={{ paddingTop: 32 }}>
@@ -63,6 +72,14 @@ export default async function MemberLeads() {
                 </div>
                 <button className="btn btn-outline-dark" type="submit" style={{ justifySelf: "start" }}>Save update</button>
               </form>
+              <div className="lead-quotes">
+                <h3>Quotes <span className="fine">· for your records and Labb&apos;s pricing reports. Never sent to the client.</span></h3>
+                <QuoteList quotes={quotes.filter((q) => q.lead_id === String(l.id))} />
+                <details className="quote-add">
+                  <summary className="btn btn-primary">+ Record a quote</summary>
+                  <QuoteForm leadId={String(l.id)} products={products} groups={groups} />
+                </details>
+              </div>
             </div>
           ))}
         </div>

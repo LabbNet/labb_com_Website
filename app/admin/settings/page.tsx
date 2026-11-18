@@ -44,13 +44,13 @@ export default async function AdminSettings() {
             <form action="/api/admin/settings" method="post">
               <input type="hidden" name="action" value="pricing" />
               <h3>Quick Test pricing</h3>
-              <p className="fine" style={{ margin: 0 }}>Total = kit price + shipping (the customer picks overnight, second day or ground) + proctoring. The kit price is the online sale price set for that kit in <a href="/admin/pricing#rapid-kits">CPP pricing</a>. Same price at home or at a clinic. Changes apply to new orders right away.</p>
+              <p className="fine" style={{ margin: 0 }}>Total = kit price + shipping (the customer picks overnight, second day or ground) + proctoring (at home) or collection fee (at a clinic). The kit price is the online sale price set for that kit in <a href="/admin/pricing#rapid-kits">CPP pricing</a>. Same price at home or at a clinic. Changes apply to new orders right away.</p>
               <div className="price-grid">
                 <label>Overnight shipping ($)<input name="shipping" inputMode="decimal" defaultValue={d(pr.shippingCents)} required /></label>
                 <label>Second day shipping ($)<input name="shipping2" inputMode="decimal" defaultValue={d(pr.shipping2DayCents)} required /></label>
                 <label>Ground shipping ($)<input name="shippingGround" inputMode="decimal" defaultValue={d(pr.shippingGroundCents)} required /></label>
-                <label>Proctoring, non-observed ($)<input name="proctorNon" inputMode="decimal" defaultValue={d(pr.proctorNonObservedCents)} required /></label>
-                <label>Proctoring, observed ($)<input name="proctorObs" inputMode="decimal" defaultValue={d(pr.proctorObservedCents)} required /></label>
+                <label>Proctoring or collection, non-observed ($)<input name="proctorNon" inputMode="decimal" defaultValue={d(pr.proctorNonObservedCents)} required /></label>
+                <label>Proctoring or collection, observed ($)<input name="proctorObs" inputMode="decimal" defaultValue={d(pr.proctorObservedCents)} required /></label>
               </div>
               <p className="fine" style={{ margin: 0 }}>
                 Example: lowest priced kit, non-observed, ground = ${d(lowestKitCents(pr))} + ${d(pr.shippingGroundCents)} + ${d(pr.proctorNonObservedCents)} = ${d(lowestKitCents(pr) + pr.shippingGroundCents + pr.proctorNonObservedCents)}.

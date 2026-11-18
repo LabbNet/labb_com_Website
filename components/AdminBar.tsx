@@ -5,6 +5,7 @@ const LINKS = [
   { href: "/admin/members", label: "CPP members" },
   { href: "/admin/trade-shows", label: "Trade shows" },
   { href: "/admin/pricing", label: "Pricing" },
+  { href: "/admin/quotes", label: "Quotes" },
   { href: "/admin/settings", label: "Settings" },
 ];
 
