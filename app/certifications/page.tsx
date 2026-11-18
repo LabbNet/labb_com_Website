@@ -15,7 +15,7 @@ export const metadata: Metadata = {
 const faqs = [
   { q: "How do the courses work?", a: "Each certification is a paid online course built on Labb's written training documents. Every chapter ends with an exam. You need about 85% on each chapter exam to pass and open the next chapter." },
   { q: "How do I get access after I pay?", a: "The learner gets an email to set up a Labb account. Progress saves to that account, so they can stop and pick up where they left off on any device." },
-  { q: "Are certifications included for Channel Partner Program members?", a: "Some are. Certifications marked \"Included for CPP members\" open at no charge for active Channel Partner Program members who sign in to the member area." },
+  { q: "Are certifications included for Channel Partner Program members?", a: "Yes. Some certifications are included free, and the rest are discounted for active Channel Partner Program members. Sign in before you check out to get the CPP price." },
   { q: "Is any of this DOT training?", a: "No. Labb certifications cover company (non-DOT) testing. They do not qualify anyone to perform a DOT or other regulated collection or alcohol test." },
 ];
 
@@ -39,7 +39,7 @@ function CertItem({ c }: { c: Course }) {
         <div className="ci-price">{money(c.priceCents!)}<span>per learner</span></div>
         <Link className="btn btn-primary" href={`${href}#enroll`}>Start now</Link>
         <Link className="btn btn-outline" href={href}>Learn more</Link>
-        {c.cppIncluded && <span className="ci-note">Included for CPP members</span>}
+        {c.cppIncluded ? <span className="ci-note">Included for CPP members</span> : c.cppDiscountPct ? <span className="ci-note">{c.cppDiscountPct}% off for CPP members</span> : null}
       </div>
     </article>
   );

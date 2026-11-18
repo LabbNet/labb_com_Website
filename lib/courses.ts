@@ -29,12 +29,12 @@ export const COURSE_TYPES: Record<CourseType, string> = { position: "Position", 
 
 type CourseRow = {
   slug: string; title: string; short: string; type: CourseType; overview: string; for_who: string; price_cents: number | null;
-  pages: number | null; cpp_included: boolean; status: CourseStatus; sort: number; updated_at: Date;
+  pages: number | null; cpp_included: boolean; cpp_discount_pct: number; status: CourseStatus; sort: number; updated_at: Date;
 };
 
 export type Course = {
   slug: string; title: string; short: string; type: CourseType; overview: string; forWho: string;
-  priceCents: number | null; pages: number | null; cppIncluded: boolean; status: CourseStatus; sort: number; updatedAt: Date;
+  priceCents: number | null; pages: number | null; cppIncluded: boolean; cppDiscountPct: number; status: CourseStatus; sort: number; updatedAt: Date;
   hasFile: boolean; file: string; storageKey: string; version: string; chapters: number; questions: number; passPct: number;
   forSale: boolean; // live, priced and has a course file
 };
@@ -43,7 +43,7 @@ function toCourse(r: CourseRow): Course {
   const f = COURSE_FILES[r.slug];
   return {
     slug: r.slug, title: r.title, short: r.short, type: r.type, overview: r.overview, forWho: r.for_who, priceCents: r.price_cents,
-    pages: r.pages, cppIncluded: r.cpp_included, status: r.status, sort: r.sort, updatedAt: r.updated_at,
+    pages: r.pages, cppIncluded: r.cpp_included, cppDiscountPct: r.cpp_discount_pct ?? 0, status: r.status, sort: r.sort, updatedAt: r.updated_at,
     hasFile: !!f, file: f?.file ?? "", storageKey: f?.storageKey ?? "", version: f?.version ?? "", chapters: f?.chapters ?? 0,
     questions: f?.questions ?? 0, passPct: f?.passPct ?? 0,
     forSale: !!f && r.status === "live" && r.price_cents !== null,
@@ -58,6 +58,17 @@ export async function getCourse(slug: string): Promise<Course | null> {
   if (!/^[a-z0-9-]{1,60}$/.test(slug)) return null;
   const [r] = await sql()<CourseRow[]>`select * from courses where slug = ${slug}`;
   return r ? toCourse(r) : null;
+}
+
+// Price for a buyer: active CPP members get the course's CPP discount (unless it's included free for them).
+export async function isActiveCpp(m: Member | null) {
+  if (!m || m.role !== "member") return false;
+  const [row] = await sql()<{ cpp_status: string | null }[]>`select cpp_status from members where id = ${m.id}`;
+  return row?.cpp_status === "active";
+}
+export function cppPriceCents(c: Course) {
+  if (c.priceCents === null || c.cppIncluded || !c.cppDiscountPct) return null;
+  return Math.round((c.priceCents * (100 - c.cppDiscountPct)) / 100);
 }
 
 // Chapter outline read from the course file, cached per file.

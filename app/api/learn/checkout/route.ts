@@ -1,6 +1,7 @@
 import { EMAIL_RE } from "@/lib/auth";
 import { stripe, stripeEnabled } from "@/lib/commerce";
-import { getCourse } from "@/lib/courses";
+import { currentMember } from "@/lib/auth";
+import { cppPriceCents, getCourse, isActiveCpp } from "@/lib/courses";
 import { field, go } from "@/lib/http";
 import { absoluteUrl } from "@/lib/site";
 
@@ -14,11 +15,14 @@ export async function POST(req: Request) {
   const back = `/certifications/${c.slug}`;
   if (!name || !EMAIL_RE.test(email)) return go(req, `${back}?error=details#enroll`);
   if (!stripeEnabled) return go(req, `${back}?checkout=soon#enroll`);
+  const cpp = await isActiveCpp(await currentMember());
+  const discounted = cpp ? cppPriceCents(c) : null;
+  const amount = discounted ?? c.priceCents;
   const session = await stripe().checkout.sessions.create({
     mode: "payment",
     customer_email: email,
-    line_items: [{ quantity: 1, price_data: { currency: "usd", unit_amount: c.priceCents, product_data: { name: c.title, description: `${c.short}. Online course with chapter exams and a certificate of completion.` } } }],
-    metadata: { kind: "course", course: c.slug, name },
+    line_items: [{ quantity: 1, price_data: { currency: "usd", unit_amount: amount, product_data: { name: c.title, description: `${c.short}. Online course with chapter exams and a certificate of completion.${discounted !== null ? ` CPP member price (${c.cppDiscountPct}% off).` : ""}` } } }],
+    metadata: { kind: "course", course: c.slug, name, cpp: discounted !== null ? "yes" : "no" },
     success_url: absoluteUrl(`/certifications/purchased?session_id={CHECKOUT_SESSION_ID}`),
     cancel_url: absoluteUrl(`${back}?checkout=cancelled#enroll`),
   });

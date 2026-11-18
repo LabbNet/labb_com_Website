@@ -52,7 +52,7 @@ export default async function Courses() {
                     <span className="ac-facts">
                       {c.hasFile ? <>{c.chapters} chapters · {c.questions} questions · {c.passPct}% to pass{c.pages ? ` · ${c.pages} pages` : ""}</> : <em>No course file yet</em>}
                     </span>
-                    <span className="ac-facts">{e ? `${e.n} enrolled · ${e.done} done` : "0 enrolled"}{c.cppIncluded ? " · CPP free" : ""}</span>
+                    <span className="ac-facts">{e ? `${e.n} enrolled · ${e.done} done` : "0 enrolled"}{c.cppIncluded ? " · CPP free" : c.cppDiscountPct ? ` · CPP ${c.cppDiscountPct}% off` : ""}</span>
                     <span className="ac-edit" aria-hidden="true">Edit</span>
                   </summary>
                   <form action="/api/admin/courses" method="post" className="ac-form">
@@ -77,7 +77,8 @@ export default async function Courses() {
                       <div className="field full"><label htmlFor={`o-${c.slug}`}>Overview</label><textarea id={`o-${c.slug}`} name="overview" defaultValue={c.overview} required maxLength={600} rows={3} /></div>
                       <div className="field"><label htmlFor={`f-${c.slug}`}>Who it&apos;s for</label><input id={`f-${c.slug}`} name="for_who" defaultValue={c.forWho} maxLength={200} /></div>
                       <div className="field"><label htmlFor={`o2-${c.slug}`}>List order</label><input id={`o2-${c.slug}`} name="sort" inputMode="numeric" defaultValue={c.sort} maxLength={5} /></div>
-                      <label className="check full"><input type="checkbox" name="cpp_included" defaultChecked={c.cppIncluded} /> Included free for active CPP members</label>
+                      <div className="field"><label htmlFor={`d-${c.slug}`}>CPP member discount (%)</label><input id={`d-${c.slug}`} name="cpp_discount" inputMode="numeric" defaultValue={c.cppDiscountPct} maxLength={3} /></div>
+                      <label className="check"><input type="checkbox" name="cpp_included" defaultChecked={c.cppIncluded} /> Included free for active CPP members (overrides the discount)</label>
                     </div>
                     <div className="ac-actions">
                       <button className="btn btn-primary" type="submit">Save</button>

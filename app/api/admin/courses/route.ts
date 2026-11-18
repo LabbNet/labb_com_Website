@@ -25,6 +25,8 @@ export async function POST(req: Request) {
   const pagesRaw = field(fd, "pages", 6);
   const sortRaw = field(fd, "sort", 6) || String(c.sort);
   const cpp = fd.get("cpp_included") === "on";
+  const discRaw = field(fd, "cpp_discount", 4) || "0";
+  const disc = /^\d{1,3}$/.test(discRaw) && Number(discRaw) <= 100 ? Number(discRaw) : NaN;
 
   const price = priceRaw === "" ? null : /^\d+(\.\d{1,2})?$/.test(priceRaw) ? Math.round(Number(priceRaw) * 100) : NaN;
   const pages = pagesRaw === "" ? null : /^\d{1,5}$/.test(pagesRaw) && Number(pagesRaw) > 0 ? Number(pagesRaw) : NaN;
@@ -36,6 +38,7 @@ export async function POST(req: Request) {
     : !["live", "coming", "draft"].includes(status) ? "Choose a status."
     : Number.isNaN(price) ? "Enter the price as a number, for example 199 or 199.00."
     : Number.isNaN(pages) ? "Enter pages as a whole number, or leave it blank."
+    : Number.isNaN(disc) ? "Enter the CPP discount as a whole percent from 0 to 100."
     : Number.isNaN(sort) ? "Enter the list order as a whole number."
     : status === "live" && !COURSE_FILES[c.slug] ? "This course has no course file on the site yet, so it can't go live. Use Coming soon."
     : status === "live" && price === null ? "Set a price before making the course live."
@@ -47,7 +50,7 @@ export async function POST(req: Request) {
   }
 
   await sql()`update courses set title = ${title}, short = ${short}, type = ${type}, status = ${status}, overview = ${overview},
-    for_who = ${forWho}, price_cents = ${price}, pages = ${pages}, sort = ${sort}, cpp_included = ${cpp},
+    for_who = ${forWho}, price_cents = ${price}, pages = ${pages}, sort = ${sort}, cpp_included = ${cpp}, cpp_discount_pct = ${disc},
     updated_by = ${admin.id}, updated_at = now() where slug = ${c.slug}`;
   const label = status === "live" ? "live and for sale" : status === "coming" ? "listed as coming soon" : "a hidden draft";
   await flash(`Saved ${short}. It is ${label}.`);
