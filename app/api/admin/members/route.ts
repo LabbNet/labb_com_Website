@@ -22,7 +22,7 @@ export async function POST(req: Request) {
     const name = field(fd, "name", 120);
     const email = field(fd, "email", 160).toLowerCase();
     const clinic = field(fd, "clinic", 160) || null;
-    const username = (field(fd, "username", 40) || email.split("@")[0]).toLowerCase().replace(/[^a-z0-9._-]/g, "");
+    const username = (field(fd, "new_member_username", 40) || field(fd, "username", 40) || email.split("@")[0]).toLowerCase().replace(/[^a-z0-9._-]/g, "");
     const role = fd.get("role") === "admin" ? "admin" : "member";
     const cppStart = /^\d{4}-\d{2}-\d{2}$/.test(field(fd, "cpp_start", 10)) ? field(fd, "cpp_start", 10) : null;
     if (!name || !EMAIL_RE.test(email)) {
@@ -33,9 +33,14 @@ export async function POST(req: Request) {
       await flash("Usernames are 3 to 40 characters: lowercase letters, numbers, dots, dashes or underscores.", undefined, "error");
       return go(req, "/admin/members");
     }
-    const clash = await db`select 1 from members where lower(email) = ${email} or lower(username) = ${username}`;
+    const clash = await db<{ email: string; username: string; name: string }[]>`select email, username, name from members where lower(email) = ${email} or lower(username) = ${username} limit 1`;
     if (clash.length) {
-      await flash("A member with that email or username already exists.", undefined, "error");
+      const c = clash[0];
+      await flash(
+        c.email.toLowerCase() === email
+          ? `${c.name} already has an account with ${email}. Open them in the list below instead of adding them again.`
+          : `The username "${username}" is taken by ${c.name}. Enter a different username, or leave it blank to use the part of the email before @.`,
+        undefined, "error");
       return go(req, "/admin/members");
     }
     const [m] = await db<{ id: string; email: string; name: string; username: string }[]>`

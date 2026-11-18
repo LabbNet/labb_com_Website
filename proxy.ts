@@ -16,6 +16,14 @@ export async function proxy(req: NextRequest) {
   const res = NextResponse.next();
   res.headers.set("X-Robots-Tag", "noindex, nofollow");
   res.headers.set("Cache-Control", "private, no-store");
+  // One-time messages: the page reads labb_flash from this request, then the browser drops it,
+  // so the message shows once instead of sticking until the cookie expires.
+  const prefetch = req.headers.get("next-router-prefetch") || req.headers.get("purpose") === "prefetch";
+  if (req.method === "GET" && !prefetch && req.cookies.has("labb_flash")) {
+    for (const path of ["/", "/admin", "/members"]) {
+      res.headers.append("Set-Cookie", `labb_flash=; Path=${path}; Max-Age=0; HttpOnly; SameSite=Strict${process.env.NODE_ENV === "production" ? "; Secure" : ""}`);
+    }
+  }
   return res;
 }
 

@@ -63,15 +63,15 @@ export default async function AdminMembers({ searchParams }: { searchParams: Pro
             <div className="hero-card">
               <h2 className="form-title">Add a member</h2>
               <p className="form-sub">Creates the account and emails a setup link. Add members after their CPP agreement is signed, then open the member to upload the contract.</p>
-              <form action="/api/admin/members" method="post">
+              <form action="/api/admin/members" method="post" autoComplete="off">
                 <input type="hidden" name="action" value="create" />
                 <div className="fields" style={{ gridTemplateColumns: "1fr" }}>
                   <div className="field"><label htmlFor="a-name">Full name</label><input id="a-name" name="name" required /></div>
-                  <div className="field"><label htmlFor="a-email">Email</label><input id="a-email" name="email" type="email" required /></div>
+                  <div className="field"><label htmlFor="a-email">Email</label><input id="a-email" name="email" type="email" autoComplete="off" required /></div>
                   <div className="field"><label htmlFor="a-clinic">Clinic or business</label><input id="a-clinic" name="clinic" /></div>
                   <div className="field">
                     <label htmlFor="a-user">Username</label>
-                    <input id="a-user" name="username" placeholder="Defaults to the part of the email before @" pattern="[a-zA-Z0-9._-]{3,40}" />
+                    <input id="a-user" name="new_member_username" autoComplete="off" data-lpignore="true" data-1p-ignore="true" placeholder="Defaults to the part of the email before @" pattern="[a-zA-Z0-9._-]{3,40}" />
                   </div>
                   <div className="field">
                     <label htmlFor="a-start">CPP start date</label>
