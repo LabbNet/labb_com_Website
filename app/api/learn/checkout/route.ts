@@ -1,0 +1,26 @@
+import { EMAIL_RE } from "@/lib/auth";
+import { stripe, stripeEnabled } from "@/lib/commerce";
+import { getCourse } from "@/lib/courses";
+import { field, go } from "@/lib/http";
+import { absoluteUrl } from "@/lib/site";
+
+// Starts Stripe Checkout for a course. Until Stripe is set up, sends the buyer to request enrollment instead.
+export async function POST(req: Request) {
+  const fd = await req.formData();
+  const c = getCourse(field(fd, "course", 40));
+  if (!c) return go(req, "/certifications");
+  const name = field(fd, "name", 120);
+  const email = field(fd, "email", 160).toLowerCase();
+  const back = `/certifications/${c.slug}`;
+  if (!name || !EMAIL_RE.test(email)) return go(req, `${back}?error=details#enroll`);
+  if (!stripeEnabled) return go(req, `${back}?checkout=soon#enroll`);
+  const session = await stripe().checkout.sessions.create({
+    mode: "payment",
+    customer_email: email,
+    line_items: [{ quantity: 1, price_data: { currency: "usd", unit_amount: c.priceCents, product_data: { name: c.title, description: `${c.short}. Online course with chapter exams and a certificate of completion.` } } }],
+    metadata: { kind: "course", course: c.slug, name },
+    success_url: absoluteUrl(`/certifications/purchased?session_id={CHECKOUT_SESSION_ID}`),
+    cancel_url: absoluteUrl(`${back}?checkout=cancelled#enroll`),
+  });
+  return Response.redirect(session.url!, 303);
+}

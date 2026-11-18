@@ -7,7 +7,7 @@
 export const COOKIE = "labb_access";
 const MAX_AGE = 60 * 60 * 24 * 30; // 30 days
 
-export type Access = { email?: string; lead?: boolean; member?: boolean; mid?: string; sv?: number; role?: "member" | "admin"; exp: number };
+export type Access = { email?: string; lead?: boolean; member?: boolean; mid?: string; sv?: number; role?: "member" | "admin" | "learner"; exp: number };
 
 const enc = new TextEncoder();
 

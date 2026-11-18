@@ -31,5 +31,5 @@ export async function POST(req: Request) {
   await sql()`update members set last_login_at = now() where id = ${m.id}`;
   await logEvent(m.id, "login");
   await startSession(m);
-  return go(req, m.role === "admin" && next === "/members" ? "/members" : next);
+  return go(req, m.role === "learner" && (next === "/members" || next.startsWith("/members/")) ? "/learn" : next);
 }

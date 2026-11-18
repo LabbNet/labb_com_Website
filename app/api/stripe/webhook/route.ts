@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { enrollInLms, stripe, stripeEnabled } from "@/lib/commerce";
+import { getCourse, grantCourse } from "@/lib/courses";
 import { sql } from "@/lib/db";
 import { deliverLead, leadFromRow, logLeadEvent, type LeadRow } from "@/lib/leads";
 
@@ -21,6 +22,12 @@ export async function POST(req: Request) {
     const email = s.customer_details?.email || s.customer_email;
     const course = s.metadata?.lmsCourse;
     if (email && course) await enrollInLms(email, course);
+
+    // Labb Learning course purchase: create or find the learner and enroll them.
+    if (s.metadata?.kind === "course" && email && s.payment_status === "paid") {
+      const c = getCourse(s.metadata.course || "");
+      if (c) await grantCourse({ email, name: s.metadata.name || "", course: c, source: "purchase", stripeSession: s.id, amountCents: s.amount_total ?? undefined });
+    }
 
     // Quick Test: mark the order paid, record it in the lead history and notify Labb.
     if (s.metadata?.kind === "quick-test" && s.metadata.leadId) {

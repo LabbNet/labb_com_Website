@@ -1018,3 +1018,18 @@ td.acts { white-space: nowrap; }
 .ts-brochures legend .fine { font-weight: 400; }
 .ts-broch-row { display: grid; grid-template-columns: 1fr 96px; align-items: center; gap: 12px; padding: 8px 12px; border: 1px solid var(--border); border-radius: 10px; background: #fff; font-weight: 500; }
 .ts-broch-row input { width: 96px; text-align: right; }
+
+/* Courses */
+.enroll-price { font-size: 1.1rem; margin: 0 0 4px; }
+.enroll-price strong { font-size: 2.4rem; font-weight: 800; color: var(--dark); margin-right: 6px; }
+.course-part { margin-top: 22px; }
+.chapter-list { list-style: none; padding: 0; margin: 0; display: grid; gap: 10px; }
+.chapter-list li { display: grid; grid-template-columns: 40px 1fr; gap: 14px; padding: 14px 16px; border: 1px solid var(--border); border-radius: 12px; background: #fff; }
+.chapter-list .ch-n { width: 34px; height: 34px; border-radius: 50%; display: grid; place-items: center; background: var(--tint-10); color: var(--orange); font-weight: 800; }
+.chapter-list p { margin: 4px 0 0; color: var(--muted); font-size: .93rem; }
+.course-list { display: grid; gap: 16px; margin-top: 24px; }
+.course-card { display: flex; justify-content: space-between; align-items: center; gap: 20px; flex-wrap: wrap; padding: 24px; border: 1px solid var(--border); border-radius: 16px; background: #fff; }
+.course-card h2 { margin: 4px 0 6px; font-size: 1.4rem; }
+.course-card > div { flex: 1 1 360px; }
+.course-bar { height: 8px; border-radius: 99px; background: #e8ecec; overflow: hidden; margin-top: 10px; max-width: 420px; }
+.course-bar i { display: block; height: 100%; background: var(--orange); }

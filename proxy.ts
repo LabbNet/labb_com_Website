@@ -7,6 +7,14 @@ export async function proxy(req: NextRequest) {
   const { pathname, search } = req.nextUrl;
   const access = await verify(req.cookies.get(COOKIE)?.value);
   const needsAdmin = pathname.startsWith("/admin");
+  // Course learners only get the learning area; the CPP portal and its files are for members.
+  const membersOnly = pathname.startsWith("/members") || pathname.startsWith("/api/members");
+  if (access?.mid && access.role === "learner" && (membersOnly || needsAdmin)) {
+    const url = req.nextUrl.clone();
+    url.pathname = "/learn";
+    url.search = "";
+    return NextResponse.redirect(url);
+  }
   if (!access?.mid || (needsAdmin && access.role !== "admin")) {
     const url = req.nextUrl.clone();
     url.pathname = access?.mid && needsAdmin ? "/members" : "/login";
@@ -27,4 +35,4 @@ export async function proxy(req: NextRequest) {
   return res;
 }
 
-export const config = { matcher: ["/members", "/members/:path*", "/admin", "/admin/:path*"] };
+export const config = { matcher: ["/members", "/members/:path*", "/admin", "/admin/:path*", "/learn", "/learn/:path*", "/api/members/:path*"] };

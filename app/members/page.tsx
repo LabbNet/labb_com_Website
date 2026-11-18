@@ -3,7 +3,6 @@ import { Alert } from "@/components/AuthCard";
 import { currentMember } from "@/lib/auth";
 import { publishedKits } from "@/lib/kits";
 import { library } from "@/lib/resources";
-import { lmsUrl } from "@/lib/commerce";
 import { cppEmail, site } from "@/lib/site";
 import { IconGuidebook, IconMarketing, IconReference, IconDataSheet, IconCertification, IconSupport, IconDrugProfile } from "@/components/ResourceIcons";
 import { drugSheets } from "@/lib/drugSheets";
@@ -124,8 +123,9 @@ export default async function MembersHome({ searchParams }: { searchParams: Prom
           <div>
             <span className="res-icon"><IconCertification /></span>
             <h2>Certifications and training</h2>
-            <p>Product, specimen, software and position certifications for you and your collectors.</p>
-            {lmsUrl ? <a className="btn btn-primary" href={lmsUrl}>Open Labb Learning</a> : <Link className="btn btn-primary" href="/certifications">See certifications</Link>}
+            <p>The LabbHR Clinic Owners Course is included with your membership: 11 chapters with exams and a certificate of completion. Your progress saves as you go.</p>
+            <a className="btn btn-primary" href="/learn">Open the Clinic Owners Course</a>
+            <p style={{ marginTop: 12 }}><Link href="/certifications">See all certifications</Link></p>
           </div>
           <div>
             <span className="res-icon"><IconSupport /></span>

@@ -99,10 +99,13 @@ export default function Page() {
             <div className="grid" style={{ gridTemplateColumns: "repeat(auto-fill, minmax(min(300px, 100%), 1fr))" }}>
               {certs.filter((c) => c.type === t).map((c) => (
                 <div key={c.sku} className="card top" style={{ background: "#fff", border: "1px solid var(--border)", borderTop: "4px solid var(--orange)" }}>
-                  <span className="mini">{certTypes[t].label}{c.status ? ` · ${c.status}` : ""}</span>
+                  <span className="mini">{certTypes[t].label}{c.sku === "cert-clinic-owners" ? " · Enrollment open" : c.status ? ` · ${c.status}` : ""}</span>
                   <h3>{c.name}</h3>
                   <p>{c.covers}</p>
                   <p style={{ marginTop: 12, fontSize: "0.88rem" }}><strong style={{ color: "var(--dark)" }}>For:</strong> {c.forWho}</p>
+                  {c.sku === "cert-clinic-owners" && (
+                    <p style={{ marginTop: 14 }}><Link className="btn btn-primary" href="/certifications/clinic-owners">Enroll now: $199</Link></p>
+                  )}
                 </div>
               ))}
             </div>

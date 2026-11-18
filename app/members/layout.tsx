@@ -11,6 +11,7 @@ export default async function MembersLayout({ children }: { children: React.Reac
   if (!dbConfigured) redirect("/login?error=unavailable");
   const m = await currentMember();
   if (!m) redirect("/login?next=/members");
+  if (m.role === "learner") redirect("/learn");
   return (
     <>
       <section className="member-bar">

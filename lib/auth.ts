@@ -19,7 +19,7 @@ export type Member = {
   city: string | null;
   state: string | null;
   postal_code: string | null;
-  role: "member" | "admin";
+  role: "member" | "admin" | "learner";
   status: "invited" | "active" | "disabled";
   session_version: number;
   created_at: Date;
