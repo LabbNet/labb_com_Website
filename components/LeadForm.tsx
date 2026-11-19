@@ -27,6 +27,8 @@ const IMPROVE = ["Lower cost per test", "Faster results", "Fewer errors and disp
 // Only testing businesses grow a testing business; everyone else doesn't see that choice.
 const GROW_SEGMENTS = ["tpa", "collection-site"];
 const LOCATION = ["At a clinic or collection site", "In-house, at our location", "Both", "Not sure yet"];
+const BACKGROUND = ["We use a background screening provider today", "We need background screening", "We want it combined with drug testing", "Not needed right now"];
+const BACKGROUND_CLINIC = ["We offer background checks today", "We want to start offering background checks", "Not right now"];
 const CONSULT: Variant[] = ["demo", "quote", "contact", "early-access", "clinic"];
 
 export function LeadForm({ variant, title, subtitle, submitLabel, resource, industry, compact, defaultMessage, segment: fixedSegment, products: preChecked = [], topic }: Props) {
@@ -71,6 +73,8 @@ export function LeadForm({ variant, title, subtitle, submitLabel, resource, indu
     body.segment = segment || undefined;
     const details: Record<string, string> = {};
     if (topic) details.topic = topic;
+    const bg = String(fd.get("backgroundScreening") || "").trim();
+    if (bg) details.backgroundScreening = bg;
     if (consult) {
       for (const k of ["currentProgram", "costPerTest", "testingLocation"]) {
         const v = String(fd.get(k) || "").trim();
@@ -168,6 +172,17 @@ export function LeadForm({ variant, title, subtitle, submitLabel, resource, indu
     </div>
   );
 
+  // Background screening: do they use it, need it, or offer it (clinics)?
+  const bgField = (full: boolean) => (
+    <div className={`field${full ? " full" : ""}`}>
+      <label htmlFor="f-backgroundScreening">{isClinic ? "Do you offer background screening?" : "Do you use or need background screening?"}</label>
+      <select id="f-backgroundScreening" name="backgroundScreening" defaultValue="">
+        <option value="">Select one (optional)</option>
+        {(isClinic ? BACKGROUND_CLINIC : BACKGROUND).map((o) => <option key={o}>{o}</option>)}
+      </select>
+    </div>
+  );
+
   return (
     <form onSubmit={onSubmit} noValidate={false} aria-label={title || "Contact form"}>
       {title && <h2 className="form-title">{title}</h2>}
@@ -208,6 +223,7 @@ export function LeadForm({ variant, title, subtitle, submitLabel, resource, indu
               <input id="f-costPerTest" name="costPerTest" inputMode="decimal" placeholder="$45 or not sure" />
             </div>
             {select("volume", isClinic ? "Tests per month at your site" : "Tests per month", VOLUME, true)}
+            {bgField(true)}
             {!isClinic && (
               <>
                 <h3 className="form-group full">Where will testing happen?</h3>
@@ -245,6 +261,7 @@ export function LeadForm({ variant, title, subtitle, submitLabel, resource, indu
         )}
         {!isWaitlist && !industry && !isClinic && !compact && segment === "employer" && select("industry", "Industry", INDUSTRY)}
         {!isWaitlist && select("volume", isClinic ? "Tests per month at your site" : "Tests per month", VOLUME, true)}
+        {!isWaitlist && bgField(!!compact)}
         {variant === "sample" && !compact && (
           <div className="field full">
             <label htmlFor="f-message">How can we help?</label>

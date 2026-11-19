@@ -47,6 +47,7 @@ export default function Employers() {
           points: ["Results in minutes, hire the same day", "Guided steps and an objective read", "Confirmation with one button"],
           graphic: <GraphicSlot src="/graphics/employers/in-house.webp" alt="A construction supervisor capturing an OraFlo oral fluid test with a phone on the job site" label="In-house testing" w={1000} h={700} sizes="520px" className="photo" />,
           cta: { topic: "Employer: test in-house", label: "Plan in-house testing" },
+          more: { href: "/employers/in-house", label: "More about in-house testing" },
         },
         {
           id: "clinic",
@@ -56,6 +57,7 @@ export default function Employers() {
           points: ["Clinics near your sites", "One program, one bill", "Results documented the same way everywhere"],
           graphic: <GraphicSlot src="/graphics/employers/clinic.webp" alt="Labb Station on the testing counter at an urgent care clinic" label="Testing at a clinic" w={1000} h={700} sizes="520px" className="photo" />,
           cta: { topic: "Employer: use a clinic", label: "Find clinics near me" },
+          more: { href: "/employers/clinic", label: "More about clinic testing" },
         },
       ]}
       problem={{
@@ -129,9 +131,28 @@ export default function Employers() {
                 );
               })}
             </div>
-            <p className="guide-more">
-              Budgeting a program? Get the free <Link href="/resources/drug-testing-cost-guidebook">Drug Testing Cost Guidebook</Link>: positive rates by specimen, in-house versus lab pricing and budgeting tools.
-            </p>
+            {(() => {
+              const cost = getResource("drug-testing-cost-guidebook");
+              if (!cost) return null;
+              return (
+                <aside className="cost-callout">
+                  <Link href="/resources/drug-testing-cost-guidebook" className="cost-cover" aria-label={cost.shortTitle}>
+                    <Image src={cost.cover} alt="" width={cost.coverW} height={cost.coverH} sizes="140px" />
+                  </Link>
+                  <div className="cost-body">
+                    <span className="eyebrow">Budgeting a program?</span>
+                    <h3>Know what drug testing really costs before you buy.</h3>
+                    <p>The free <strong>Drug Testing Cost Guidebook</strong> shows where the money goes, so you can compare in-house testing, clinics and straight-to-lab pricing with real numbers.</p>
+                    <ul className="cost-points">
+                      <li>Positive rates by specimen</li>
+                      <li>In-house versus lab pricing</li>
+                      <li>Budgeting tools</li>
+                    </ul>
+                  </div>
+                  <Link href="/resources/drug-testing-cost-guidebook" className="btn btn-primary cost-btn">Get the free guidebook</Link>
+                </aside>
+              );
+            })()}
           </div>
         ),
       }}
@@ -140,7 +161,7 @@ export default function Employers() {
         intro: "From a single location to national accounts, Labb has a program to fit your requirements. Every workplace kit: employment use only (EUO) and FDA/OTC, oral fluid and urine, for pre-employment, random, post-accident and reasonable suspicion testing.",
         slugs: ["orf-31c-oraflo", "or-06a-etest-swab", "or-12a-etest-swab", "or-14a-etest-swab", "ua-06b-svt", "ua-13a-svt", "ua-15a", "ua-16c-svt"],
       }}
-      form={{ segment: "employer", products: ["Labb Station", "Test kits"], heading: "Get a quote", title: "Start an in-house program", intro: "Tell us about your workforce and we'll recommend panels, send a free sample and get your team certified.", submit: "Request a consultation", variant: "quote" }}
+      form={{ segment: "employer", products: ["Labb Station", "Test kits"], heading: "Get a quote", title: "Start your testing program", intro: "In your office, at a clinic, or both. Tell us about your workforce and locations and we'll recommend panels, send a free sample, and set up testing where it works best for each site.", note: "Your testing goals, our technology and support: Labb builds the program around your goals, adds background screening and physicals when you need them, and keeps it on track.", submit: "Request a consultation", variant: "quote" }}
     />
   );
 }

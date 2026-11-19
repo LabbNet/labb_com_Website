@@ -23,6 +23,8 @@ export default function sitemap(): MetadataRoute.Sitemap {
     page("/testing-professionals", 0.9),
     page("/collection-sites", 0.9),
     page("/employers", 0.9),
+    page("/employers/in-house", 0.8),
+    page("/employers/clinic", 0.8),
     page("/laboratories", 0.8),
     page("/tpas", 0.8),
     page("/treatment-recovery", 0.8),

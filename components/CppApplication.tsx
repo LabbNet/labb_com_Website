@@ -45,6 +45,7 @@ export function CppApplication() {
       clinicType: fd.get("clinicType"),
       volume: fd.get("volume"),
       services: fd.getAll("services").join(", "),
+      details: fd.get("backgroundScreening") ? { backgroundScreening: String(fd.get("backgroundScreening")) } : undefined,
       affiliation: fd.get("affiliation"),
       message: fd.get("message"),
       wantsAgreement: fd.get("wantsAgreement") === "on",
@@ -116,6 +117,7 @@ export function CppApplication() {
             <label key={s}><input type="checkbox" name="services" value={s} /> {s}</label>
           ))}
         </fieldset>
+        {select("backgroundScreening", "Background checks through Labb", ["We offer background checks today", "We want to start offering background checks", "Not right now"])}
         {input("affiliation", "Franchise or network affiliation, if any", { full: true })}
       </div>
 

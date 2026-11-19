@@ -26,8 +26,8 @@ export const nav = [
     base: ["/employers", "/industries"],
     children: [
       { href: "/employers", label: "Overview" },
-      { href: "/employers#in-house", label: "Test in-house" },
-      { href: "/employers#clinic", label: "Use a clinic" },
+      { href: "/employers/in-house", label: "Test in-house" },
+      { href: "/employers/clinic", label: "Use a clinic" },
       { href: "/employers#contact", label: "Request a consultation" },
     ],
   },

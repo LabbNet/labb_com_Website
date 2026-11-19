@@ -25,8 +25,8 @@ export function SegmentPage(p: {
   kits?: { title: string; intro: string; slugs: string[] };
   faqs?: { q: string; a: string }[];
   pathsIntro?: { eyebrow?: string; title: React.ReactNode; lede?: React.ReactNode };
-  paths?: { id: string; eyebrow: string; title: string; body: string; points: string[]; graphic?: React.ReactNode; cta: { topic: string; label: string } }[];
-  form: { segment: Segment; products: string[]; title: string; intro: string; heading: string; submit: string; variant?: "demo" | "quote" };
+  paths?: { id: string; eyebrow: string; title: string; body: string; points: string[]; graphic?: React.ReactNode; cta: { topic: string; label: string }; more?: { href: string; label: string } }[];
+  form: { segment: Segment; products: string[]; title: string; intro: string; heading: string; submit: string; variant?: "demo" | "quote"; note?: string };
 }) {
   const kits = (p.kits?.slugs || []).map(getKit).filter((k): k is NonNullable<ReturnType<typeof getKit>> => Boolean(k));
   return (
@@ -52,7 +52,10 @@ export function SegmentPage(p: {
                   <h2>{x.title}</h2>
                   <p className="lede-sm">{x.body}</p>
                   <Checks items={x.points} />
-                  <ConnectButton className="btn btn-primary" topic={x.cta.topic} segment={p.form.segment} products={p.form.products} label={x.cta.label} title={x.cta.label} />
+                  <div className="path-actions">
+                    <ConnectButton className="btn btn-primary" topic={x.cta.topic} segment={p.form.segment} products={p.form.products} label={x.cta.label} title={x.cta.label} />
+                    {x.more && <Link href={x.more.href} className="path-more">{x.more.label}</Link>}
+                  </div>
                 </div>
               ))}
             </div>
@@ -76,7 +79,7 @@ export function SegmentPage(p: {
         </div>
       </section>
 
-      <section className="section soft">
+      <section className="section soft" id="how">
         <div className="wrap">
           <span className="eyebrow">{p.answer.eyebrow}</span>
           <h2>{p.answer.title}</h2>
@@ -150,7 +153,7 @@ export function SegmentPage(p: {
             <span className="eyebrow">{p.form.heading}</span>
             <h2>{p.form.title}</h2>
             <p>{p.form.intro}</p>
-            <p className="program-note">Your testing goals, our technology and support: Labb builds the program around your goals and keeps it on track.</p>
+            <p className="program-note">{p.form.note ?? "Your testing goals, our technology and support: Labb builds the program around your goals and keeps it on track."}</p>
           </div>
           <div className="hero-card">
             <LeadForm variant={p.form.variant || "demo"} segment={p.form.segment} products={p.form.products} title={p.form.heading} submitLabel={p.form.submit} />
