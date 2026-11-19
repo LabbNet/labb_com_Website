@@ -28,8 +28,8 @@ export default function Page() {
             </p>
             <ul className="ks-facts">
               <li><strong>{publishedKits.length}</strong> kits</li>
-              <li><strong>{publishedKits.filter((k) => k.specimen === "Oral fluid").length}</strong> oral fluid</li>
               <li><strong>{publishedKits.filter((k) => k.specimen === "Urine").length}</strong> urine</li>
+              <li><strong>{publishedKits.filter((k) => k.specimen === "Oral fluid").length}</strong> oral fluid</li>
               <li><strong>6 to 23</strong> drugs per kit</li>
             </ul>
             <div className="btn-row">

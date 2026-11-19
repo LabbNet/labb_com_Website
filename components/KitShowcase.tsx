@@ -8,9 +8,9 @@ import { badgeLabel, type Kit } from "@/lib/kits";
 // Product showcase for /test-kits: large kit renders grouped by product line, with filters.
 // Hovering a card shows a second angle when the kit has one.
 const LINES: { series: Kit["series"]; title: string; blurb: string; href: string }[] = [
-  { series: "ORF Series", title: "OraFlo", blurb: "Oral fluid with masked drug names that keep each donor's screen private.", href: "/test-kits/oraflo" },
-  { series: "OR Series", title: "Oral eTest", blurb: "eTest Swab oral fluid devices. Observed collection, no restroom needed.", href: "/test-kits/oral-etest" },
   { series: "UA Series", title: "Urine eTest", blurb: "eTest Cup urine screens from 6 to 23 drugs, made for an objective Labb Station read.", href: "/test-kits/urine-etest" },
+  { series: "OR Series", title: "Oral eTest", blurb: "eTest Swab oral fluid devices. Observed collection, no restroom needed.", href: "/test-kits/oral-etest" },
+  { series: "ORF Series", title: "OraFlo", blurb: "Oral fluid with masked drug names that keep each donor's screen private.", href: "/test-kits/oraflo" },
 ];
 const tagClass = (b: Kit["badge"]) => (b === "FUO" ? "tag forensic" : b === "OTC" ? "tag diag" : "tag");
 const title = (k: Kit) => k.name.replace(k.code, "").replace(/\s+/g, " ").trim();
@@ -34,7 +34,7 @@ export function KitShowcase({ kits }: { kits: Kit[] }) {
     <>
       <div className="ks-bar" role="group" aria-label="Filter kits">
         <div className="wrap ks-bar-in">
-          <div className="grp"><span>Specimen</span>{chip("All", specimen, setSpecimen, "All")}{chip("Oral fluid", specimen, setSpecimen, "Oral fluid")}{chip("Urine", specimen, setSpecimen, "Urine")}</div>
+          <div className="grp"><span>Specimen</span>{chip("All", specimen, setSpecimen, "All")}{chip("Urine", specimen, setSpecimen, "Urine")}{chip("Oral fluid", specimen, setSpecimen, "Oral fluid")}</div>
           <div className="grp"><span>Use</span>{chip("All", use, setUse, "All")}{chip("EUO", use, setUse, "Workplace")}{chip("OTC", use, setUse, "FDA/OTC")}{chip("FUO", use, setUse, "Forensic")}</div>
           <div className="grp">
             <label htmlFor="ks-drug">Tests for</label>
