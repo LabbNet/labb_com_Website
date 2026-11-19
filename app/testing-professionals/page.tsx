@@ -22,8 +22,8 @@ export default function TestingProfessionals() {
         <div className="wrap">
           <div>
             <span className="eyebrow">For testing professionals</span>
-            <h1>Run a better drug testing business.</h1>
-            <p className="lede">Technology, test kits and a support team for the people who collect, manage and confirm drug tests.</p>
+            <h1>Run your entire drug testing business.</h1>
+            <p className="lede">Labb technology offers complete testing management along with contracting, invoicing, accounting, point of sale, eCommerce, web development, CRM and more.</p>
           </div>
           <GraphicSlot src="/graphics/pros/hero.webp" alt="Labb technology at a collection site" label="Hero: Labb at a collection site" w={1600} h={1200} priority />
         </div>

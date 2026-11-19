@@ -1,8 +1,9 @@
 import type { Metadata } from "next";
 import { Breadcrumbs, CtaBand, JsonLd } from "@/components/ui";
-import { KitBrowser } from "@/components/KitBrowser";
+import Image from "next/image";
+import Link from "next/link";
+import { KitShowcase } from "@/components/KitShowcase";
 import { KitMatrix } from "@/components/KitMatrix";
-import { PageHeroBar } from "@/components/PageHero";
 import { publishedKits } from "@/lib/kits";
 import { absoluteUrl } from "@/lib/site";
 
@@ -16,26 +17,38 @@ export const metadata: Metadata = {
 export default function Page() {
   return (
     <>
-      <PageHeroBar
-        eyebrow="Test kits"
-        title="Explore Labb test kits"
-        lede="Compare panels, drugs and cutoffs side by side, see each device, and download its data sheet. Every kit reads on Labb Station. When you know what you need, ask for a quote."
-        cta={{ href: "/get-a-quote", label: "Get a quote" }}
-      />
-      <section className="legend" aria-label="Kit categories">
-        <div className="wrap">
-          <div className="card"><span className="tag">Workplace</span><p>For employment programs: pre-employment, random, post-accident and return to duty.</p></div>
-          <div className="card"><span className="tag forensic">Forensic</span><p>For forensic programs. Every kit with EtG alcohol testing is forensic.</p></div>
-          <div className="card"><span className="tag diag">FDA/OTC</span><p>Over-the-counter and CLIA waived use, including workplace programs and at-home collection.</p></div>
+      <section className="ks-hero">
+        <div className="wrap ks-hero-in">
+          <div>
+            <span className="eyebrow">Labb test kits</span>
+            <h1>Rapid drug tests, built to be read right.</h1>
+            <p className="lede">
+              Oral fluid and urine kits from 6 to 23 drugs, each designed for an objective read on Labb Station. Pick a kit to see its panel,
+              cutoffs and data sheet.
+            </p>
+            <ul className="ks-facts">
+              <li><strong>{publishedKits.length}</strong> kits</li>
+              <li><strong>{publishedKits.filter((k) => k.specimen === "Oral fluid").length}</strong> oral fluid</li>
+              <li><strong>{publishedKits.filter((k) => k.specimen === "Urine").length}</strong> urine</li>
+              <li><strong>6 to 23</strong> drugs per kit</li>
+            </ul>
+            <div className="btn-row">
+              <Link href="/get-a-quote" className="btn btn-primary">Get a quote</Link>
+              <a href="#compare" className="btn btn-outline">Compare drugs and cutoffs</a>
+            </div>
+          </div>
+          <Image src="/graphics/home/hero-technology.webp" alt="Labb Urine eTest cups and the Oral eTest OR:06A oral fluid test" width={1565} height={758} priority sizes="(max-width: 900px) 92vw, 640px" className="ks-hero-img" />
         </div>
       </section>
       <Breadcrumbs items={[{ name: "Test kits", href: "/test-kits" }]} />
-      <section className="section" style={{ paddingTop: 8 }}>
+      <KitShowcase kits={publishedKits} />
+      <section className="section" style={{ paddingTop: 24 }}>
         <div className="wrap">
-          <span id="urine" />
-          <span id="oral" />
-          <KitBrowser kits={publishedKits} />
-
+          <div className="legend-row" aria-label="Kit categories">
+            <div className="card"><span className="tag">Workplace</span><p>Employment use only (EUO), for pre-employment, random, post-accident and return to duty.</p></div>
+            <div className="card"><span className="tag diag">FDA/OTC</span><p>Over-the-counter and CLIA waived use, including workplace programs and at-home collection.</p></div>
+            <div className="card"><span className="tag forensic">Forensic</span><p>For forensic programs. Every kit with EtG alcohol testing is forensic.</p></div>
+          </div>
           <div id="compare" style={{ marginTop: 72, scrollMarginTop: 120 }}>
             <span className="eyebrow">Compare</span>
             <h2>Drugs and cutoffs by kit</h2>
@@ -49,7 +62,7 @@ export default function Page() {
             <strong style={{ flex: "none" }}>Which kit can I use?</strong>
             <span>
               Workplace programs use Workplace or FDA/OTC kits. Forensic kits, including every kit with EtG alcohol, are for forensic
-              programs. Labb rapid screens are not for DOT or other federally regulated testing.
+              programs. Labb rapid screens are for non-regulated testing; Labb also offers lab-based testing for regulated (DOT) programs.
             </span>
           </div>
         </div>

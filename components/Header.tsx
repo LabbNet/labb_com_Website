@@ -91,7 +91,7 @@ export function Header() {
                 </li>
               ) : (
                 <li key={item.href}>
-                  <Link href={item.href!} aria-current={isCurrent(item.href!) ? "page" : undefined}>{item.label}</Link>
+                  <Link href={item.href!} className={inSection(item) ? "current" : undefined} aria-current={isCurrent(item.href!) ? "page" : undefined}>{item.label}</Link>
                 </li>
               ),
             )}

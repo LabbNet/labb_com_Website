@@ -46,12 +46,8 @@ export const nav = [
   },
   {
     label: "Test kits",
+    href: "/test-kits",
     base: ["/test-kits"],
-    children: [
-      { href: "/test-kits/oral-etest", label: "Oral eTest" },
-      { href: "/test-kits/urine-etest", label: "Urine eTest" },
-      { href: "/test-kits/oraflo", label: "OraFlo" },
-    ],
   },
   {
     label: "Training",
