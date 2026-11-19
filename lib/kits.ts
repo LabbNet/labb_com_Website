@@ -38,10 +38,10 @@ export const kits: Kit[] = [
     drugCount: 10,
     readTime: "10 minutes",
     summary:
-      "A 10 drug oral fluid screen built for workplace testing: pre-employment, random, post-accident and return to duty. Drug names on the device are masked to protect donor privacy.",
+      "A 10 drug oral fluid screen built for workplace testing: pre-employment, random, post-accident and return to duty. True Privacy technology masks drug names on the device to protect donor privacy.",
     facts: [
       { label: "Specimen", value: "Oral fluid, observed collection" },
-      { label: "Drug names", value: "Masked (D1 to D10), decoded by the reader" },
+      { label: "True Privacy technology", value: "Drug names masked on the device (D1 to D10), decoded privately by Labb Station" },
       { label: "THC", value: "40 ng/mL, parent Δ9-THC" },
       { label: "Opiates", value: "40 ng/mL" },
       { label: "Alcohol", value: "No" },

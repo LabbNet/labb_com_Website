@@ -10,7 +10,7 @@ import { absoluteUrl } from "@/lib/site";
 export const metadata: Metadata = {
   title: "Rapid Drug Test Kits: Oral Fluid and Urine Panels",
   description:
-    "Compare Labb rapid drug test kits side by side: OraFlo and eTest Swab oral fluid devices and eTest Cup urine screens from 6 to 23 drugs, with cutoffs for every drug.",
+    "Compare Labb rapid drug test kits: eTest Cup urine screens, eTest Swab and OraFlo oral fluid devices. Every kit is customizable from 1 to 23 drugs and alcohol, with cutoffs for every drug.",
   alternates: { canonical: "/test-kits" },
 };
 
@@ -23,14 +23,14 @@ export default function Page() {
             <span className="eyebrow">Labb test kits</span>
             <h1>Rapid drug tests, built to be read right.</h1>
             <p className="lede">
-              Oral fluid and urine kits from 6 to 23 drugs, each designed for an objective read on Labb Station. Pick a kit to see its panel,
-              cutoffs and data sheet.
+              Urine and oral fluid kits, each designed for an objective read on Labb Station. Every kit is customizable, from 1 to 23 drugs
+              and alcohol. Pick a kit to see its panel, cutoffs and data sheet.
             </p>
             <ul className="ks-facts">
               <li><strong>{publishedKits.length}</strong> kits</li>
               <li><strong>{publishedKits.filter((k) => k.specimen === "Urine").length}</strong> urine</li>
               <li><strong>{publishedKits.filter((k) => k.specimen === "Oral fluid").length}</strong> oral fluid</li>
-              <li><strong>6 to 23</strong> drugs per kit</li>
+              <li><strong>1 to 23</strong> drugs and alcohol</li>
             </ul>
             <div className="btn-row">
               <Link href="/get-a-quote" className="btn btn-primary">Get a quote</Link>
@@ -41,6 +41,15 @@ export default function Page() {
         </div>
       </section>
       <Breadcrumbs items={[{ name: "Test kits", href: "/test-kits" }]} />
+      <section className="wrap">
+        <div className="custom-strip">
+          <div className="custom-text">
+            <strong>Every Labb kit is customizable.</strong>
+            <span>Test for exactly what your program needs, from 1 to 23 drugs and alcohol. Flex Testing removes any drug from a stocked panel, and omitted drugs are not recorded or reported.</span>
+          </div>
+          <Link href="/get-a-quote?kit=Custom%20panel" className="btn btn-primary">Build a custom panel</Link>
+        </div>
+      </section>
       <KitShowcase kits={publishedKits} />
       <section className="section" style={{ paddingTop: 24 }}>
         <div className="wrap">

@@ -10,7 +10,7 @@ import { badgeLabel, type Kit } from "@/lib/kits";
 const LINES: { series: Kit["series"]; title: string; blurb: string; href: string }[] = [
   { series: "UA Series", title: "Urine eTest", blurb: "eTest Cup urine screens from 6 to 23 drugs, made for an objective Labb Station read.", href: "/test-kits/urine-etest" },
   { series: "OR Series", title: "Oral eTest", blurb: "eTest Swab oral fluid devices. Observed collection, no restroom needed.", href: "/test-kits/oral-etest" },
-  { series: "ORF Series", title: "OraFlo", blurb: "Oral fluid with masked drug names that keep each donor's screen private.", href: "/test-kits/oraflo" },
+  { series: "ORF Series", title: "OraFlo", blurb: "Oral fluid with True Privacy technology: drug names are masked on the device and decoded privately by Labb Station.", href: "/test-kits/oraflo" },
 ];
 const tagClass = (b: Kit["badge"]) => (b === "FUO" ? "tag forensic" : b === "OTC" ? "tag diag" : "tag");
 const title = (k: Kit) => k.name.replace(k.code, "").replace(/\s+/g, " ").trim();
@@ -69,11 +69,12 @@ export function KitShowcase({ kits }: { kits: Kit[] }) {
                         <Image src={k.image} alt={`${k.name} ${k.specimen.toLowerCase()} drug test`} width={900} height={900} sizes="(max-width: 640px) 92vw, (max-width: 1000px) 46vw, 380px" className="ks-main" />
                         {alt && <Image src={alt.src} alt="" width={alt.w} height={alt.h} sizes="(max-width: 640px) 92vw, (max-width: 1000px) 46vw, 380px" className="ks-alt" />}
                         <span className={`${tagClass(k.badge)} ks-badge`}>{badgeLabel[k.badge]}</span>
+                        {k.series === "ORF Series" && <span className="ks-privacy">True Privacy</span>}
                       </div>
                       <div className="ks-body">
                         <span className="ks-code">{k.code}</span>
                         <h3>{title(k)}</h3>
-                        <p className="ks-specs">{k.specimen} · {k.drugCount} drugs · {k.readTime.replace(" minutes", " min")} read{k.drugs.some((d) => d.code === "ETG" || d.code === "ALC") ? " · Alcohol" : ""}</p>
+                        <p className="ks-specs">{k.specimen} · {k.drugCount} drugs · {k.readTime.replace(" minutes", " min")} read{k.drugs.some((d) => d.code === "ETG" || d.code === "ALC") ? " · Alcohol" : ""}{k.series === "ORF Series" ? " · True Privacy technology" : ""}</p>
                         <span className="ks-cta">View panel and cutoffs <span aria-hidden="true">→</span></span>
                       </div>
                     </Link>

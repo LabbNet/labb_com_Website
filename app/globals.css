@@ -1317,3 +1317,9 @@ td.acts { white-space: nowrap; }
 .step2-actions .linkish { color: var(--muted); font-weight: 600; }
 @media (max-width: 860px) { .form-split .form-copy { position: static; } }
 .consult .form-title { margin-top: 4px; }
+.custom-strip { display: flex; align-items: center; justify-content: space-between; gap: 16px 28px; flex-wrap: wrap; background: var(--dark); color: #fff; border-radius: 14px; padding: 18px 24px; margin: 4px 0 20px; border-left: 6px solid var(--orange); }
+.custom-text { flex: 1 1 520px; }
+.custom-text strong { display: block; font-size: 1.15rem; margin-bottom: 2px; }
+.custom-text span { color: rgba(255,255,255,.8); font-size: .95rem; }
+.ks-hero-img { mix-blend-mode: multiply; }
+.ks-privacy { position: absolute; top: 14px; right: 14px; font-size: .75rem; font-weight: 700; color: #fff; background: var(--dark); border-radius: 999px; padding: 5px 11px; letter-spacing: .02em; }
