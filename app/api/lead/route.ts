@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { deliverLead, saveLead, type Lead } from "@/lib/leads";
+import { deliverLead, detailsOf, leadToken, saveLead, STAGE_CONTACT, type Lead } from "@/lib/leads";
 import { quickTestCheckout, quickTestCheckoutReady } from "@/lib/commerce";
 import { isShipping, money, quote } from "@/lib/quickTest";
 import { getQtPricing } from "@/lib/qtPricing";
@@ -24,18 +24,6 @@ function segmentOf(body: Record<string, unknown>): Segment {
   if (page.startsWith("/drug-testing-businesses") || page.startsWith("/one")) return "drug-testing-business";
   if (body.industry || page.startsWith("/employers") || page.startsWith("/industries")) return "employer";
   return "other";
-}
-
-// Extra structured answers from specialized forms (for example Quick Test). Only known keys are kept.
-const DETAIL_KEYS = ["topic", "backgroundScreening", "currentProgram", "improve", "costPerTest", "testingLocation", "fulfillment", "shipping", "clinicZip", "clinicName", "testType", "observation", "reason", "panel", "reportTo", "reportEmail", "address1", "address2", "city", "state", "zip", "deliverBy", "drugs", "kit", "screenFee", "shippingFee", "proctoringFee", "total"] as const;
-function detailsOf(v: unknown) {
-  if (!v || typeof v !== "object") return undefined;
-  const out: Record<string, string> = {};
-  for (const k of DETAIL_KEYS) {
-    const val = (v as Record<string, unknown>)[k];
-    if (typeof val === "string" && val.trim()) out[k] = val.trim().slice(0, k === "currentProgram" ? 2000 : 300);
-  }
-  return Object.keys(out).length ? out : undefined;
 }
 
 function productsOf(v: unknown) {
@@ -141,6 +129,8 @@ export async function POST(req: Request) {
     };
   }
   if (Object.keys(errors).length) return NextResponse.json({ errors }, { status: 422 });
+  const twoStep = body.step === "contact";
+  if (twoStep) lead.details = { ...(lead.details || {}), stage: STAGE_CONTACT };
 
   // Quick Test: save the order, then send the buyer to Stripe Checkout. The notification goes out
   // when Stripe confirms payment (webhook). Without Stripe it falls back to an order request.
@@ -158,8 +148,9 @@ export async function POST(req: Request) {
   const resource = lead.resource ? getResource(lead.resource) : undefined;
   if (resource) lead.resource = resource.title;
 
+  let saved: { id?: string } = {};
   try {
-    await deliverLead(lead);
+    saved = await deliverLead(lead);
   } catch (e) {
     console.error("[lead] delivery failed", e);
     return NextResponse.json(
@@ -168,7 +159,11 @@ export async function POST(req: Request) {
     );
   }
 
-  const res = NextResponse.json({ ok: true, download: resource?.fileUrl ?? (resource?.file ? `/api/download/${resource.slug}` : undefined) });
+  const res = NextResponse.json({
+    ok: true,
+    download: resource?.fileUrl ?? (resource?.file ? `/api/download/${resource.slug}` : undefined),
+    ...(twoStep && saved.id ? { lead: saved.id, token: leadToken(saved.id) } : {}),
+  });
   const existing = await verify(req.headers.get("cookie")?.match(new RegExp(`${COOKIE}=([^;]+)`))?.[1]);
   res.cookies.set(COOKIE, await sign({ ...existing, email: lead.email, lead: true }), cookieOptions);
   return res;

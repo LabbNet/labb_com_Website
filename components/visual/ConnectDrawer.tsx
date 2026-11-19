@@ -48,7 +48,7 @@ export function ConnectDrawer() {
           products={d.products}
           topic={d.topic}
           title={d.title || "Request a consultation"}
-          subtitle="Tell us about your program and what you want to improve. We will follow up with options and pricing."
+          subtitle="Two quick steps: your contact details, then a few optional questions about your program."
           submitLabel="Request a consultation"
         />
       </div>

@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { PRODUCTS, FORM_SEGMENTS, VOLUME, type Segment } from "@/lib/segments";
+import { ConsultForm, type ConsultVariant } from "@/components/ConsultForm";
 
 type Variant = "quote" | "sample" | "handbook" | "clinic" | "certification-waitlist" | "contact" | "early-access" | "demo";
 
@@ -31,7 +32,16 @@ const BACKGROUND = ["We use a background screening provider today", "We need bac
 const BACKGROUND_CLINIC = ["We offer background checks today", "We want to start offering background checks", "Not right now"];
 const CONSULT: Variant[] = ["demo", "quote", "contact", "early-access", "clinic"];
 
-export function LeadForm({ variant, title, subtitle, submitLabel, resource, industry, compact, defaultMessage, segment: fixedSegment, products: preChecked = [], topic }: Props) {
+// Consultation forms (full size) use the two-step ConsultForm; everything else is a single-step form.
+export function LeadForm(props: Props) {
+  if (CONSULT.includes(props.variant) && !props.compact) {
+    const { variant, title, subtitle, submitLabel, industry, segment, products, topic, defaultMessage } = props;
+    return <ConsultForm variant={variant as ConsultVariant} title={title} subtitle={subtitle} submitLabel={submitLabel} industry={industry} segment={segment} products={products} topic={topic ?? defaultMessage} />;
+  }
+  return <SingleStepForm {...props} />;
+}
+
+function SingleStepForm({ variant, title, subtitle, submitLabel, resource, industry, compact, defaultMessage, segment: fixedSegment, products: preChecked = [], topic }: Props) {
   const router = useRouter();
   const started = useRef(Date.now());
   const [state, setState] = useState<"idle" | "sending" | "done">("idle");

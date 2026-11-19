@@ -1,4 +1,5 @@
 import "server-only";
+import { createHmac, timingSafeEqual } from "node:crypto";
 import { cppEmail } from "@/lib/site";
 import { dbConfigured, sql } from "@/lib/db";
 import { emailLayout, sendMail } from "@/lib/mail";
@@ -108,8 +109,21 @@ export async function logLeadEvent(leadId: string | number, event: string, detai
 }
 
 // ---- Rendering ----
+// Extra structured answers from specialized forms (for example Quick Test). Only known keys are kept.
+export const DETAIL_KEYS = ["topic", "backgroundScreening", "currentProgram", "improve", "costPerTest", "testingLocation", "fulfillment", "shipping", "clinicZip", "clinicName", "testType", "observation", "reason", "panel", "reportTo", "reportEmail", "address1", "address2", "city", "state", "zip", "deliverBy", "drugs", "kit", "screenFee", "shippingFee", "proctoringFee", "total"] as const;
+export function detailsOf(v: unknown) {
+  if (!v || typeof v !== "object") return undefined;
+  const out: Record<string, string> = {};
+  for (const k of DETAIL_KEYS) {
+    const val = (v as Record<string, unknown>)[k];
+    if (typeof val === "string" && val.trim()) out[k] = val.trim().slice(0, k === "currentProgram" ? 2000 : 300);
+  }
+  return Object.keys(out).length ? out : undefined;
+}
+
 export const DETAIL_LABELS: Record<string, string> = {
   topic: "Opened from",
+  stage: "Form",
   backgroundScreening: "Background screening",
   currentProgram: "Current program", improve: "Wants to improve", costPerTest: "Current cost per test", testingLocation: "Where testing happens",
   fulfillment: "Where", shipping: "Shipping", clinicZip: "Clinic near ZIP", clinicName: "Preferred clinic", paid: "Payment", drugs: "Drugs", kit: "Kit to send", screenFee: "Test kit price", shippingFee: "Shipping fee", proctoringFee: "Proctoring or collection fee", total: "Total",
@@ -184,6 +198,19 @@ export async function saveLead(lead: Lead): Promise<string> {
   return row.id;
 }
 
+// Two-step consultation forms: step 1 saves the contact details and returns a token that lets the same
+// browser add its program details (step 2) to that lead once.
+export const STAGE_CONTACT = "Step 1 of 2: contact details only";
+export const STAGE_COMPLETE = "Both steps completed";
+export function leadToken(id: string) {
+  return createHmac("sha256", process.env.SESSION_SECRET || "local-dev-secret").update(`lead-step2:${id}`).digest("base64url").slice(0, 32);
+}
+export function checkLeadToken(id: string, token: string) {
+  const a = Buffer.from(leadToken(id));
+  const b = Buffer.from(token || "");
+  return a.length === b.length && timingSafeEqual(a, b);
+}
+
 export async function deliverLead(lead: Lead, existingId?: string) {
   let id: string | undefined = existingId;
   if (!id && dbConfigured) {
@@ -199,7 +226,7 @@ export async function deliverLead(lead: Lead, existingId?: string) {
       ? `${lead.details?.paid ? "PAID " : ""}Quick Test order: ${`${lead.firstName} ${lead.lastName}`.trim()} (${lead.details?.testType || "test"}, ${lead.details?.state || ""})`
       : lead.type === "cpp-application"
       ? `CPP application${lead.wantsAgreement ? " (SEND AGREEMENT)" : ""}: ${lead.company} (${[lead.city, lead.state].filter(Boolean).join(", ")})`
-      : `New ${segmentLabel(lead.segment).toLowerCase()} lead: ${name}`;
+      : `New ${segmentLabel(lead.segment).toLowerCase()} lead: ${name}${lead.details?.stage?.startsWith("Step 1") ? " (contact details; program details may follow)" : ""}`;
   const r = rows(lead);
   const html = emailLayout(
     esc(subject),

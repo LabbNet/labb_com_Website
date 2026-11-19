@@ -61,12 +61,17 @@ export default function Employers() {
         },
       ]}
       problem={{
-        title: "In-house testing means reading, documenting, and confirming test kits correctly.",
+        title: "In-house testing means you are acting as the laboratory.",
         body: (
-          <p>
-            Low testing volume means staff never get good at reading kits. A test misread as positive can rule out a candidate who would
-            have cleared confirmation, and hiring is hard enough already.
-          </p>
+          <>
+            <p>
+              Labb technology helps ensure your results, chain of custody and program meet best industry practices.
+            </p>
+            <p>
+              Low testing volume means staff never get good at reading kits. A test misread as positive can rule out a candidate who would
+              have cleared confirmation, and hiring is hard enough already.
+            </p>
+          </>
         ),
       }}
       pains={[
