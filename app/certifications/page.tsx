@@ -1,8 +1,7 @@
 import Link from "next/link";
 import type { Metadata } from "next";
 import { Breadcrumbs, CtaBand, Faq } from "@/components/ui";
-import { currentMember } from "@/lib/auth";
-import { COURSE_TYPES, cppFree, cppPriceCents, isActiveCpp, listCourses, type Course } from "@/lib/courses";
+import { COURSE_TYPES, listCourses, type Course } from "@/lib/courses";
 
 export const dynamic = "force-dynamic";
 
@@ -16,15 +15,11 @@ export const metadata: Metadata = {
 const faqs = [
   { q: "How do the courses work?", a: "Each certification is a paid online course built on Labb's written training documents. Every chapter ends with an exam. You need about 85% on each chapter exam to pass and open the next chapter." },
   { q: "How do I get access after I pay?", a: "The learner gets an email to set up a Labb account. Progress saves to that account, so they can stop and pick up where they left off on any device." },
-  { q: "Are certifications included for Channel Partner Program members?", a: "Yes. Some certifications are included free, and the rest are discounted for active Channel Partner Program members. Sign in before you check out to get the CPP price." },
   { q: "Is any of this DOT training?", a: "No. Labb certifications cover company (non-DOT) testing. They do not qualify anyone to perform a DOT or other regulated collection or alcohol test." },
 ];
 
 const money = (c: number) => `$${(c / 100).toLocaleString("en-US", { minimumFractionDigits: c % 100 ? 2 : 0 })}`;
-function CertItem({ c, cpp }: { c: Course; cpp: boolean }) {
-  const free = cppFree(c);
-  const cppCents = cppPriceCents(c);
-  const mine = cpp ? (free ? 0 : cppCents) : null;
+function CertItem({ c }: { c: Course }) {
   const href = `/certifications/${c.slug}`;
   return (
     <article className="cert-item">
@@ -40,25 +35,16 @@ function CertItem({ c, cpp }: { c: Course; cpp: boolean }) {
         <div><dt>To pass</dt><dd>{c.passPct}%</dd></div>
       </dl>
       <div className="ci-buy">
-        {mine !== null ? (
-          <div className="ci-price">{money(mine)}<s>{money(c.priceCents!)}</s><span>your CPP price</span></div>
-        ) : (
-          <div className="ci-price">{money(c.priceCents!)}<span>per learner</span></div>
-        )}
-        {cpp && free ? (
-          <a className="btn btn-primary" href={`/learn/${c.slug}/play`}>Open course</a>
-        ) : (
-          <Link className="btn btn-primary" href={`${href}#enroll`}>Start now</Link>
-        )}
+        <div className="ci-price">{money(c.priceCents!)}<span>per learner</span></div>
+        <Link className="btn btn-primary" href={`${href}#enroll`}>Start now</Link>
         <Link className="btn btn-outline" href={href}>Learn more</Link>
-        {!cpp && (free ? <span className="ci-note">Included for CPP members</span> : cppCents !== null ? <span className="ci-note">CPP members pay {money(cppCents)} ({c.cppDiscountPct}% off)</span> : null)}
       </div>
     </article>
   );
 }
 
 export default async function Page() {
-  const [all, cpp] = await Promise.all([listCourses(), currentMember().then(isActiveCpp)]);
+  const all = await listCourses();
   const open = all.filter((c) => c.forSale);
   const soon = all.filter((c) => !c.forSale && c.status !== "draft");
   return (
@@ -79,7 +65,7 @@ export default async function Page() {
           </div>
           {!open.length && <p>New certifications are on the way. Call {"(877) 868-9967"} or email info@labb.com with questions.</p>}
           <div className="cert-list">
-            {open.map((c) => <CertItem key={c.slug} c={c} cpp={cpp} />)}
+            {open.map((c) => <CertItem key={c.slug} c={c} />)}
           </div>
         </div>
       </section>

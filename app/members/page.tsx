@@ -123,9 +123,9 @@ export default async function MembersHome({ searchParams }: { searchParams: Prom
           <div>
             <span className="res-icon"><IconCertification /></span>
             <h2>Certifications and training</h2>
-            <p>The LabbHR Clinic Owners Course is included with your membership: 11 chapters with exams and a certificate of completion. Your progress saves as you go.</p>
-            <a className="btn btn-primary" href="/learn">Open the Clinic Owners Course</a>
-            <p style={{ marginTop: 12 }}><Link href="/certifications">See all certifications</Link></p>
+            <p>Certification courses at CPP member pricing, with some included free with your membership. Enroll yourself or your staff, and progress saves as you go.</p>
+            <Link className="btn btn-primary" href="/members/certifications">See CPP certification pricing</Link>
+            <p style={{ marginTop: 12 }}><a href="/learn">Open my courses</a></p>
           </div>
           <div>
             <span className="res-icon"><IconSupport /></span>

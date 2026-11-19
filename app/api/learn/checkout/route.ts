@@ -12,10 +12,13 @@ export async function POST(req: Request) {
   if (!c || !c.forSale || c.priceCents === null) return go(req, "/certifications");
   const name = field(fd, "name", 120);
   const email = field(fd, "email", 160).toLowerCase();
-  const back = `/certifications/${c.slug}`;
-  if (!name || !EMAIL_RE.test(email)) return go(req, `${back}?error=details#enroll`);
-  if (!stripeEnabled) return go(req, `${back}?checkout=soon#enroll`);
-  const cpp = await isActiveCpp(await currentMember());
+  // CPP pricing applies only to checkouts started from the member portal by an active CPP member.
+  const fromPortal = fd.get("portal") === "1";
+  const back = fromPortal ? `/members/certifications` : `/certifications/${c.slug}`;
+  const anchor = fromPortal ? `#${c.slug}` : "#enroll";
+  if (!name || !EMAIL_RE.test(email)) return go(req, `${back}?error=details${anchor}`);
+  if (!stripeEnabled) return go(req, `${back}?checkout=soon${anchor}`);
+  const cpp = fromPortal && (await isActiveCpp(await currentMember()));
   const discounted = cpp ? cppPriceCents(c) : null;
   const amount = discounted ?? c.priceCents;
   const session = await stripe().checkout.sessions.create({
@@ -24,7 +27,7 @@ export async function POST(req: Request) {
     line_items: [{ quantity: 1, price_data: { currency: "usd", unit_amount: amount, product_data: { name: c.title, description: `${c.short}. Online course with chapter exams and a certificate of completion.${discounted !== null ? ` CPP member price (${c.cppDiscountPct}% off).` : ""}` } } }],
     metadata: { kind: "course", course: c.slug, name, cpp: discounted !== null ? "yes" : "no" },
     success_url: absoluteUrl(`/certifications/purchased?session_id={CHECKOUT_SESSION_ID}`),
-    cancel_url: absoluteUrl(`${back}?checkout=cancelled#enroll`),
+    cancel_url: absoluteUrl(`${back}?checkout=cancelled${anchor}`),
   });
   return Response.redirect(session.url!, 303);
 }

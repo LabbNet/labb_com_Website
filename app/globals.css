@@ -1337,3 +1337,19 @@ td.acts { white-space: nowrap; }
 .matrix col.c-name { width: 200px; }
 .matrix-unit { padding: 12px 14px; }
 @media (max-width: 1100px) { .matrix { table-layout: auto; } }
+/* Member portal: CPP certification pricing */
+.mc-list { display: grid; gap: 16px; margin-top: 24px; }
+.mc-item { display: grid; grid-template-columns: minmax(0, 1fr) 300px; gap: 28px; background: #fff; border: 1px solid var(--border); border-left: 5px solid var(--orange); border-radius: var(--radius-card); padding: 24px 26px; scroll-margin-top: 140px; }
+.mc-info h2 { font-size: 1.35rem; margin: 4px 0 8px; }
+.mc-info p { margin: 0 0 8px; color: var(--muted); }
+.mc-facts { font-size: .88rem; }
+.mc-price strong { display: block; font-size: 1.9rem; line-height: 1.1; color: var(--dark); }
+.mc-price span { font-size: .85rem; color: var(--muted); }
+.mc-price s { margin-right: 4px; }
+.mc-buy { display: flex; flex-direction: column; gap: 10px; }
+.mc-form { display: grid; gap: 4px; }
+.mc-form label { font-size: .82rem; font-weight: 600; margin-top: 4px; }
+.mc-form button { margin-top: 10px; }
+.mc-buy .fine { text-align: left; margin: 0; }
+@media (max-width: 860px) { .mc-item { grid-template-columns: 1fr; } }
+.mc-form input { width: 100%; min-height: 42px; padding: 8px 12px; border: 1px solid var(--border); border-radius: 8px; font: inherit; font-size: .95rem; background: #fff; }
