@@ -65,7 +65,7 @@ export default function Page() {
               The number is the screening cutoff in ng/mL: a strip reads non-negative at or above it, so a lower number is a more sensitive
               test. Oral fluid cutoffs are much lower than urine because drug levels in saliva are lower.
             </p>
-            <KitMatrix kits={publishedKits} />
+            <KitMatrix kits={[...publishedKits].sort((a, b) => ["UA Series", "OR Series", "ORF Series"].indexOf(a.series) - ["UA Series", "OR Series", "ORF Series"].indexOf(b.series))} />
           </div>
           <div className="note" style={{ marginTop: 32 }}>
             <strong style={{ flex: "none" }}>Which kit can I use?</strong>

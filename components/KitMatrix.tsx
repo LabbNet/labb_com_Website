@@ -9,10 +9,15 @@ export function KitMatrix({ kits }: { kits: Kit[] }) {
   return (
     <div className="compare-wrap">
       <table className="compare matrix">
-        <caption className="visually-hidden">Drugs tested by each Labb kit, with cutoffs in ng/mL</caption>
+        <caption className="matrix-unit">Numbers are screening cutoffs in <strong>ng/mL</strong> (nanograms per milliliter). A dot means the kit does not test for that drug.</caption>
+        <colgroup>
+          <col className="c-code" />
+          <col className="c-name" />
+          {kits.map((k) => <col key={k.slug} />)}
+        </colgroup>
         <thead>
           <tr>
-            <th scope="col" colSpan={2} style={{ textAlign: "left" }}>Drug</th>
+            <th scope="col" colSpan={2} style={{ textAlign: "left" }}>Drug<span className="sub">Cutoff in ng/mL</span></th>
             {kits.map((k) => (
               <th key={k.slug} scope="col">
                 <Link href={`/test-kits/${k.slug}`}>{k.code}</Link>
@@ -39,7 +44,7 @@ export function KitMatrix({ kits }: { kits: Kit[] }) {
                   <th scope="row">{names.get(c)}</th>
                   {kits.map((k) => {
                     const d = k.drugs.find((x) => x.code === c);
-                    return d ? <td key={k.slug} className="on"><span className="yes-cut">{d.cutoff}</span></td> : <td key={k.slug}><span className="no">·</span></td>;
+                    return d ? <td key={k.slug} className="on" title={`${k.code}: ${names.get(c)} cutoff ${d.cutoff} ng/mL`}><span className="yes-cut">{d.cutoff}</span></td> : <td key={k.slug}><span className="no">·</span></td>;
                   })}
                 </tr>
               ))}

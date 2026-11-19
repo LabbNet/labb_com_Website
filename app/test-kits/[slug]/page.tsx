@@ -48,7 +48,7 @@ export default async function KitPage({ params }: { params: Promise<{ slug: stri
             </p>
             <table className="panel-table">
               <thead>
-                <tr><th scope="col">Code</th><th scope="col">Drug</th><th scope="col">Cutoff</th></tr>
+                <tr><th scope="col">Code</th><th scope="col">Drug</th><th scope="col">Cutoff (ng/mL)</th></tr>
               </thead>
               <tbody>
                 {kit.drugs.map((d) => (

@@ -1323,3 +1323,17 @@ td.acts { white-space: nowrap; }
 .custom-text span { color: rgba(255,255,255,.8); font-size: .95rem; }
 .ks-hero-img { mix-blend-mode: multiply; }
 .ks-privacy { position: absolute; top: 14px; right: 14px; font-size: .75rem; font-weight: 700; color: #fff; background: var(--dark); border-radius: 999px; padding: 5px 11px; letter-spacing: .02em; }
+/* Compare table: fit every kit on screen */
+.matrix { min-width: 0; width: 100%; font-size: 0.82rem; }
+.matrix th, .matrix td { padding: 8px 5px; }
+.matrix tbody th { padding-left: 10px; }
+.matrix thead th { font-size: 0.8rem; }
+.matrix tbody tr.use td { font-size: 0.66rem; line-height: 1.2; white-space: normal; text-align: center; padding: 6px 3px; }
+.matrix-unit { caption-side: top; text-align: left; font-size: .88rem; color: var(--muted); padding: 0 0 10px; }
+.matrix-unit strong { color: var(--dark); }
+@media (max-width: 1100px) { .matrix { min-width: 860px; } }
+.matrix { table-layout: fixed; }
+.matrix col.c-code { width: 58px; }
+.matrix col.c-name { width: 200px; }
+.matrix-unit { padding: 12px 14px; }
+@media (max-width: 1100px) { .matrix { table-layout: auto; } }

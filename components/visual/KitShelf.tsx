@@ -65,7 +65,7 @@ export function KitShelf({ kits, segment }: { kits: ShelfKit[]; segment?: string
             <h2 style={{ margin: "10px 0 6px" }}>{cur.name}</h2>
             <p style={{ color: "var(--muted)" }}>{cur.summary}</p>
             <table className="panel-table">
-              <thead><tr><th scope="col">Code</th><th scope="col">Drug</th><th scope="col">Cutoff</th></tr></thead>
+              <thead><tr><th scope="col">Code</th><th scope="col">Drug</th><th scope="col">Cutoff (ng/mL)</th></tr></thead>
               <tbody>{cur.drugs.map((d) => <tr key={d.code}><td>{d.code}</td><td>{d.name}</td><td>{d.cutoff}</td></tr>)}</tbody>
             </table>
             <div className="btn-row">
