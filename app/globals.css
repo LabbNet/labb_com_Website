@@ -1288,3 +1288,18 @@ td.acts { white-space: nowrap; }
 .legend-row .card p { margin: 8px 0 0; font-size: .92rem; }
 @media (max-width: 900px) { .ks-hero-in { grid-template-columns: 1fr; } .legend-row { grid-template-columns: 1fr; } .ks-bar { position: static; } .ks-count { margin-left: 0; } }
 @media (prefers-reduced-motion: reduce) { .ks-card, .ks-img img { transition: none; } .ks-card:hover { transform: none; } }
+
+/* Full-width lead form with the copy above it */
+.form-head { display: grid; grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr); gap: 40px; align-items: end; margin-bottom: 28px; }
+.form-head h2 { margin: 6px 0 10px; }
+.form-head .lede-sm { margin: 0; }
+.form-head .program-note { margin: 0; }
+.form-wide { padding: 36px 40px; }
+.form-wide .fields { grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: 28px; }
+.form-wide .check-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px 20px; }
+.form-wide .check-grid legend { grid-column: 1 / -1; }
+.form-wide .radios { display: flex; flex-direction: row; flex-wrap: wrap; gap: 10px 28px; }
+.form-wide .btn-block { max-width: 360px; }
+@media (max-width: 1000px) { .form-wide .check-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 860px) { .form-head { grid-template-columns: 1fr; gap: 16px; } .form-wide { padding: 24px 20px; } .form-wide .fields { grid-template-columns: 1fr; } .form-wide .check-grid { grid-template-columns: 1fr; } .form-wide .btn-block { max-width: none; } }
+.form-wide .fine { text-align: left; }

@@ -150,14 +150,16 @@ export function SegmentPage(p: {
       )}
 
       <section className="section soft" id="contact">
-        <div className="wrap split" style={{ alignItems: "start" }}>
-          <div>
-            <span className="eyebrow">{p.form.heading}</span>
-            <h2>{p.form.title}</h2>
-            <p>{p.form.intro}</p>
+        <div className="wrap">
+          <div className="form-head">
+            <div>
+              <span className="eyebrow">{p.form.heading}</span>
+              <h2>{p.form.title}</h2>
+              <p className="lede-sm">{p.form.intro}</p>
+            </div>
             <p className="program-note">{p.form.note ?? "Your testing goals, our technology and support: Labb builds the program around your goals and keeps it on track."}</p>
           </div>
-          <div className="hero-card">
+          <div className="hero-card form-wide">
             <LeadForm variant={p.form.variant || "demo"} segment={p.form.segment} products={p.form.products} title={p.form.heading} submitLabel={p.form.submit} />
           </div>
         </div>
