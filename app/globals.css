@@ -1245,3 +1245,4 @@ td.acts { white-space: nowrap; }
 .feature-split { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); gap: 40px; align-items: center; margin-top: 12px; }
 .feature-split .lede-sm { margin-top: 0; }
 @media (max-width: 860px) { .feature-split { grid-template-columns: 1fr; gap: 20px; } }
+.kit-note { text-align: left; margin-top: 14px; font-size: .82rem; }

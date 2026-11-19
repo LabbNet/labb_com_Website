@@ -73,7 +73,7 @@ export default function UseAClinic() {
         { q: "How do I find clinics near my locations?", a: "Send your locations through the form below. Labb matches them with clinics in its Channel Partner Program and sets up the program for you." },
         { q: "What if there's no Labb clinic near one of my sites?", a: "Labb can recommend in-house testing for that site, or work out another option. Your program stays in one place either way." },
         { q: "Can employees get a background check or physical at the same visit?", a: "Many Labb clinics offer background checks, physicals and other services alongside drug testing. Tell us what you need and we'll match clinics that offer it." },
-        { q: "Is this DOT testing?", a: "No. Labb rapid kits are for company (non-DOT) testing. Labb can point you to DOT collection options for regulated employees." },
+        { q: "What about DOT-regulated employees?", a: "Labb rapid kits are for company (non-DOT) testing. Labb also offers lab-based testing, so regulated (DOT) and non-regulated employees can run through one program." },
       ]}
       form={{
         segment: "employer",

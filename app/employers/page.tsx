@@ -158,7 +158,8 @@ export default function Employers() {
       }}
       kits={{
         title: "Testing programs for every scenario",
-        intro: "From a single location to national accounts, Labb has a program to fit your requirements. Every workplace kit: employment use only (EUO) and FDA/OTC, oral fluid and urine, for pre-employment, random, post-accident and reasonable suspicion testing.",
+        intro: "From a single location to national accounts, Labb has a program to fit your requirements, with rapid and lab-based testing for regulated and non-regulated workforces.",
+        note: "Every workplace kit: employment use only (EUO) and FDA/OTC, oral fluid and urine, for pre-employment, random, post-accident and reasonable suspicion testing.",
         slugs: ["orf-31c-oraflo", "or-06a-etest-swab", "or-12a-etest-swab", "or-14a-etest-swab", "ua-06b-svt", "ua-13a-svt", "ua-15a", "ua-16c-svt"],
       }}
       form={{ segment: "employer", products: ["Labb Station", "Test kits"], heading: "Get a quote", title: "Start your testing program", intro: "In your office, at a clinic, or both. Tell us about your workforce and locations and we'll recommend panels, send a free sample, and set up testing where it works best for each site.", note: "Your testing goals, our technology and support: Labb builds the program around your goals, adds background screening and physicals when you need them, and keeps it on track.", submit: "Request a consultation", variant: "quote" }}

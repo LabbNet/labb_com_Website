@@ -1,9 +1,10 @@
 import Link from "next/link";
-import { Breadcrumbs, Checks, Faq, KitCard } from "@/components/ui";
+import { KitShelf } from "@/components/visual/KitShelf";
+import { Breadcrumbs, Checks, Faq } from "@/components/ui";
 import { LeadForm } from "@/components/LeadForm";
 import { PageHero } from "@/components/PageHero";
 import { ConnectButton } from "@/components/visual/ConnectDrawer";
-import { getKit } from "@/lib/kits";
+import { getKit, shelfKits } from "@/lib/kits";
 import type { Segment } from "@/lib/segments";
 
 type Card = { t: string; b: React.ReactNode };
@@ -22,7 +23,7 @@ export function SegmentPage(p: {
   pains?: string[];
   answer: { eyebrow: string; title: string; cards: Card[]; link?: { href: string; label: string } };
   extra?: { eyebrow: string; title: string; body: React.ReactNode; checks?: string[]; side?: Card; link?: { href: string; label: string }; wide?: boolean };
-  kits?: { title: string; intro: string; slugs: string[] };
+  kits?: { title: string; intro: string; slugs: string[]; note?: string };
   faqs?: { q: string; a: string }[];
   pathsIntro?: { eyebrow?: string; title: React.ReactNode; lede?: React.ReactNode };
   paths?: { id: string; eyebrow: string; title: string; body: string; points: string[]; graphic?: React.ReactNode; cta: { topic: string; label: string }; more?: { href: string; label: string } }[];
@@ -131,7 +132,8 @@ export function SegmentPage(p: {
             <span className="eyebrow">Test kits</span>
             <h2>{p.kits.title}</h2>
             <p className="intro">{p.kits.intro}</p>
-            <div className="grid g4">{kits.map((k) => <KitCard key={k.slug} kit={k} />)}</div>
+            <KitShelf kits={shelfKits(kits)} segment={p.form.segment} />
+            {p.kits.note && <p className="fine kit-note">{p.kits.note}</p>}
             <div className="btn-row"><Link href="/test-kits" className="btn btn-outline-dark">See all kits</Link></div>
           </div>
         </section>

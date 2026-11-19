@@ -10,7 +10,7 @@ const HIDE = /^\/(admin|members|learn|login|account|forgot-password|reset-passwo
 const SERVICES = [
   { t: "Background checks", b: "Criminal, employment and identity searches, run with the consent and notices the law requires." },
   { t: "Physicals", b: "Pre-employment and periodic physicals through clinics in the Labb network." },
-  { t: "Drug and alcohol testing", b: "Rapid oral fluid and urine screens with lab confirmation and medical review." },
+  { t: "Rapid and lab-based testing", b: "Rapid oral fluid and urine screens and lab-based testing, for regulated (DOT) and non-regulated programs." },
   { t: "Other screening services", b: "Ask about the rest of your onboarding and compliance checklist." },
 ];
 
@@ -24,8 +24,8 @@ export function CompleteScreening() {
           <span className="eyebrow">Complete screening</span>
           <h2 id="complete-title">Drug testing, background checks, physicals and more.</h2>
           <p className="lede-sm">
-            Labb offers background screening, physicals and other services in combination with drug testing for clients that need a
-            complete solution. One partner and one program for every hire.
+            Labb offers rapid and lab-based drug testing for regulated and non-regulated industries, plus background screening, physicals
+            and other services for clients that need a complete solution. One partner and one program for every hire.
           </p>
           <div className="btn-row">
             <Link href="/get-a-quote" className="btn btn-primary">Build a complete program</Link>

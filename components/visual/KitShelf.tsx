@@ -25,6 +25,7 @@ const FILTERS = [
   { k: "Oral fluid", label: "Oral fluid" },
   { k: "Urine", label: "Urine" },
   { k: "EUO", label: "Employment use only" },
+  { k: "OTC", label: "FDA/OTC" },
   { k: "FUO", label: "Forensic" },
 ];
 
@@ -42,7 +43,7 @@ export function KitShelf({ kits, segment }: { kits: ShelfKit[]; segment?: string
   return (
     <div>
       <div className="chips-filter" role="group" aria-label="Filter kits">
-        {FILTERS.map((x) => (
+        {FILTERS.filter((x) => x.k === "all" || kits.some((k) => k.specimen === x.k || k.badge === x.k)).map((x) => (
           <button key={x.k} type="button" aria-pressed={f === x.k} onClick={() => setF(x.k)}>{x.label}</button>
         ))}
       </div>

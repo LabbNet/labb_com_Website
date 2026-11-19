@@ -81,7 +81,7 @@ export default function InHouse() {
         { q: "Do we still need a lab?", a: "Only for non-negative screens. Those are sent for lab confirmation and medical review with one button, and Labb handles the connection." },
         { q: "How long does a test take?", a: "Oral fluid collection takes a few minutes, and kits are ready to read within about 10 minutes." },
         { q: "Can we mix in-house testing and clinics?", a: "Yes. Many employers test in-house at their main sites and use clinics for remote locations or after hours. It stays one program." },
-        { q: "Is this DOT testing?", a: "No. Labb rapid kits are for company (non-DOT) testing. DOT-regulated tests go to a DOT collection site and lab." },
+        { q: "What about DOT-regulated employees?", a: "Labb rapid kits are for company (non-DOT) testing. Labb also offers lab-based testing, so regulated (DOT) and non-regulated employees can run through one program." },
       ]}
       form={{
         segment: "employer",
