@@ -28,7 +28,7 @@ export default function Employers() {
           title: "Test at your location.",
           body: "Your team runs the test with Labb kits and the Labb Station app on a phone. Fast, private and documented.",
           points: ["Results in minutes, hire the same day", "Guided steps and an objective read", "Confirmation with one button"],
-          graphic: <GraphicSlot src="/graphics/employers/in-house.webp" alt="An employer testing in-house with a phone and a Labb kit" label="In-house testing" w={1000} h={700} sizes="520px" />,
+          graphic: <GraphicSlot src="/graphics/employers/in-house.webp" alt="Labb Station reading an OraFlo oral fluid test, with the result on a tablet" label="In-house testing" w={1000} h={700} sizes="520px" className="photo" />,
           cta: { topic: "Employer: test in-house", label: "Plan in-house testing" },
         },
         {

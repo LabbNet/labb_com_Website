@@ -1193,3 +1193,4 @@ td.acts { white-space: nowrap; }
 .an-card .admin-table td:not(:first-child):not(:nth-child(5)):not(:nth-child(6)) { font-variant-numeric: tabular-nums; }
 .an-pages td { text-align: right !important; }
 .an-pages thead th:not(:first-child) { text-align: right; }
+.gslot-img.photo { border-radius: 12px; }
