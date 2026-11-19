@@ -21,9 +21,10 @@ export function SegmentPage(p: {
   problem: { eyebrow?: string; title: string; body: React.ReactNode };
   pains?: string[];
   answer: { eyebrow: string; title: string; cards: Card[]; link?: { href: string; label: string } };
-  extra?: { eyebrow: string; title: string; body: React.ReactNode; checks?: string[]; side?: Card; link?: { href: string; label: string } };
+  extra?: { eyebrow: string; title: string; body: React.ReactNode; checks?: string[]; side?: Card; link?: { href: string; label: string }; wide?: boolean };
   kits?: { title: string; intro: string; slugs: string[] };
   faqs?: { q: string; a: string }[];
+  pathsIntro?: { eyebrow?: string; title: React.ReactNode; lede?: React.ReactNode };
   paths?: { id: string; eyebrow: string; title: string; body: string; points: string[]; graphic?: React.ReactNode; cta: { topic: string; label: string } }[];
   form: { segment: Segment; products: string[]; title: string; intro: string; heading: string; submit: string; variant?: "demo" | "quote" };
 }) {
@@ -36,6 +37,13 @@ export function SegmentPage(p: {
       {p.paths && (
         <section className="band" style={{ paddingTop: 48 }}>
           <div className="wrap">
+            {p.pathsIntro && (
+              <div className="paths-intro">
+                {p.pathsIntro.eyebrow && <span className="eyebrow">{p.pathsIntro.eyebrow}</span>}
+                <h2>{p.pathsIntro.title}</h2>
+                {p.pathsIntro.lede && <p className="lede-sm">{p.pathsIntro.lede}</p>}
+              </div>
+            )}
             <div className="paths">
               {p.paths.map((x) => (
                 <div key={x.id} id={x.id} className="path-card">
@@ -85,7 +93,16 @@ export function SegmentPage(p: {
         </div>
       </section>
 
-      {p.extra && (
+      {p.extra?.wide && (
+        <section className="section">
+          <div className="wrap">
+            <span className="eyebrow">{p.extra.eyebrow}</span>
+            <h2>{p.extra.title}</h2>
+            {p.extra.body}
+          </div>
+        </section>
+      )}
+      {p.extra && !p.extra.wide && (
         <section className="section">
           <div className="wrap split" style={{ alignItems: "start" }}>
             <div>

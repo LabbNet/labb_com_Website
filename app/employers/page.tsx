@@ -2,7 +2,19 @@ import Link from "next/link";
 import type { Metadata } from "next";
 import { SegmentPage } from "@/components/SegmentPage";
 import { GraphicSlot } from "@/components/visual/GraphicSlot";
+import Image from "next/image";
 import { industries } from "@/lib/industries";
+import { getResource } from "@/lib/resources";
+
+// Free employer guidebooks shown in the industries section, in this order.
+const GUIDES: { slug: string; who: string; name?: string }[] = [
+  { slug: "employers-guidebook", who: "Any industry" },
+  { slug: "construction-screening-guidebook", who: "Construction" },
+  { slug: "manufacturing-screening-guidebook", who: "Manufacturing" },
+  { slug: "logistics-screening-guidebook", who: "Logistics and warehousing" },
+  { slug: "healthcare-screening-guidebook", who: "Healthcare", name: "Healthcare Employer Guidebook" },
+  { slug: "hospitality-screening-guidebook", who: "Hospitality", name: "Hospitality Employer Guidebook" },
+];
 
 export const metadata: Metadata = {
   title: "Drug Testing for Employers: In Your Office or at a Clinic",
@@ -21,6 +33,11 @@ export default function Employers() {
       lede="Test at your location, or send employees to a clinic. Either way, Labb runs the program with you."
       primary={{ href: "#contact", label: "Get a quote" }}
       secondary={{ href: "#in-house", label: "In-house or clinic?" }}
+      pathsIntro={{
+        eyebrow: "One system, two ways to test",
+        title: "The same advanced technology at clinics and workplaces.",
+        lede: "Test on site or send employees to a clinic. Either way, every test runs on Labb Station: guided collection, an objective digital read and results documented the same way.",
+      }}
       paths={[
         {
           id: "in-house",
@@ -70,14 +87,51 @@ export default function Employers() {
         link: { href: "/labb-station", label: "See how Labb Station works" },
       }}
       extra={{
-        eyebrow: "Your industry",
+        eyebrow: "Free guidebooks",
         title: "Built for the industries that hire fast",
+        wide: true,
         body: (
           <div id="industries">
-            <p style={{ marginBottom: 12 }}>Free screening guidebooks and industry pages for:</p>
-            <ul className="checks">
-              {industries.map((i) => <li key={i.slug}><Link href={`/industries/${i.slug}`}>{i.name}</Link></li>)}
-            </ul>
+            <div className="guide-intro">
+              <p className="lede-sm">
+                A testing program is only as good as the people running it. Labb&apos;s free screening guidebooks give your designated
+                employer representative (DER) and HR team the program guidance and education they need to run testing with confidence:
+                the laws that apply, how to write a fair policy, which panel and specimen to use, how collections and results work,
+                what to do with a non-negative, and how to stay consistent and defensible.
+              </p>
+              <ul className="checks guide-points">
+                <li>Written for DERs, HR and safety managers, not lawyers</li>
+                <li>Industry editions built around your roles, risks and hiring pace</li>
+                <li>Checklists, timelines and real-world case scenarios</li>
+                <li>Chapter reviews to train new staff and check understanding</li>
+              </ul>
+            </div>
+            <div className="guide-grid">
+              {GUIDES.map(({ slug, who, name }) => {
+                const r = getResource(slug);
+                if (!r) return null;
+                const ind = r.industry ? industries.find((i) => i.slug === r.industry) : undefined;
+                return (
+                  <article key={slug} className="guide-card">
+                    <Link href={`/resources/${slug}`} className="guide-cover" aria-label={name ?? r.shortTitle}>
+                      <Image src={r.cover} alt="" width={r.coverW} height={r.coverH} sizes="180px" />
+                    </Link>
+                    <div className="guide-body">
+                      <span className="guide-who">{who}</span>
+                      <h3><Link href={`/resources/${slug}`}>{name ?? r.shortTitle}</Link></h3>
+                      <p className="guide-meta">{r.facts[0]}</p>
+                      <div className="guide-links">
+                        <Link href={`/resources/${slug}`}>Get the free guidebook</Link>
+                        {ind && <Link href={`/industries/${ind.slug}`}>Industry page</Link>}
+                      </div>
+                    </div>
+                  </article>
+                );
+              })}
+            </div>
+            <p className="guide-more">
+              Budgeting a program? Get the free <Link href="/resources/drug-testing-cost-guidebook">Drug Testing Cost Guidebook</Link>: positive rates by specimen, in-house versus lab pricing and budgeting tools.
+            </p>
           </div>
         ),
       }}
