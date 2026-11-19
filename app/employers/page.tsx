@@ -28,7 +28,7 @@ export default function Employers() {
           title: "Test at your location.",
           body: "Your team runs the test with Labb kits and the Labb Station app on a phone. Fast, private and documented.",
           points: ["Results in minutes, hire the same day", "Guided steps and an objective read", "Confirmation with one button"],
-          graphic: <GraphicSlot src="/graphics/employers/in-house.webp" alt="Labb Station reading an OraFlo oral fluid test, with the result on a tablet" label="In-house testing" w={1000} h={700} sizes="520px" className="photo" />,
+          graphic: <GraphicSlot src="/graphics/employers/in-house.webp" alt="A construction supervisor capturing an OraFlo oral fluid test with a phone on the job site" label="In-house testing" w={1000} h={700} sizes="520px" className="photo" />,
           cta: { topic: "Employer: test in-house", label: "Plan in-house testing" },
         },
         {
@@ -37,7 +37,7 @@ export default function Employers() {
           title: "Send employees to a clinic.",
           body: "Labb connects you with clinics near your locations that run Labb technology, and manages the program for you.",
           points: ["Clinics near your sites", "One program, one bill", "Results documented the same way everywhere"],
-          graphic: <GraphicSlot src="/graphics/employers/clinic.webp" alt="An employee testing at a clinic" label="Testing at a clinic" w={1000} h={700} sizes="520px" />,
+          graphic: <GraphicSlot src="/graphics/employers/clinic.webp" alt="Labb Station on the testing counter at an urgent care clinic" label="Testing at a clinic" w={1000} h={700} sizes="520px" className="photo" />,
           cta: { topic: "Employer: use a clinic", label: "Find clinics near me" },
         },
       ]}
