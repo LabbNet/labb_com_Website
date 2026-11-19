@@ -14,7 +14,7 @@ function where(f: F, offsetDays = 0) {
   const to = db`now() - make_interval(days => ${offsetDays})`;
   // Leave out Labb admins' own browsing unless asked.
   const staff = f.staff ? db`true` : db`coalesce(role, '') <> 'admin'`;
-  return db`ts >= ${from} and ts < ${to} and ${staff}`;
+  return db`ts >= ${from} and ts < ${to} and ${staff} and path not like '/\_\_%'`;
 }
 
 export type Kpis = { views: number; visitors: number; sessions: number; avg_ms: number | null; bounce: number | null; members: number; returning: number };

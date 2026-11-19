@@ -42,7 +42,7 @@ export async function POST(req: Request) {
   const visitor = clip(body.v, 40);
   const session = clip(body.s, 40);
   if (!path || !path.startsWith("/") || !visitor || !session || !ID.test(visitor) || !ID.test(session)) return new Response(null, { status: 400 });
-  if (/^\/(admin|api|_next)(\/|$)/.test(path)) return new Response(null, { status: 204 });
+  if (/^\/(admin|api|_next)(\/|$)/.test(path) || path.startsWith("/__")) return new Response(null, { status: 204 });
 
   let ref = clip(body.r, 500);
   try {
