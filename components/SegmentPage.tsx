@@ -14,7 +14,7 @@ export function SegmentPage(p: {
   slug: string;
   crumb: string;
   eyebrow: string;
-  title: string;
+  title: React.ReactNode;
   lede: string;
   primary: { href: string; label: string };
   secondary?: { href: string; label: string };

@@ -5,6 +5,7 @@ import { Footer } from "@/components/Footer";
 import { Header } from "@/components/Header";
 import { ConnectDrawer } from "@/components/visual/ConnectDrawer";
 import { JsonLd } from "@/components/ui";
+import { Tracker } from "@/components/Tracker";
 import { site } from "@/lib/site";
 
 export const metadata: Metadata = {
@@ -37,6 +38,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <main id="main">{children}</main>
         <Footer />
         <ConnectDrawer />
+        <Tracker />
         <JsonLd
           data={{
             "@context": "https://schema.org",
