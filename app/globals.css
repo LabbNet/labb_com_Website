@@ -1219,3 +1219,14 @@ td.acts { white-space: nowrap; }
 .guide-links a:hover { text-decoration: underline; }
 .guide-more { margin: 18px 0 0; color: var(--muted); }
 .guide-more a { font-weight: 600; }
+
+/* Site-wide: complete screening band */
+.complete-band { background: #fbf4ee; border-top: 1px solid #f0dccb; padding: 64px 0; }
+.complete-band h2 { margin: 6px 0 12px; }
+.complete-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 48px; align-items: center; }
+.complete-list { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.complete-list li { background: #fff; border: 1px solid var(--border); border-left: 4px solid var(--orange); border-radius: 10px; padding: 16px 18px; }
+.complete-list strong { display: block; color: var(--dark); margin-bottom: 4px; }
+.complete-list span { font-size: .92rem; color: var(--muted); line-height: 1.45; }
+@media (max-width: 900px) { .complete-grid { grid-template-columns: 1fr; gap: 28px; } }
+@media (max-width: 560px) { .complete-list { grid-template-columns: 1fr; } }

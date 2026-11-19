@@ -26,7 +26,7 @@ export default function Page() {
         <div className="wrap">
           <div className="card"><span className="tag">Workplace</span><p>For employment programs: pre-employment, random, post-accident and return to duty.</p></div>
           <div className="card"><span className="tag forensic">Forensic</span><p>For forensic programs. Every kit with EtG alcohol testing is forensic.</p></div>
-          <div className="card"><span className="tag diag">Diagnostic</span><p>OTC and CLIA waived use, including at home collection.</p></div>
+          <div className="card"><span className="tag diag">FDA/OTC</span><p>Over-the-counter and CLIA waived use, including workplace programs and at-home collection.</p></div>
         </div>
       </section>
       <Breadcrumbs items={[{ name: "Test kits", href: "/test-kits" }]} />
@@ -48,7 +48,7 @@ export default function Page() {
           <div className="note" style={{ marginTop: 32 }}>
             <strong style={{ flex: "none" }}>Which kit can I use?</strong>
             <span>
-              Workplace programs use Workplace or Diagnostic (OTC) kits. Forensic kits, including every kit with EtG alcohol, are for forensic
+              Workplace programs use Workplace or FDA/OTC kits. Forensic kits, including every kit with EtG alcohol, are for forensic
               programs. Labb rapid screens are not for DOT or other federally regulated testing.
             </span>
           </div>

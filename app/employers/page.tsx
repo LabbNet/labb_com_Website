@@ -136,9 +136,9 @@ export default function Employers() {
         ),
       }}
       kits={{
-        title: "Smaller workplace panels",
-        intro: "Employment use only (EUO), OTC and IVD kits for pre-employment, random and post-accident testing.",
-        slugs: ["or-06a-etest-swab", "orf-31c-oraflo", "ua-13a-svt", "ua-16c-svt"],
+        title: "Testing programs for every scenario",
+        intro: "From a single location to national accounts, Labb has a program to fit your requirements. Every workplace kit: employment use only (EUO) and FDA/OTC, oral fluid and urine, for pre-employment, random, post-accident and reasonable suspicion testing.",
+        slugs: ["orf-31c-oraflo", "or-06a-etest-swab", "or-12a-etest-swab", "or-14a-etest-swab", "ua-06b-svt", "ua-13a-svt", "ua-15a", "ua-16c-svt"],
       }}
       form={{ segment: "employer", products: ["Labb Station", "Test kits"], heading: "Get a quote", title: "Start an in-house program", intro: "Tell us about your workforce and we'll recommend panels, send a free sample and get your team certified.", submit: "Request a consultation", variant: "quote" }}
     />

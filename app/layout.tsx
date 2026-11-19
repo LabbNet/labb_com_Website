@@ -6,6 +6,7 @@ import { Header } from "@/components/Header";
 import { ConnectDrawer } from "@/components/visual/ConnectDrawer";
 import { JsonLd } from "@/components/ui";
 import { Tracker } from "@/components/Tracker";
+import { CompleteScreening } from "@/components/CompleteScreening";
 import { site } from "@/lib/site";
 
 export const metadata: Metadata = {
@@ -36,6 +37,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <a href="#main" className="skip">Skip to content</a>
         <Header />
         <main id="main">{children}</main>
+        <CompleteScreening />
         <Footer />
         <ConnectDrawer />
         <Tracker />

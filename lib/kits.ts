@@ -8,7 +8,7 @@ export type Kit = {
   name: string;
   series: "UA Series" | "OR Series" | "ORF Series";
   specimen: "Urine" | "Oral fluid";
-  use: "Workplace" | "Forensic" | "OTC / CLIA waived";
+  use: "Workplace" | "Forensic" | "FDA/OTC";
   badge: "EUO" | "FUO" | "OTC";
   drugCount: number;
   readTime: string;
@@ -318,19 +318,19 @@ export const kits: Kit[] = [
     name: "eTest Cup UA:15A",
     series: "UA Series",
     specimen: "Urine",
-    use: "OTC / CLIA waived",
+    use: "FDA/OTC",
     badge: "OTC",
     drugCount: 15,
     readTime: "5 minutes",
     summary:
-      "A 15 drug urine cup for at-home collection and CLIA waived sites. Fentanyl at 1 ng/mL and methadone paired with its metabolite EDDP.",
+      "A 15 drug urine cup for workplace programs, at-home collection and CLIA waived sites. Fentanyl at 1 ng/mL and methadone paired with its metabolite EDDP.",
     facts: [
       { label: "Specimen", value: "Urine" },
       { label: "Validity strip", value: "No" },
       { label: "Fentanyl", value: "1 ng/mL" },
       { label: "Opiates", value: "2,000 ng/mL" },
       { label: "Read sides", value: "2" },
-      { label: "Product use", value: "OTC / CLIA waived" },
+      { label: "Product use", value: "FDA/OTC, CLIA waived" },
     ],
     drugs: [
       { code: "AMP", name: "Amphetamine", cutoff: "500" },
@@ -523,7 +523,7 @@ export const getKit = (slug: string) => publishedKits.find((k) => k.slug === slu
 export const badgeLabel: Record<Kit["badge"], string> = {
   EUO: "Employment use only",
   FUO: "Forensic",
-  OTC: "Diagnostic",
+  OTC: "FDA/OTC",
 };
 
 // Short card blurbs (from the draft theme kit cards).

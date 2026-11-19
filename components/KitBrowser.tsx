@@ -40,7 +40,7 @@ export function KitBrowser({ kits }: { kits: Kit[] }) {
           {chip("All", use, setUse, "All")}
           {chip("EUO", use, setUse, "Workplace")}
           {chip("FUO", use, setUse, "Forensic")}
-          {chip("OTC", use, setUse, "Diagnostic")}
+          {chip("OTC", use, setUse, "FDA/OTC")}
         </div>
         <div className="grp">
           <span><label htmlFor="drug-filter">Tests for</label></span>
