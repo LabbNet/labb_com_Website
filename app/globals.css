@@ -1099,3 +1099,34 @@ td.acts { white-space: nowrap; }
 .enroll-price .was { font-size: 1rem; color: var(--muted); font-weight: 500; margin-left: 6px; }
 .ci-price s { font-size: 1rem; font-weight: 500; color: var(--muted); margin-left: 8px; }
 .ci-price s + span { display: block; margin: 4px 0 0; }
+
+/* Admin: email broadcasts */
+.email-grid { display: grid; grid-template-columns: minmax(0, 1.6fr) minmax(280px, 1fr); gap: 32px; align-items: start; }
+.email-compose .fields { grid-template-columns: 1fr; }
+.email-compose textarea.code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 13px; line-height: 1.45; }
+.email-compose .check, .email-box .check { display: flex; gap: 10px; align-items: flex-start; font-weight: 600; }
+.email-compose .check input, .email-box .check input { width: 20px; height: 20px; min-height: 0; margin: 2px 0 0; accent-color: var(--orange); flex: none; }
+.aud-pick { border: 0; padding: 0; margin: 0 0 18px; display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.aud-pick legend { font-weight: 700; margin-bottom: 8px; }
+.aud-opt { display: flex; gap: 12px; align-items: center; border: 1px solid var(--border); border-radius: 10px; padding: 14px 16px; cursor: pointer; background: #fff; }
+.aud-opt:has(input:checked) { border-color: var(--orange); box-shadow: 0 0 0 2px rgba(207,116,60,.18); }
+.aud-opt input { width: 18px; height: 18px; min-height: 0; margin: 0; accent-color: var(--orange); }
+.aud-opt strong { display: block; color: var(--dark); }
+.aud-opt em { font-style: normal; font-size: .85rem; color: var(--muted); }
+.email-list { list-style: none; padding: 0; margin: 0 0 20px; display: grid; gap: 8px; }
+.email-list li { display: flex; justify-content: space-between; gap: 12px; align-items: center; background: #fff; border: 1px solid var(--border); border-radius: 10px; padding: 12px 14px; }
+.email-list a { text-decoration: none; color: var(--dark); min-width: 0; }
+.email-list a strong { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.email-list a .fine { margin: 2px 0 0; display: block; }
+.email-counts { background: var(--soft, #f3f5f5); border-radius: 10px; padding: 14px 16px; }
+.email-counts p { margin: 0 0 4px; }
+.email-preview { width: 100%; height: 760px; border: 1px solid var(--border); border-radius: 10px; background: #fff; }
+.email-box { background: #fff; border: 1px solid var(--border); border-radius: 10px; padding: 18px; margin-bottom: 14px; }
+.email-box h3 { margin: 0 0 12px; font-size: 1.05rem; }
+.email-box.send { border-color: var(--orange); }
+.row-form { display: flex; gap: 8px; }
+.row-form input { flex: 1; min-width: 0; }
+.btn.danger { color: #b3261e; border-color: #e0b4b0; }
+@media (max-width: 900px) { .email-grid, .aud-pick { grid-template-columns: 1fr; } }
+.email-grid .fine, .email-compose .fine, .email-counts .fine, .email-box .fine, .email-list .fine { text-align: left; }
+.email-grid h2 { font-size: 1.5rem; }

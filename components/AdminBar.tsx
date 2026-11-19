@@ -6,6 +6,7 @@ const LINKS = [
   { href: "/admin/trade-shows", label: "Trade shows" },
   { href: "/admin/pricing", label: "Pricing" },
   { href: "/admin/quotes", label: "Quotes" },
+  { href: "/admin/email", label: "Email" },
   { href: "/admin/courses", label: "Courses" },
   { href: "/admin/learners", label: "Learners" },
   { href: "/admin/settings", label: "Settings" },
