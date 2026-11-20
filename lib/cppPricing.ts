@@ -64,7 +64,7 @@ const PAGE_IMAGES: Record<string, string> = {
   "/test-kits/urine-etest": "/kits/ua-13a/ua-13a-etest-cup-urine-drug-test-main-v2.webp",
   "/test-kits/oral-etest": "/kits/or-14a-etest-swab-oral-fluid-drug-test.webp",
   "/test-kits/oraflo": "/kits/orf-31c/oraflo-orf-31c-oral-fluid-drug-test.webp",
-  "/labb-station": "/graphics/home/outcome-fewer-errors.webp",
+  "/labb-station": "/graphics/home/labb-station-tablet-reading-urine-drug-test-cup.webp",
   "/labbhr": "/img/labbhr-drug-testing-software-dashboard.webp",
 };
 // Picture for a price item: the kit's product shot, or the product page's image.
