@@ -26,6 +26,7 @@ export const drugSheets: DrugSheet[] = [
   { no: 21, slug: "methadone", drug: "Methadone", drugClass: "Opioids", version: "1.00", file: "21-methadone-drug-profile-v1.00.pdf" },
   { no: 22, slug: "oxycodone-oxymorphone", drug: "Oxycodone / Oxymorphone", drugClass: "Opioids", version: "1.00", file: "22-oxycodone-oxymorphone-drug-profile-v1.00.pdf" },
   { no: 23, slug: "alcohol-bac", drug: "Alcohol (BAC)", drugClass: "Alcohol, current level", version: "1.00", file: "23-alcohol-bac-drug-profile-v1.00.pdf" },
+  { no: 24, slug: "kratom", drug: "Kratom", drugClass: "Botanical opioid-like", version: "1.00", file: "24-kratom-drug-profile-v1.00.pdf" },
 ];
 
 export const drugSheet = (slug: string) => drugSheets.find((d) => d.slug === slug);
