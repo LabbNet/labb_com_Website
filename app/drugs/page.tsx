@@ -4,7 +4,7 @@ import { Breadcrumbs } from "@/components/ui";
 import { DrugProfileGrid } from "@/components/DrugProfileGrid";
 
 export const metadata: Metadata = {
-  title: "Drug Profiles: What Each Drug Test Detects | Labb Drug Profile Series",
+  title: "Drug Profiles: What Each Drug Test Detects",
   description: "Labb's Drug Profile Series: one profile per drug on Labb rapid tests, from fentanyl and kratom to EtG alcohol, with effects, workplace risk, the Labb assay and the Labb Screening Priority Index.",
   alternates: { canonical: "/drugs" },
 };

@@ -41,7 +41,7 @@ export default function UseAClinic() {
         wide: true,
         body: (
           <div className="feature-split">
-            <GraphicSlot src="/graphics/employers/clinic.webp" alt="Labb Station on the testing counter at an urgent care clinic" label="Testing at a clinic" w={1000} h={700} sizes="(max-width: 860px) 100vw, 560px" className="photo" />
+            <GraphicSlot src="/graphics/employers/employee-drug-testing-urgent-care-clinic.webp" alt="Labb Station on the testing counter at an urgent care clinic" label="Testing at a clinic" w={1000} h={700} sizes="(max-width: 860px) 100vw, 560px" className="photo" />
             <div>
               <p className="lede-sm">
                 Labb clinics run Labb Station for rapid oral fluid and urine tests, with an objective digital read and electronic

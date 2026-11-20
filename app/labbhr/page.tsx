@@ -99,7 +99,7 @@ export default function LabbHRPage() {
             ]} />
             <div className="btn-row"><Link href="/compare" className="btn btn-outline">Compare with Labb Station</Link></div>
           </div>
-          <Image src="/img/labbhr-dashboard.webp" alt="LabbHR dashboard" width={1400} height={1400} sizes="(max-width: 900px) 92vw, 540px" />
+          <Image src="/img/labbhr-drug-testing-software-dashboard.webp" alt="LabbHR dashboard" width={1400} height={1400} sizes="(max-width: 900px) 92vw, 540px" />
         </div>
       </section>
 

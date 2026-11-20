@@ -61,11 +61,11 @@ export function productKit(path: string | null) {
   return m ? publishedKits.find((k) => k.slug === m[1]) ?? null : null;
 }
 const PAGE_IMAGES: Record<string, string> = {
-  "/test-kits/urine-etest": "/kits/ua-13a/main-v2.webp",
-  "/test-kits/oral-etest": "/kits/or-14a.webp",
-  "/test-kits/oraflo": "/kits/orf-31c/main.webp",
+  "/test-kits/urine-etest": "/kits/ua-13a/ua-13a-etest-cup-urine-drug-test-main-v2.webp",
+  "/test-kits/oral-etest": "/kits/or-14a-etest-swab-oral-fluid-drug-test.webp",
+  "/test-kits/oraflo": "/kits/orf-31c/oraflo-orf-31c-oral-fluid-drug-test.webp",
   "/labb-station": "/graphics/home/outcome-fewer-errors.webp",
-  "/labbhr": "/img/labbhr-dashboard.webp",
+  "/labbhr": "/img/labbhr-drug-testing-software-dashboard.webp",
 };
 // Picture for a price item: the kit's product shot, or the product page's image.
 export function productImage(path: string | null): string | null {

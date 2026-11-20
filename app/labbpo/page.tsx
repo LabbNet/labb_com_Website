@@ -60,7 +60,7 @@ export default function LabbPOPage() {
           </div>
           <figure className="po-shot">
             <div className="po-shot-bar" aria-hidden="true"><i /><i /><i /></div>
-            <Image src="/graphics/labbpo/officer-portal-v2.webp" alt="The LabbPO officer portal training guide, with offender management, drug test panels, daily selections, notifications, location pricing and clinic integration" width={1600} height={1063} sizes="(max-width: 900px) 94vw, 680px" />
+            <Image src="/graphics/labbpo/labbpo-probation-officer-portal.webp" alt="The LabbPO officer portal training guide, with offender management, drug test panels, daily selections, notifications, location pricing and clinic integration" width={1600} height={1063} sizes="(max-width: 900px) 94vw, 680px" />
           </figure>
         </div>
       </section>

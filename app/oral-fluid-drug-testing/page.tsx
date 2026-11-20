@@ -17,7 +17,7 @@ export default function Page() {
       eyebrow="Oral fluid drug testing"
       h1={<>Observed collection, anywhere. <span className="em">No restroom</span> required.</>}
       lede="Oral fluid screens are collected in plain view in a few minutes, are hard to tamper with and show recent use. A strong choice for post-accident, reasonable suspicion and on-site testing."
-      image={{ src: "/img/oral-fluid-devices.webp", alt: "Labb OraFlo and eTest Swab oral fluid drug test devices", w: 1400, h: 867 }}
+      image={{ src: "/img/oral-fluid-rapid-drug-test-devices.webp", alt: "Labb OraFlo and eTest Swab oral fluid drug test devices", w: 1400, h: 867 }}
       checks={["Results in 3 to 10 minutes", "Detects recent use, within hours", "Masked drug names on OraFlo devices"]}
       benefits={[
         { t: "Observed collection", b: "The specimen is collected in plain view, which reduces the chance of substitution or tampering." },

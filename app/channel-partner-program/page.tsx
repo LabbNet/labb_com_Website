@@ -25,7 +25,7 @@ export default function CppOverview() {
         secondary={{ href: "/channel-partner-program/program-details", label: "Program details" }}
         aside={
           <div className="cpp-logo-card">
-            <Image src="/graphics/cpp/cpp-logo.png" alt="Labb Channel Partner Program (CPP) logo" width={975} height={838} priority sizes="(max-width: 900px) 70vw, 420px" />
+            <Image src="/graphics/cpp/labb-channel-partner-program-logo-white.png" alt="Labb Channel Partner Program (CPP) logo" width={952} height={800} priority sizes="(max-width: 900px) 70vw, 420px" />
           </div>
         }
       />
@@ -44,7 +44,7 @@ export default function CppOverview() {
           </div>
           <div className="card rail">
             <h3>Who it&apos;s for</h3>
-            <p>Independent clinics and collection sites that want to win more employer business without building the technology themselves.</p>
+            <p>Clinics and collection sites that want to grow revenue through expanded product offerings, business development support, and access to a suite of technologies companies need.</p>
           </div>
         </div>
       </section>

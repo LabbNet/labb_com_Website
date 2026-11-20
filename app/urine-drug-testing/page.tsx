@@ -17,7 +17,7 @@ export default function Page() {
       eyebrow="Urine drug testing"
       h1={<>Wide panels, longer detection, results in <span className="em">5 minutes</span>.</>}
       lede="Labb eTest Cups cover 6 to 23 drugs with built-in specimen validity checks. A strong choice for pre-employment and random testing."
-      image={{ src: "/img/true-privacy-screens.webp", alt: "Labb eTest Cup urine drug screen and OraFlo oral fluid device", w: 1400, h: 1400 }}
+      image={{ src: "/img/oraflo-true-privacy-masked-drug-names.webp", alt: "Labb eTest Cup urine drug screen and OraFlo oral fluid device", w: 1400, h: 1400 }}
       checks={["Panels from 6 to 23 drugs", "Specimen validity pads on SVT cups", "Fentanyl, xylazine and kratom options"]}
       benefits={[
         { t: "Longer detection window", b: "Urine shows use over days, which suits pre-employment and random programs." },

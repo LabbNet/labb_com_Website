@@ -41,7 +41,7 @@ export default async function KitPage({ params }: { params: Promise<{ slug: stri
       <section className="section" style={{ paddingTop: 36 }}>
         <div className="wrap split" style={{ alignItems: "start" }}>
           <div>
-            <KitGallery main={{ src: kit.image, alt: `${kit.name} ${kit.specimen.toLowerCase()} drug test`, w: 900, h: 900 }} images={kit.gallery} />
+            <KitGallery main={{ src: kit.image, alt: `${kit.name} ${kit.specimen.toLowerCase()} drug test`, w: 900, h: 900 }} images={kit.gallery} reader />
             <h2 style={{ fontSize: "1.4rem", marginTop: 40 }}>Panel and cutoffs</h2>
             <p style={{ color: "var(--muted)", fontSize: "0.95rem" }}>
               Cutoffs in ng/mL{kit.specimen === "Oral fluid" ? " of oral fluid" : ""}. The strip reads non-negative when the drug is at or above the cutoff.

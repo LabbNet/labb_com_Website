@@ -45,7 +45,7 @@ export default function TrainingPage() {
         lede="Practical guidebooks written for the people who run testing programs, each with an online certification so your team can prove what it knows."
         primary={{ href: "#guidebooks", label: "Get a free guidebook" }}
         secondary={{ href: "/certifications", label: "Certifications" }}
-        image={{ src: "/img/clinic-owners-guidebook.webp", alt: "Labb Clinic Owners Guidebook", w: 1400, h: 1263 }}
+        image={{ src: "/img/clinic-owners-drug-testing-guidebook.webp", alt: "Labb Clinic Owners Guidebook", w: 1400, h: 1263 }}
       />
       <Breadcrumbs items={[{ name: "Training", href: "/training" }]} />
 
@@ -106,7 +106,7 @@ export default function TrainingPage() {
             </div>
             <Link href="/certifications" className="btn btn-primary">See Certifications</Link>
           </div>
-          <Image src="/img/manufacturing-guidebook.webp" alt="LabbHR Manufacturing Screening Guidebook cover" width={935} height={1210} sizes="(max-width: 900px) 80vw, 380px" style={{ maxWidth: 360, margin: "0 auto" }} />
+          <Image src="/img/manufacturing-drug-testing-guidebook.webp" alt="LabbHR Manufacturing Screening Guidebook cover" width={935} height={1210} sizes="(max-width: 900px) 80vw, 380px" style={{ maxWidth: 360, margin: "0 auto" }} />
         </div>
       </section>
 

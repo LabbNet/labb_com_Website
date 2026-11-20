@@ -37,7 +37,7 @@ export default function Page() {
               <a href="#compare" className="btn btn-outline">Compare drugs and cutoffs</a>
             </div>
           </div>
-          <Image src="/graphics/home/hero-technology.webp" alt="Labb Urine eTest cups and the Oral eTest OR:06A oral fluid test" width={1565} height={758} priority sizes="(max-width: 900px) 92vw, 640px" className="ks-hero-img" />
+          <Image src="/graphics/home/digital-rapid-drug-test-reader-technology.webp" alt="Labb Urine eTest cups and the Oral eTest OR:06A oral fluid test" width={1565} height={758} priority sizes="(max-width: 900px) 92vw, 640px" className="ks-hero-img" />
         </div>
       </section>
       <Breadcrumbs items={[{ name: "Test kits", href: "/test-kits" }]} />

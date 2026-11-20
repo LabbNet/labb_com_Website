@@ -41,7 +41,7 @@ export default function InHouse() {
         wide: true,
         body: (
           <div className="feature-split">
-            <GraphicSlot src="/graphics/employers/in-house.webp" alt="A construction supervisor capturing an OraFlo oral fluid test with a phone on the job site" label="In-house testing" w={1000} h={700} sizes="(max-width: 860px) 100vw, 560px" className="photo" />
+            <GraphicSlot src="/graphics/employers/in-house-workplace-drug-testing-job-site.webp" alt="A construction supervisor capturing an OraFlo oral fluid test with a phone on the job site" label="In-house testing" w={1000} h={700} sizes="(max-width: 860px) 100vw, 560px" className="photo" />
             <div>
               <p className="lede-sm">
                 Oral fluid tests are collected under direct observation and need no restroom, so you can test in an office, a trailer or a

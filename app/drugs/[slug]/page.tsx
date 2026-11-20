@@ -14,8 +14,8 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   const d = drugProfile((await params).slug);
   if (!d) return { title: "Drug profile not found" };
   return {
-    title: `${d.drug} Drug Test: What It Is, Detection and Screening | Labb Drug Profile`,
-    description: `${d.drug} (${d.kicker.toLowerCase()}): what it is, effects and warning signs, why it matters at work, and how the Labb ${d.assay ?? ""} test works. Labb Screening Priority Index ${d.index}/10.`.replace("  ", " "),
+    title: `${d.drug} Drug Test: Effects and Screening`,
+    description: `${d.drug} (${d.kicker.toLowerCase()}): effects, warning signs, workplace risk and how ${d.assay ? `the Labb ${d.assay} rapid test` : "Labb rapid tests"} detect it.`,
     alternates: { canonical: `/drugs/${d.slug}` },
   };
 }

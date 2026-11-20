@@ -19,10 +19,10 @@ export const metadata: Metadata = {
 // Graphics marked as placeholders show the file name to drop into /public/graphics.
 
 const story = [
-  { title: "Labb Mobile App", body: "The app walks your employees step-by-step through each test.", src: "/graphics/home/benefits-phones.webp", w: 1600, h: 1200, alt: "Three phone screens from the Labb mobile app: selecting an organization, choosing a UA:13A test kit, and the donor signature step" },
-  { title: "Mobile App Scanner", body: "The app scans rapid test kits and provides a fast, unbiased result. Use Labb-offered devices or any iPhone or Android device with internet access.", src: "/graphics/home/benefits-scanner-v2.webp", w: 1600, h: 1200, alt: "A hand holding a phone running the Labb app, scanning the test lines on a UA:06B eTest Cup" },
-  { title: "Electronic Confirmation", body: "If the rapid test is non-negative, just package the sample for confirmation. There are no paper forms to fill out. Just pack and ship.", src: "/graphics/home/benefits-confirmation.webp", w: 1600, h: 1200, alt: "The Labb app shipment screen on a phone and a tablet, with Add Label and Pack Specimens for a shipment to the lab" },
-  { title: "Complete Program Support", body: "A Labb team member or partner will onboard and train your team. You will always get a single point of contact for all live training and support.", src: "/graphics/home/benefits-support.webp", w: 1600, h: 1200, alt: "The Labb app on a phone with Help and Email us, a UA:23A eTest Cup, a urine collection kit and a UA:23A paper procedure card" },
+  { title: "Labb Mobile App", body: "The app walks your employees step-by-step through each test.", src: "/graphics/home/labb-mobile-app-drug-test-screens.webp", w: 1600, h: 1200, alt: "Three phone screens from the Labb mobile app: selecting an organization, choosing a UA:13A test kit, and the donor signature step" },
+  { title: "Mobile App Scanner", body: "The app scans rapid test kits and provides a fast, unbiased result. Use Labb-offered devices or any iPhone or Android device with internet access.", src: "/graphics/home/labb-app-scanning-urine-drug-test-cup.webp", w: 1600, h: 1200, alt: "A hand holding a phone running the Labb app, scanning the test lines on a UA:06B eTest Cup" },
+  { title: "Electronic Confirmation", body: "If the rapid test is non-negative, just package the sample for confirmation. There are no paper forms to fill out. Just pack and ship.", src: "/graphics/home/electronic-lab-confirmation-labb-app.webp", w: 1600, h: 1200, alt: "The Labb app shipment screen on a phone and a tablet, with Add Label and Pack Specimens for a shipment to the lab" },
+  { title: "Complete Program Support", body: "A Labb team member or partner will onboard and train your team. You will always get a single point of contact for all live training and support.", src: "/graphics/home/drug-testing-program-support-labb-app.webp", w: 1600, h: 1200, alt: "The Labb app on a phone with Help and Email us, a UA:23A eTest Cup, a urine collection kit and a UA:23A paper procedure card" },
 ];
 
 // Technology on the left, the outcome it produces on the right. Opening a tile shows how.
@@ -50,7 +50,7 @@ export default function Home() {
               <a href="#services" className="btn btn-outline btn-lg">See services</a>
             </div>
           </div>
-          <GraphicSlot src="/graphics/home/hero-technology.webp" alt="Labb Urine eTest cups UA:06B, UA:13A, UA:23A and UA:18C with the Oral eTest OR:06A oral fluid test" label="Hero: Labb test kit family" w={1565} h={758} priority />
+          <GraphicSlot src="/graphics/home/digital-rapid-drug-test-reader-technology.webp" alt="Labb Urine eTest cups UA:06B, UA:13A, UA:23A and UA:18C with the Oral eTest OR:06A oral fluid test" label="Hero: Labb test kit family" w={1565} h={758} priority />
         </div>
       </section>
 
@@ -120,7 +120,7 @@ export default function Home() {
       <section className="band light">
         <div className="wrap">
           <Hotspots
-            graphic={<GraphicSlot src="/graphics/home/oraflo-31c.webp" alt="OraFlo ORF:31C oral fluid device with masked drug labels, its cap and the oral fluid collector" label="OraFlo 31C" w={1640} h={770} />}
+            graphic={<GraphicSlot src="/graphics/home/oraflo-orf-31c-oral-fluid-drug-test.webp" alt="OraFlo ORF:31C oral fluid device with masked drug labels, its cap and the oral fluid collector" label="OraFlo 31C" w={1640} h={770} />}
             title={"Built for today’s workforce."}
             intro="OraFlo oral fluid screens, built for the workplace. Tap a plus to look closer."
             cta="Get a quote"
