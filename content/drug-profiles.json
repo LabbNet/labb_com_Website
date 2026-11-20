@@ -1,0 +1,808 @@
+[
+ {
+  "no": 1,
+  "slug": "propoxyphene",
+  "drug": "Propoxyphene",
+  "drugClass": "Opioids and opioid-like",
+  "version": "1.20",
+  "index": 1,
+  "level": "Low",
+  "kicker": "Synthetic opioid pain reliever",
+  "bottom": "Propoxyphene has not been legally sold in the US for over 15 years and is essentially absent from workplace results. Most programs can remove PPX from routine panels unless a contract, court order or policy requires it.",
+  "what": "Propoxyphene is a synthetic opioid, structurally related to methadone, prescribed for mild to moderate pain. It is a weak pain reliever, roughly half as potent as codeine taken by mouth. Most was sold as Darvocet, a combination with acetaminophen. At an FDA advisory meeting in 2009, officials cited studies showing that most of Darvocet's pain relief came from the acetaminophen, not the propoxyphene.",
+  "how": "The liver converts propoxyphene into norpropoxyphene, which builds up with repeated doses. Norpropoxyphene stays in the body about three times longer than the parent drug (half life 30 to 36 hours vs 6 to 12). Both compounds block sodium and potassium channels in the heart. That slows electrical conduction and can trigger fatal heart rhythm abnormalities, which is why the drug was withdrawn.",
+  "used": [
+   "Taken in higher doses for opioid euphoria and sedation",
+   "Combined with alcohol or other depressants, which deepens sedation and breathing suppression",
+   "Shared or kept long after a prescription ended"
+  ],
+  "signs": [
+   "Drowsiness, dizziness, nausea, constipation",
+   "Impaired thinking and driving ability",
+   "Overdose: slowed breathing, seizures, irregular heartbeat, cardiac arrest"
+  ],
+  "work": [],
+  "assay": "PPX",
+  "specimen": "Urine",
+  "available": "Select UA Series cups (for example, UA:23A)",
+  "reading": "A PPX result is a Non-Negative screen until a laboratory confirms it. A confirmed positive today is unusual and worth a careful MRO review, including any prescription history. PPX is a separate strip. Propoxyphene is not picked up by the opiate (OPI), oxycodone (OXY) or fentanyl (FTY) strips."
+ },
+ {
+  "no": 2,
+  "slug": "methaqualone",
+  "drug": "Methaqualone",
+  "drugClass": "Sedative-hypnotics",
+  "version": "1.30",
+  "index": 1,
+  "level": "Low",
+  "kicker": "Sedative-hypnotic",
+  "bottom": "Methaqualone has been illegal in the US for over 40 years and is almost never found in US workplace testing. Pills sold as \"Quaaludes\" today are usually something else. Most programs can remove MQL unless a contract, court order or policy requires it.",
+  "what": "Methaqualone is a sedative-hypnotic, chemically unrelated to barbiturates or benzodiazepines but with similar effects. It was prescribed for insomnia and anxiety and as a muscle relaxant. A standard Quaalude tablet held 300 mg. It was first made in India in 1951 during research into malaria drugs. In 1972 it was the sixth best-selling sedative in the US.",
+  "how": "Like other depressants, methaqualone boosts GABA, the brain's main calming signal. That produces relaxation and drowsiness and, at higher doses, euphoria and loss of coordination. Its half life is long (20 to 60 hours), so repeated doses build up. Tolerance develops quickly, which pushes users toward larger and more dangerous doses.",
+  "used": [
+   "\"Luding out\": taken with wine or other alcohol to deepen sedation",
+   "Sought for a false reputation as a \"love drug\"",
+   "Obtained from \"stress clinics\" with little or no exam",
+   "In South Africa today: crushed and smoked with cannabis (the \"white pipe\")"
+  ],
+  "signs": [
+   "Drowsiness, slurred speech, poor coordination, euphoria",
+   "Impaired judgment and impulsive behavior",
+   "Overdose: slowed breathing, seizures, coma",
+   "Withdrawal resembles barbiturate withdrawal, including seizures"
+  ],
+  "work": [],
+  "assay": "MQL",
+  "specimen": "Urine",
+  "available": "UA:18C SVT and UA:23A SVT",
+  "reading": "An MQL result is a Non-Negative screen until a laboratory confirms it. A confirmed positive in the US is rare and worth a careful MRO review. MQL is a separate strip. Methaqualone is not detected by the benzodiazepine (BZO) or barbiturate (BAR) strips. For someone using counterfeit \"Quaaludes,\" the BZO and FTY strips are usually the ones that matter."
+ },
+ {
+  "no": 3,
+  "slug": "amphetamine",
+  "drug": "Amphetamine",
+  "drugClass": "Stimulants",
+  "version": "1.10",
+  "index": 8,
+  "level": "High",
+  "kicker": "Central nervous system stimulant",
+  "bottom": "Amphetamine is the second most detected drug in US workplace testing and it is still climbing. Keep AMP on every panel, and expect many positives to trace to a valid prescription that the MRO must verify.",
+  "what": "Amphetamine is a stimulant prescribed for ADHD and narcolepsy, and sometimes short term for weight loss. Adderall is a mix of amphetamine salts. Vyvanse (lisdexamfetamine) is inactive until the body converts it to amphetamine, so it tests the same way. Illegal amphetamine (\"speed\") is also sold, and the body turns methamphetamine partly into amphetamine, so meth use can show on the AMP strip too.",
+  "how": "Amphetamine floods the brain with dopamine and norepinephrine. At prescribed doses that improves focus and alertness. At higher doses it produces euphoria, energy and suppressed appetite. Effects last 2 to 4 hours (longer for extended-release forms). About 30% leaves the body unchanged in urine, which is why urine is the standard specimen.",
+  "used": [
+   "Taken without a prescription to study, work long hours or stay awake",
+   "Taken in higher doses, or crushed and snorted, for euphoria",
+   "Used to suppress appetite and lose weight",
+   "Shared or sold from a friend's or relative's prescription"
+  ],
+  "signs": [
+   "Fast heartbeat, high blood pressure, insomnia, little appetite",
+   "Restlessness, irritability, overconfidence",
+   "High doses: paranoia, psychosis, overheating, heart attack or stroke",
+   "The \"crash\" afterward brings exhaustion and poor judgment"
+  ],
+  "work": [
+   "Misuse can impair judgment and lead to fatigue as the drug wears off",
+   "Positives are rising fastest in health care and education",
+   "A prescription can explain a positive, so MRO review is essential"
+  ],
+  "assay": "AMP",
+  "specimen": "Urine",
+  "available": "UA:15A, UA:18C SVT, UA:23A SVT",
+  "reading": "An AMP result is a Non-Negative screen until a laboratory confirms it. The MRO then checks for a valid prescription before reporting a verified positive. Read AMP with MET. AMP alone points to amphetamine or a prescription. AMP with MET suggests methamphetamine. Phentermine, a weight-loss drug, can also trigger AMP on some cups."
+ },
+ {
+  "no": 4,
+  "slug": "methamphetamine",
+  "drug": "Methamphetamine",
+  "drugClass": "Stimulants",
+  "version": "1.10",
+  "index": 10,
+  "level": "High",
+  "kicker": "Central nervous system stimulant",
+  "bottom": "Methamphetamine is one of the most harmful drugs a panel can catch, and most first-time users are already working adults. MET belongs on every panel, read together with AMP.",
+  "what": "Methamphetamine is a powerful stimulant, chemically one step from amphetamine but faster acting and more addictive. A prescription form (Desoxyn) exists but is rarely used. Nearly all methamphetamine in the US is made illegally. Today's supply is mostly high-purity crystal made in Mexico from P2P, a chemical route that replaced small US labs after cold medicine sales were restricted.",
+  "how": "Methamphetamine releases large amounts of dopamine, producing intense euphoria, energy and wakefulness. It is smoked, snorted, injected or swallowed, and binges can last days. Its half life is 9 to 24 hours. Part leaves the body unchanged in urine and part is converted to amphetamine, so meth use usually turns both the MET and AMP strips positive.",
+  "used": [
+   "Smoked from a glass pipe, snorted, injected or swallowed",
+   "Taken in multi-day binges with little sleep or food",
+   "Increasingly mixed with fentanyl, which drives overdose deaths",
+   "Used to stay awake through long shifts or extra jobs"
+  ],
+  "signs": [
+   "Fast talking, agitation, little sleep, weight loss",
+   "Paranoia, aggression, hallucinations, psychosis",
+   "Dental decay, skin sores from picking",
+   "Overdose: overheating, stroke, heart attack, seizures"
+  ],
+  "work": [
+   "Impairment during use and severe exhaustion after binges",
+   "Users may work through binges, then crash on the job",
+   "Use is twice as common in men (1.1% vs 0.5%)"
+  ],
+  "assay": "MET",
+  "specimen": "Urine",
+  "available": "UA:15A, UA:18C SVT, UA:23A SVT",
+  "reading": "A MET result is a Non-Negative screen until a laboratory confirms it. A Desoxyn prescription is rare, so the MRO will rarely clear a confirmed MET. Read MET with AMP: both positive is the classic meth pattern. The Vicks VapoInhaler contains l-methamphetamine, which the lab can tell apart from illegal d-methamphetamine."
+ },
+ {
+  "no": 5,
+  "slug": "mdma",
+  "drug": "MDMA (Ecstasy)",
+  "drugClass": "Stimulants and hallucinogens",
+  "version": "1.10",
+  "index": 7,
+  "level": "High",
+  "kicker": "Stimulant with hallucinogenic effects",
+  "bottom": "MDMA is rare in urine because use is occasional and leaves the body within days. Regulated programs must test for it. For everyone else, keep it where young adult use is a real concern, and know that much of what is sold as ecstasy is not MDMA at all.",
+  "what": "MDMA is a synthetic drug that combines stimulant effects with warmth, closeness and altered perception. It is sold as pressed tablets (ecstasy) or crystal powder (molly). It has no approved medical use in the US. In August 2024 the FDA declined to approve MDMA-assisted therapy for PTSD and asked for another trial.",
+  "how": "MDMA releases serotonin as well as dopamine and norepinephrine. Effects start in 30 to 45 minutes and last 4 to 6 hours, often followed by low mood for days as serotonin recovers. The body converts a small part of MDMA into MDA, a related drug. That is why federal labs test for both, and why the AMP strip can react.",
+  "used": [
+   "Swallowed as tablets or capsules at parties, clubs and festivals",
+   "Redosed through the night to extend effects",
+   "Combined with alcohol, marijuana or other drugs",
+   "Taken unknowingly as pills that contain other drugs"
+  ],
+  "signs": [
+   "Jaw clenching, teeth grinding, dilated pupils",
+   "Overheating and dehydration",
+   "Drinking too much water, causing dangerously low sodium",
+   "Days later: fatigue, low mood, poor concentration"
+  ],
+  "work": [
+   "Use is mostly weekend and occasional",
+   "Short detection window, so urine rarely catches it",
+   "Adulterated pills can expose users to meth or fentanyl"
+  ],
+  "assay": "MDMA",
+  "specimen": "Urine",
+  "available": "UA:15A, UA:18C SVT, UA:23A SVT",
+  "reading": "An MDMA result is a Non-Negative screen until a laboratory confirms it. There is no prescription that explains a confirmed MDMA. Why a separate strip: the MET strip only reacts to MDMA at high levels, and AMP only catches the small amount of MDA. The MDMA strip catches use those two miss."
+ },
+ {
+  "no": 6,
+  "slug": "marijuana-thc",
+  "drug": "Marijuana (THC)",
+  "drugClass": "Cannabinoids",
+  "version": "1.10",
+  "index": 8,
+  "level": "High",
+  "kicker": "Cannabinoid",
+  "bottom": "Marijuana is the most common positive in workplace testing and it is still near record highs. State legalization does not change federal testing rules or an employer's right to a drug-free safety-sensitive workplace. THC stays on every panel.",
+  "what": "Marijuana comes from the cannabis plant. Its main active ingredient, delta-9-THC, produces the high. It is smoked, vaped, eaten in edibles, or used as high-potency concentrates. Delta-8 THC, made from hemp and sold in gas stations and smoke shops, produces a similar high and is detected by the same urine test.",
+  "how": "THC acts on the brain's cannabinoid receptors, affecting memory, attention, coordination and reaction time. Effects from smoking last a few hours; edibles take longer to start and last longer. THC is stored in body fat and released slowly, which is why urine stays positive for days after occasional use and for weeks after daily use.",
+  "used": [
+   "Smoked or vaped as flower",
+   "Eaten as edibles, gummies and drinks",
+   "Dabbed or vaped as high-potency concentrates",
+   "Bought as hemp-derived delta-8 products"
+  ],
+  "signs": [
+   "Slowed reaction time, poor coordination",
+   "Short-term memory and attention problems",
+   "Red eyes, increased appetite, odor",
+   "Heavy use: dependence, anxiety, cannabis hyperemesis (severe vomiting)"
+  ],
+  "work": [
+   "Post-accident positivity is 60% higher than pre-employment",
+   "Highest in retail, wholesale and transportation",
+   "Legal off-duty use does not mean fit for duty"
+  ],
+  "assay": "THC",
+  "specimen": "Urine",
+  "available": "UA:15A, UA:18C SVT, UA:23A SVT",
+  "reading": "A THC result is a Non-Negative screen until a laboratory confirms it. A state medical card does not change a DOT result, and MROs report federally regulated positives regardless. Some states limit action on off-duty use for non-safety jobs. Make sure your written policy and your state's rules match how you act on a result."
+ },
+ {
+  "no": 7,
+  "slug": "cocaine",
+  "drug": "Cocaine",
+  "drugClass": "Stimulants",
+  "version": "1.10",
+  "index": 10,
+  "level": "High",
+  "kicker": "Central nervous system stimulant",
+  "bottom": "Cocaine leaves urine within a couple of days, so urine positivity looks low while hair shows use is climbing. Most cocaine deaths now involve fentanyl. COC stays on every panel.",
+  "what": "Cocaine is a stimulant made from the leaves of the coca plant. Powder cocaine is snorted or dissolved and injected. Crack is a smokable form that reaches the brain within seconds. It has one narrow medical use, as a topical anesthetic for some nose and throat procedures, which is why it is Schedule II rather than Schedule I.",
+  "how": "Cocaine blocks the recycling of dopamine, producing a short, intense high of 15 to 30 minutes that drives repeated use. The body quickly breaks it down to benzoylecgonine, which has a half life of 5 to 8 hours compared with under 2 hours for cocaine. The test looks for benzoylecgonine. Used with alcohol, cocaine forms cocaethylene, which is more toxic to the heart.",
+  "used": [
+   "Snorted as powder",
+   "Smoked as crack",
+   "Injected, sometimes with heroin (speedball)",
+   "Combined with alcohol, forming cocaethylene"
+  ],
+  "signs": [
+   "Energy, talkativeness, dilated pupils, nosebleeds",
+   "Irritability, paranoia, restlessness",
+   "High doses: chest pain, heart attack, stroke, seizures",
+   "Crash afterward: exhaustion, depression, cravings"
+  ],
+  "work": [
+   "Overconfidence and risk-taking while high",
+   "Post-accident positivity is three times pre-employment",
+   "Highest positivity in construction (0.34%)"
+  ],
+  "assay": "COC",
+  "specimen": "Urine",
+  "available": "UA:15A, UA:18C SVT, UA:23A SVT",
+  "reading": "A COC result is a Non-Negative screen until a laboratory confirms it. The only legitimate explanation is a documented medical procedure using topical cocaine, which the MRO verifies. Because the window is short, a negative urine does not rule out regular use. Random and post-accident testing catch more than scheduled tests."
+ },
+ {
+  "no": 8,
+  "slug": "opiates",
+  "drug": "Opiates",
+  "drugClass": "Opioids",
+  "version": "1.10",
+  "index": 8,
+  "level": "High",
+  "kicker": "Opioid pain relievers from the poppy",
+  "bottom": "The OPI strip catches morphine, codeine and heroin, but not fentanyl, oxycodone or most hydrocodone. Keep OPI on every panel, and add FTY and OXY to see the opioids that actually drive today's overdoses.",
+  "what": "Opiates come from the opium poppy. Morphine and codeine are prescription pain relievers (codeine is in Tylenol #3 and some cough syrups). Heroin is made from morphine and has no legal use in the US. Opioids is the wider family. It includes semi-synthetic drugs like oxycodone and synthetic ones like fentanyl, which this strip does not reliably detect.",
+  "how": "Opiates bind to opioid receptors, relieving pain and producing euphoria and drowsiness. At high doses they slow breathing, which is how overdoses kill. Heroin turns into 6-acetylmorphine (6-AM) within minutes and then into morphine. 6-AM proves heroin use but clears within a day. Codeine partly converts to morphine too.",
+  "used": [
+   "Prescription pills taken in higher doses or without a prescription",
+   "Codeine cough syrup mixed with soda (“lean”)",
+   "Heroin snorted, smoked or injected",
+   "Heroin now often contains or is replaced by fentanyl"
+  ],
+  "signs": [
+   "Drowsiness, nodding off, pinpoint pupils",
+   "Slowed breathing, constipation, nausea",
+   "Withdrawal: aches, sweating, anxiety, vomiting",
+   "Overdose: blue lips, unresponsive, stopped breathing"
+  ],
+  "work": [
+   "Sedation and slowed reaction time",
+   "Highest positivity in health care (0.18%)",
+   "Many positives are prescriptions the MRO must verify"
+  ],
+  "assay": "OPI",
+  "specimen": "Urine",
+  "available": "UA:15A, UA:18C SVT, UA:23A SVT",
+  "reading": "An OPI result is a Non-Negative screen until a laboratory confirms it. The MRO checks for a prescription; poppy seeds can explain low-level morphine. OPI does not reliably catch oxycodone, hydrocodone or fentanyl. A negative OPI does not mean no opioid use. Pair it with OXY and FTY."
+ },
+ {
+  "no": 9,
+  "slug": "benzodiazepines",
+  "drug": "Benzodiazepines",
+  "drugClass": "Sedatives",
+  "version": "1.10",
+  "index": 6,
+  "level": "Moderate",
+  "kicker": "Anti-anxiety and sleep medicines",
+  "bottom": "Benzodiazepines are common, usually prescribed, and not on federal panels. Most positives are legitimate, but the combination with opioids and the rise of counterfeit benzos make BZO worth keeping on expanded workplace panels and essential in treatment and corrections.",
+  "what": "Benzodiazepines are prescription sedatives for anxiety, panic, insomnia, seizures and alcohol withdrawal. Common examples are Xanax, Klonopin, Valium and Ativan. Counterfeit “Xanax” bars sold on the street often contain bromazolam, a designer benzodiazepine with no approved use, and sometimes fentanyl.",
+  "how": "Benzodiazepines boost GABA, the brain's main calming signal, reducing anxiety and causing drowsiness. Tolerance and dependence can develop within weeks. Stopping suddenly after long use can cause seizures. Combined with opioids or alcohol, they slow breathing enough to kill, and naloxone does not reverse the benzodiazepine part.",
+  "used": [
+   "Taken in higher doses or without a prescription",
+   "Combined with alcohol or opioids to deepen the effect",
+   "Bought as counterfeit bars that may hold bromazolam or fentanyl",
+   "Used to come down from stimulants"
+  ],
+  "signs": [
+   "Drowsiness, slurred speech, unsteady walking",
+   "Memory gaps, confusion, slowed reactions",
+   "Overdose with opioids: slowed or stopped breathing",
+   "Withdrawal: anxiety, insomnia, tremors, seizures"
+  ],
+  "work": [
+   "Impaired driving and machine operation",
+   "Falls and crashes, especially in older workers",
+   "Most positives are prescriptions the MRO verifies"
+  ],
+  "assay": "BZO",
+  "specimen": "Urine",
+  "available": "UA:15A, UA:18C SVT, UA:23A SVT",
+  "reading": "A BZO result is a Non-Negative screen until a laboratory confirms it. Most confirmed positives trace to a prescription the MRO will verify. A negative does not rule out clonazepam or lorazepam use, which need high levels to trigger the strip. Ask the lab for those specifically if they matter."
+ },
+ {
+  "no": 10,
+  "slug": "barbiturates",
+  "drug": "Barbiturates",
+  "drugClass": "Sedatives",
+  "version": "1.10",
+  "index": 4,
+  "level": "Moderate",
+  "kicker": "Sedative-hypnotics",
+  "bottom": "Barbiturates were replaced by safer drugs decades ago. Today most positives trace to a headache or seizure prescription. BAR adds little to a workplace panel but is still useful in treatment and corrections, where a positive can signal dangerous sedative use.",
+  "what": "Barbiturates are sedatives that were the main treatment for anxiety and insomnia from about 1912 to 1960. Today they have narrow uses: phenobarbital for seizures, butalbital in some headache pills, and others in anesthesia. They were largely replaced by benzodiazepines, which are much safer in overdose.",
+  "how": "Barbiturates depress the central nervous system, causing relaxation, drowsiness and effects similar to alcohol intoxication. The gap between a working dose and a fatal one is small, and it shrinks with regular use as tolerance builds. Alcohol multiplies the risk. Withdrawal after heavy use can be severe and even fatal.",
+  "used": [
+   "Taken in higher doses for a drunk-like effect",
+   "Combined with alcohol to intensify it",
+   "Historically mixed with amphetamines",
+   "Today: rare misuse of leftover prescriptions"
+  ],
+  "signs": [
+   "Drowsiness, slurred speech, poor coordination",
+   "Confusion, memory problems, mood swings",
+   "Overdose: shallow breathing, coma, death",
+   "Withdrawal: anxiety, tremors, seizures, hallucinations"
+  ],
+  "work": [
+   "Impairment similar to alcohol",
+   "Positives are usually headache or seizure prescriptions",
+   "A positive without a prescription is a serious warning sign"
+  ],
+  "assay": "BAR",
+  "specimen": "Urine",
+  "available": "UA:15A, UA:18C SVT, UA:23A SVT",
+  "reading": "A BAR result is a Non-Negative screen until a laboratory confirms it. Most confirmed positives trace to a prescription the MRO will verify. Butalbital, the most prescribed barbiturate, needs a high level to trigger the strip, so a negative does not rule it out."
+ },
+ {
+  "no": 11,
+  "slug": "fentanyl",
+  "drug": "Fentanyl",
+  "drugClass": "Opioids",
+  "version": "1.00",
+  "index": 8,
+  "level": "High",
+  "kicker": "Synthetic opioid",
+  "bottom": "Fentanyl drives most US overdose deaths and often reaches people who think they are taking something else. The OPI strip does not catch it. FEN belongs on every panel.",
+  "what": "Fentanyl is a synthetic opioid 50 times stronger than heroin and 100 times stronger than morphine. Hospitals use it for surgery and severe pain, as injections, patches and lozenges. Nearly all fentanyl causing harm today is made illegally. It is pressed into fake pills that look like oxycodone or Xanax, or mixed into heroin, cocaine and meth.",
+  "how": "Fentanyl binds to opioid receptors far more strongly than morphine, producing intense euphoria and sedation. A dose the size of a few grains of salt can stop breathing. The body breaks it down to norfentanyl, which the test detects. Naloxone (Narcan) reverses an overdose, though more than one dose may be needed.",
+  "used": [
+   "Swallowed as counterfeit pills, often without knowing",
+   "Smoked from foil or snorted as powder",
+   "Injected, alone or mixed with heroin",
+   "Increasingly cut with xylazine (“tranq”)"
+  ],
+  "signs": [
+   "Extreme drowsiness, nodding off, pinpoint pupils",
+   "Slow or shallow breathing, confusion",
+   "Overdose: blue lips, unresponsive, stopped breathing",
+   "Withdrawal: aches, sweating, vomiting, anxiety"
+  ],
+  "work": [
+   "Sedation and slowed reactions",
+   "A single exposure can be fatal",
+   "Adults 35 to 44 accounted for 28% of 2023 fentanyl deaths"
+  ],
+  "assay": "FEN",
+  "specimen": "Urine",
+  "available": "UA:15A, UA:18C SVT, UA:23A SVT",
+  "reading": "A FEN result is a Non-Negative screen until a laboratory confirms it. Recent surgery, a hospital stay or a fentanyl patch can explain a positive, which the MRO verifies. OPI does not detect fentanyl, so a panel without FEN misses the opioid behind most overdoses."
+ },
+ {
+  "no": 12,
+  "slug": "pcp",
+  "drug": "PCP (Phencyclidine)",
+  "drugClass": "Hallucinogens and dissociatives",
+  "version": "1.00",
+  "index": 7,
+  "level": "High",
+  "kicker": "Dissociative hallucinogen",
+  "bottom": "PCP is rare nationally but persistent in a few cities. It stays on federal panels by regulation. Outside DOT programs, keep it where your workforce or clients are in an area with a PCP market.",
+  "what": "PCP is a dissociative drug developed as a surgical anesthetic in the 1950s. It was dropped from human use because patients woke up agitated, delusional and confused. Today it is made illegally, mostly as a liquid. Cigarettes or marijuana joints are dipped in it and smoked, which is where names like “wet” and “dippers” come from.",
+  "how": "PCP blocks NMDA receptors, cutting the mind off from the body. Users feel detached, numb to pain and unusually strong, and may become paranoid or violent. Effects start within minutes when smoked and can last for hours. PCP is stored in fat and released slowly, so it stays detectable longer than most drugs.",
+  "used": [
+   "Smoked on dipped cigarettes or marijuana",
+   "Snorted or swallowed as powder or tablets",
+   "Sometimes sold as or mixed with other drugs",
+   "Often combined with marijuana, alcohol or MDMA"
+  ],
+  "signs": [
+   "Blank stare, rapid eye movements, slurred speech",
+   "Numbness, poor coordination, unusual strength",
+   "Paranoia, agitation, hallucinations, violence",
+   "Overdose: seizures, overheating, coma"
+  ],
+  "work": [
+   "Severe, unpredictable impairment",
+   "Risk of violence toward coworkers",
+   "Rare outside a few local markets"
+  ],
+  "assay": "PCP",
+  "specimen": "Urine",
+  "available": "UA:15A, UA:18C SVT, UA:23A SVT",
+  "reading": "A PCP result is a Non-Negative screen until a laboratory confirms it. There is no prescription that explains a confirmed PCP. Some cough medicine (dextromethorphan) and certain antidepressants can cause a false screen, which lab confirmation rules out."
+ },
+ {
+  "no": 13,
+  "slug": "lsd",
+  "drug": "LSD",
+  "drugClass": "Hallucinogens and dissociatives",
+  "version": "1.00",
+  "index": 3,
+  "level": "Low",
+  "kicker": "Hallucinogen",
+  "bottom": "LSD use has grown among young adults, but it is rarely tested and leaves urine quickly. It is a niche screen: worth adding for courts, treatment, or young workforces where hallucinogen use is a known concern, and not needed on most workplace panels.",
+  "what": "LSD is a powerful hallucinogen made from a chemical found in a grain fungus. It is active at extremely small doses, usually sold on printed blotter paper or as liquid drops. It has no approved medical use, though research into psychedelics for mental health has renewed interest. Some people now take tiny “microdoses” they believe improve mood or focus.",
+  "how": "LSD acts on serotonin receptors, altering perception, thinking and sense of time. A trip begins within an hour and lasts 8 to 12 hours. Because doses are so small and the body clears it quickly, LSD is present in urine at very low levels and only for a short time, which makes it hard to catch.",
+  "used": [
+   "Blotter tabs placed on the tongue",
+   "Liquid drops on sugar cubes or candy",
+   "Taken at concerts and festivals",
+   "Microdosed in small amounts on a schedule"
+  ],
+  "signs": [
+   "Dilated pupils, sweating, fast heartbeat",
+   "Visual distortions and hallucinations",
+   "Anxiety, panic or paranoia (a “bad trip”)",
+   "Flashbacks days or weeks later"
+  ],
+  "work": [
+   "Severe impairment of judgment and perception",
+   "Long-lasting effects from a single dose",
+   "Rarely tested, so use can go unseen"
+  ],
+  "assay": "LSD",
+  "specimen": "Urine",
+  "available": "Select UA Series cups",
+  "reading": "An LSD result is a Non-Negative screen until a laboratory confirms it. There is no prescription that explains a confirmed LSD. Because LSD clears quickly, a negative does not rule out use more than a day or two ago."
+ },
+ {
+  "no": 14,
+  "slug": "tramadol",
+  "drug": "Tramadol",
+  "drugClass": "Opioids",
+  "version": "1.00",
+  "index": 4,
+  "level": "Moderate",
+  "kicker": "Prescription opioid pain reliever",
+  "bottom": "Tramadol is a widely prescribed opioid that standard opiate strips do not detect. Most positives are prescriptions. Add TRA where opioid use matters, such as safety-sensitive work, health care and treatment, rather than to every panel.",
+  "what": "Tramadol is a prescription opioid for moderate pain, often marketed as a safer alternative to stronger opioids. It became a federally controlled drug only in 2014, after years of reports of misuse. It is weaker than oxycodone or morphine but still causes dependence, and it is widely available from online sellers without a prescription.",
+  "how": "Tramadol acts two ways: as an opioid and by raising serotonin and norepinephrine, like some antidepressants. That second action is why it can cause seizures and serotonin syndrome. Its strength varies by person. Some people's livers convert it faster, raising the risk of overdose. It is not detected by the standard opiate (OPI) strip.",
+  "used": [
+   "Taken in higher doses than prescribed",
+   "Bought online without a prescription",
+   "Combined with alcohol or other sedatives",
+   "Used to ease opioid withdrawal"
+  ],
+  "signs": [
+   "Drowsiness, dizziness, nausea, constipation",
+   "Confusion and slowed reactions",
+   "Seizures, especially at high doses",
+   "Serotonin syndrome: fever, agitation, fast heartbeat"
+  ],
+  "work": [
+   "Sedation and dizziness affect safety",
+   "Seizure risk in safety-sensitive roles",
+   "Most positives are prescriptions the MRO verifies"
+  ],
+  "assay": "TRA",
+  "specimen": "Urine",
+  "available": "UA:18C SVT, UA:23A SVT",
+  "reading": "A TRA result is a Non-Negative screen until a laboratory confirms it. Most confirmed positives trace to a prescription the MRO will verify. The OPI strip does not catch tramadol, so programs that care about all opioid use need TRA as well."
+ },
+ {
+  "no": 15,
+  "slug": "ketamine",
+  "drug": "Ketamine",
+  "drugClass": "Hallucinogens and dissociatives",
+  "version": "1.00",
+  "index": 3,
+  "level": "Low",
+  "kicker": "Dissociative anesthetic",
+  "bottom": "Ketamine use is rising, driven partly by its growing medical reputation, but it is still uncommon and not on federal panels. KET is most useful where club-drug use is a concern: courts, treatment, and younger workforces in nightlife-heavy areas.",
+  "what": "Ketamine is an anesthetic used in hospitals and veterinary clinics. A related form, esketamine (Spravato), is approved for treatment-resistant depression, and many clinics now offer ketamine infusions. Illicit ketamine is usually a white powder that is snorted, often diverted from medical or veterinary supply or made illegally abroad.",
+  "how": "Ketamine blocks NMDA receptors, producing a dreamlike, detached state. At higher doses users enter a “K-hole,” unable to move or communicate. Effects last about an hour when snorted. Regular heavy use can cause serious bladder damage, memory problems and dependence.",
+  "used": [
+   "Snorted as powder at clubs and parties",
+   "Combined with MDMA, GHB or cocaine",
+   "Taken from home ketamine prescriptions",
+   "Sometimes slipped into drinks"
+  ],
+  "signs": [
+   "Confusion, slurred speech, numbness",
+   "Detachment from surroundings, hallucinations",
+   "High doses: unable to move or respond",
+   "Heavy use: bladder pain, memory problems"
+  ],
+  "work": [
+   "Severe but short-lived impairment",
+   "Injury risk from numbness and confusion",
+   "Growing legitimate prescriptions for depression"
+  ],
+  "assay": "KET",
+  "specimen": "Urine",
+  "available": "Select UA Series cups",
+  "reading": "A KET result is a Non-Negative screen until a laboratory confirms it. The MRO checks for esketamine or clinic treatment. Because ketamine is often used with other club drugs, read KET alongside MDMA, COC and AMP."
+ },
+ {
+  "no": 16,
+  "slug": "spice-k2",
+  "drug": "Spice / K2",
+  "drugClass": "Cannabinoids",
+  "version": "1.00",
+  "index": 4,
+  "level": "Moderate",
+  "kicker": "Synthetic cannabinoids",
+  "bottom": "Synthetic cannabinoids are dangerous and unpredictable, and the standard THC test does not detect them. People who know they are being tested are the most likely users. K3 is most valuable in courts, corrections and treatment.",
+  "what": "Synthetic cannabinoids are lab-made chemicals designed to mimic THC. They are sprayed on dried plant material and smoked, or sold as vape liquids, and marketed as incense or “not for human consumption.” Manufacturers change the chemical recipe constantly to stay ahead of bans and tests, so users rarely know what they are getting.",
+  "how": "These chemicals hit the same cannabinoid receptors as THC but can bind up to 100 times more strongly, producing far more extreme and unpredictable effects. They do not trigger the standard THC test, which is a major reason people under supervision use them.",
+  "used": [
+   "Smoked as herbal “incense” blends",
+   "Vaped as e-liquids, sometimes sold as CBD",
+   "Used to get high while passing a THC test",
+   "Smuggled into facilities on soaked paper"
+  ],
+  "signs": [
+   "Extreme agitation, confusion, paranoia",
+   "Racing heart, vomiting, chest pain",
+   "Psychosis, violent behavior, seizures",
+   "Kidney damage, heart attack, death"
+  ],
+  "work": [
+   "Unpredictable, severe impairment",
+   "Users choose it to beat standard tests",
+   "No antidote for poisoning"
+  ],
+  "assay": "K3",
+  "specimen": "Urine",
+  "available": "UA:18C SVT",
+  "reading": "A K3 result is a Non-Negative screen until a laboratory confirms it. There is no prescription that explains a confirmed positive. Because the chemicals change constantly, a negative does not rule out use of a newer compound. Lab panels cover more variants than any rapid strip."
+ },
+ {
+  "no": 17,
+  "slug": "xylazine",
+  "drug": "Xylazine",
+  "drugClass": "Sedatives",
+  "version": "1.00",
+  "index": 6,
+  "level": "Moderate",
+  "kicker": "Veterinary sedative found in street opioids",
+  "bottom": "Xylazine is an animal tranquilizer mixed into fentanyl. It causes devastating wounds and deep sedation that naloxone does not reverse. Workplaces rarely need it; treatment, corrections and harm reduction programs increasingly do.",
+  "what": "Xylazine is a sedative approved only for animals, used by veterinarians on horses and cattle. It is not approved for people and has never been a prescription drug. Drug suppliers add it to fentanyl to stretch the supply and lengthen the high. Most people who take it do not know it is there.",
+  "how": "Xylazine slows the nervous system, causing deep sedation, low blood pressure and a slow heart rate. It is not an opioid, so naloxone does not reverse its effects, although naloxone should still be given for the fentanyl. Repeated use causes severe skin wounds that can lead to infection and amputation.",
+  "used": [
+   "Mostly unknowingly, mixed into fentanyl",
+   "Injected, smoked or snorted with opioids",
+   "Sought out by some users for a longer high",
+   "Sold as “tranq dope”"
+  ],
+  "signs": [
+   "Extreme sedation, blackouts for hours",
+   "Slow heart rate, low blood pressure",
+   "Open wounds, often on arms and legs",
+   "Harsh withdrawal with anxiety and restlessness"
+  ],
+  "work": [
+   "Long, deep sedation",
+   "Wounds that can lead to amputation",
+   "Not reversed by naloxone"
+  ],
+  "assay": "XYL",
+  "specimen": "Urine",
+  "available": "UA:23A SVT",
+  "reading": "An XYL result is a Non-Negative screen until a laboratory confirms it. There is no human prescription that explains a confirmed positive. Read XYL with FEN. A positive signals exposure to a contaminated supply and a need for wound care and overdose planning."
+ },
+ {
+  "no": 18,
+  "slug": "tricyclic-antidepressants",
+  "drug": "Tricyclic antidepressants",
+  "drugClass": "Antidepressants",
+  "version": "1.00",
+  "index": 2,
+  "level": "Low",
+  "kicker": "Prescription antidepressants",
+  "bottom": "Tricyclics are prescription medicines, rarely misused, and not a workplace concern. TCA belongs on clinical and treatment panels, where knowing a patient takes them matters for safety, not on employment panels.",
+  "what": "Tricyclic antidepressants are an older class of prescription medicine for depression. Today they are prescribed more often in low doses for nerve pain, migraine prevention and sleep. Newer antidepressants have largely replaced them for depression because they are safer in overdose.",
+  "how": "TCAs raise serotonin and norepinephrine levels. They also cause drowsiness, dry mouth and dizziness, which is why low doses are used for sleep. The gap between a safe dose and a toxic one is small. Overdose affects the heart and is a medical emergency.",
+  "used": [
+   "Rarely misused for a high",
+   "Taken in larger doses than prescribed",
+   "Combined with alcohol or sedatives",
+   "Stockpiled, which raises overdose risk"
+  ],
+  "signs": [
+   "Drowsiness, dry mouth, dizziness",
+   "Confusion, especially in older adults",
+   "Overdose: irregular heartbeat, seizures, coma",
+   "Dangerous with alcohol and other sedatives"
+  ],
+  "work": [
+   "Drowsiness can affect safety",
+   "Positives are almost always prescriptions",
+   "Not a drug-free workplace concern"
+  ],
+  "assay": "TCA",
+  "specimen": "Urine",
+  "available": "UA:15A, UA:23A SVT",
+  "reading": "A TCA result is a Non-Negative screen until a laboratory confirms it. Most confirmed positives trace to a prescription. Cyclobenzaprine (Flexeril), a common muscle relaxer, can also trigger the strip. Review the medication list before drawing conclusions."
+ },
+ {
+  "no": 19,
+  "slug": "alcohol-etg",
+  "drug": "Alcohol (EtG)",
+  "drugClass": "Alcohol biomarker",
+  "version": "1.20",
+  "index": 8,
+  "level": "High",
+  "kicker": "Alcohol biomarker",
+  "bottom": "EtG answers whether someone drank at all in the past few days, which a BAC test cannot. That makes ETG essential for abstinence monitoring in courts and treatment. For impairment on the job, use BAC (see the Alcohol (BAC) profile).",
+  "what": "Alcohol is legal for adults and the most widely used drug in the US. It slows the brain, impairs judgment and coordination, and causes long-term damage to the liver, heart and brain. EtG is a breakdown product the body makes only when it processes alcohol. Finding it in urine proves alcohol was consumed recently.",
+  "how": "Alcohol itself leaves the body within hours, which is why breath tests only measure current drinking. EtG stays in urine for about 3 to 4 days after drinking. That makes EtG ideal for programs that require complete abstinence. Heavy use of alcohol-based hand sanitizer or mouthwash can produce low levels, so results need confirmation and context.",
+  "used": [
+   "Binge drinking and heavy daily drinking",
+   "Drinking before or during work",
+   "Drinking while on court or treatment orders",
+   "Combined with sedatives or opioids"
+  ],
+  "signs": [
+   "Slurred speech, poor coordination, odor",
+   "Poor judgment and slowed reactions",
+   "Hangovers, absences, tremors",
+   "Overdose: vomiting, confusion, unresponsiveness"
+  ],
+  "work": [
+   "Verifies no-alcohol orders in courts and treatment",
+   "Catches drinking a BAC test would miss",
+   "For impairment on the job, use BAC"
+  ],
+  "assay": "ETG",
+  "specimen": "Urine",
+  "available": "UA:18C SVT, UA:23A SVT (forensic kits)",
+  "reading": "An ETG result is a Non-Negative screen until a laboratory confirms it. It shows drinking in the past few days, not current impairment. Incidental exposure from hand sanitizer, mouthwash or some foods can produce low EtG. Confirmation and program rules decide what counts as a violation."
+ },
+ {
+  "no": 20,
+  "slug": "buprenorphine",
+  "drug": "Buprenorphine",
+  "drugClass": "Opioids",
+  "version": "1.00",
+  "index": 4,
+  "level": "Moderate",
+  "kicker": "Opioid addiction treatment medicine",
+  "bottom": "Buprenorphine is mostly a treatment medicine, not a drug of abuse. In treatment programs, BUP confirms patients are taking their medicine. In workplaces, a positive usually means someone is in recovery, which the MRO handles with care.",
+  "what": "Buprenorphine is an opioid used to treat opioid addiction. It is usually combined with naloxone (Suboxone) as a film or tablet under the tongue, or given as a monthly injection. A low-dose patch is also used for pain. It reduces cravings and withdrawal so people can stop using heroin, fentanyl or pain pills.",
+  "how": "Buprenorphine partly activates opioid receptors. Its effects level off at higher doses, a “ceiling” that makes overdose much less likely than with full opioids. It still causes sedation and can be dangerous with alcohol or benzodiazepines. Some prescribed buprenorphine is diverted and sold.",
+  "used": [
+   "Sold or traded from prescriptions",
+   "Used without a prescription to manage withdrawal",
+   "Taken with sedatives or alcohol",
+   "Injected rather than taken under the tongue"
+  ],
+  "signs": [
+   "Drowsiness, constipation, headache",
+   "Pinpoint pupils at higher doses",
+   "Withdrawal if stopped suddenly",
+   "Overdose risk rises with sedatives"
+  ],
+  "work": [
+   "Most users are in recovery",
+   "Can cause drowsiness early in treatment",
+   "Protected medical treatment; MRO review essential"
+  ],
+  "assay": "BUP",
+  "specimen": "Urine",
+  "available": "UA:15A, UA:18C SVT, UA:23A SVT",
+  "reading": "A BUP result is a Non-Negative screen until a laboratory confirms it. Most confirmed positives trace to a prescription the MRO will verify. In treatment, a negative BUP can mean a patient is not taking their medicine, or is diverting it. Lab testing can show whether the urine contains the body's breakdown product."
+ },
+ {
+  "no": 21,
+  "slug": "methadone",
+  "drug": "Methadone",
+  "drugClass": "Opioids",
+  "version": "1.00",
+  "index": 6,
+  "level": "Moderate",
+  "kicker": "Long-acting opioid",
+  "bottom": "Methadone is a proven addiction treatment and a pain medicine. In treatment programs, MTD with EDDP confirms patients are actually taking it. In workplaces, a positive usually means a prescription or treatment, which the MRO verifies.",
+  "what": "Methadone is a long-acting synthetic opioid. It is used in opioid treatment programs to prevent withdrawal and cravings, and sometimes prescribed for chronic pain. For addiction treatment it can only be dispensed through licensed programs, often called methadone clinics.",
+  "how": "Methadone fully activates opioid receptors but works slowly and lasts 24 hours or more, so a single daily dose prevents withdrawal without a strong high. It builds up in the body, so overdose risk is highest in the first weeks of treatment. The liver turns it into EDDP, which only appears if methadone was actually taken.",
+  "used": [
+   "Take-home doses sold or shared",
+   "Taken with benzodiazepines or alcohol",
+   "Pain prescriptions taken in higher doses",
+   "Added to a urine sample to fake compliance"
+  ],
+  "signs": [
+   "Drowsiness, sweating, constipation",
+   "Slow breathing at high doses",
+   "Irregular heartbeat in some patients",
+   "Withdrawal if a dose is missed"
+  ],
+  "work": [
+   "Most users are in treatment or pain care",
+   "Sedation early in treatment",
+   "MRO verifies the prescription or program"
+  ],
+  "assay": "MTD",
+  "specimen": "Urine",
+  "available": "UA:15A, UA:18C SVT, UA:23A SVT",
+  "reading": "An MTD result is a Non-Negative screen until a laboratory confirms it. Most confirmed positives trace to a treatment program or prescription. Read MTD with EDDP where available. Methadone without EDDP can mean methadone was added to the cup rather than taken."
+ },
+ {
+  "no": 22,
+  "slug": "oxycodone-oxymorphone",
+  "drug": "Oxycodone / Oxymorphone",
+  "drugClass": "Opioids",
+  "version": "1.00",
+  "index": 8,
+  "level": "High",
+  "kicker": "Semi-synthetic opioid",
+  "bottom": "Oxycodone is one of the most prescribed and most misused opioids in the US. The standard OPI strip does not reliably detect it, so a panel without OXY misses most oxycodone use. Keep OXY on any panel that tests for opioids.",
+  "what": "Oxycodone is a semi-synthetic opioid made from thebaine, a compound in the opium poppy. It is prescribed for moderate to severe pain as immediate-release tablets, extended-release tablets (OxyContin) and combination pills with acetaminophen (Percocet). Oxymorphone is a stronger opioid sold on its own (Opana) and is also made by the body when it breaks down oxycodone, which is why the two are tested together.",
+  "how": "People misuse oxycodone by taking more than prescribed, taking someone else's pills, or crushing tablets to snort or inject. Extended-release tablets hold a dose meant to last 12 hours. Pills sold on the street as \"oxy 30s\" or \"blues\" are often counterfeits pressed with fentanyl, which turns a pill habit into an overdose risk.",
+  "used": [
+   "Taking more or more often than prescribed",
+   "Using someone else's pills",
+   "Crushing tablets to snort or inject",
+   "Buying street pills that may be fentanyl"
+  ],
+  "signs": [
+   "Drowsiness, pinpoint pupils, nodding off",
+   "Slowed breathing and slurred speech",
+   "Constipation, itching, mood swings",
+   "Overdose: blue lips, unresponsive; give naloxone"
+  ],
+  "work": [
+   "Slows reactions and judgment",
+   "DOT post-accident positivity runs 3.5 times pre-employment",
+   "Prescriptions need MRO review"
+  ],
+  "assay": "OXY",
+  "specimen": "Urine",
+  "available": "UA:15A, UA:18C SVT, UA:23A SVT",
+  "reading": "An OXY result is a Non-Negative screen until a laboratory confirms it. The MRO checks for a valid prescription before a result is reported as positive. The OPI strip does not reliably catch oxycodone. A negative OPI alongside a Non-Negative OXY is common and expected."
+ },
+ {
+  "no": 23,
+  "slug": "alcohol-bac",
+  "drug": "Alcohol (BAC)",
+  "drugClass": "Alcohol, current level",
+  "version": "1.00",
+  "index": 8,
+  "level": "High",
+  "kicker": "Current alcohol level",
+  "bottom": "Alcohol is the one drug where the test measures impairment right now. A BAC test answers whether someone is under the influence on the job or after an accident, which no urine test can do. Use BAC for reasonable-suspicion and post-accident testing; use ETG for abstinence.",
+  "what": "Alcohol (ethanol) is legal for adults 21 and older and is the most widely used drug in the US. It slows the brain and impairs judgment, coordination and reaction time, and the effects rise with the amount in the blood. The body clears alcohol at a fairly steady rate, roughly one standard drink per hour, so the level falls to nothing within hours of the last drink.",
+  "how": "A BAC test measures alcohol itself in saliva or breath. Alcohol in saliva and breath tracks the level in the blood, so the result reflects impairment now, not drinking days ago. That makes BAC the right test for reasonable suspicion and post-accident testing. Under DOT rules, a saliva or breath screen that is not negative is confirmed on an evidential breath testing device.",
+  "used": [
+   "Drinking before or during a shift",
+   "Heavy drinking the night before work",
+   "Drinking at lunch or on breaks",
+   "Mixing with sedatives or opioids"
+  ],
+  "signs": [
+   "Odor of alcohol, flushed face",
+   "Slurred speech, unsteady walking",
+   "Slowed reactions and poor judgment",
+   "Severe: vomiting, confusion, passing out"
+  ],
+  "work": [
+   "Impairment is immediate and measurable",
+   "Accidents, injuries and lost time",
+   "DOT requires post-accident alcohol tests"
+  ],
+  "assay": "BAC",
+  "specimen": "Saliva",
+  "available": "Select Labb kits",
+  "reading": "A BAC result that is not negative is a Non-Negative screen until it is confirmed. In DOT programs, confirmation is done on an evidential breath testing device. Alcohol leaves the body within hours, so test promptly. A delay after an accident or a reasonable-suspicion observation can let the level fall to nothing."
+ },
+ {
+  "no": 24,
+  "slug": "kratom",
+  "drug": "Kratom",
+  "drugClass": "Botanical opioid-like",
+  "version": "1.00",
+  "index": 4,
+  "level": "Moderate",
+  "kicker": "Plant with opioid effects",
+  "bottom": "Kratom is legal in most states, sold openly and acts on the same brain receptors as opioids. Concentrated 7-OH products drove a record surge in poison center reports in 2025. Add KRA where opioid misuse is a concern, such as treatment and courts; for general workplace panels it is optional.",
+  "what": "Kratom is the leaf of Mitragyna speciosa, a tree native to Southeast Asia. Its main compounds, mitragynine and 7-hydroxymitragynine (7-OH), act on the same brain receptors as opioids. Low doses act like a stimulant; higher doses act like an opioid. It is sold as powder, capsules, extracts, drinks and gummies, often labeled as an herbal supplement. No kratom product is approved by the FDA.",
+  "how": "People use kratom for energy, for pain and to self-manage opioid withdrawal. Daily use can lead to dependence, with a withdrawal much like opioid withdrawal. In the last few years, products with concentrated or semi-synthetic 7-OH have spread alongside the leaf. 7-OH is far stronger than natural kratom, and these products coincide with the 2025 surge in poison center reports.",
+  "used": [
+   "Daily use for energy or pain",
+   "Self-treating opioid withdrawal",
+   "High-potency 7-OH tablets and shots",
+   "Mixing with alcohol, opioids or sedatives"
+  ],
+  "signs": [
+   "Alert and talkative at low doses",
+   "Sedation, small pupils at high doses",
+   "Nausea, constipation, weight loss",
+   "Seizures, liver injury; withdrawal when stopped"
+  ],
+  "work": [
+   "Legal and easy to buy in most states",
+   "Sedation slows reactions",
+   "Use often overlaps other drug use"
+  ],
+  "assay": "KRA",
+  "specimen": "Urine",
+  "available": "Select Labb kits",
+  "reading": "A KRA result is a Non-Negative screen until a laboratory confirms it. Kratom is legal in most states, so a confirmed positive is a policy question, not automatically a violation. Concentrated 7-OH products may contain little mitragynine. A negative KRA does not rule out 7-OH use; ask the laboratory about 7-OH confirmation."
+ }
+]

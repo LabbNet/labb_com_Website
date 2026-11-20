@@ -1,3 +1,4 @@
+import { drugProfiles } from "@/lib/drugProfiles";
 import type { MetadataRoute } from "next";
 import { articles } from "@/lib/articles";
 import { industries } from "@/lib/industries";
@@ -41,11 +42,13 @@ export default function sitemap(): MetadataRoute.Sitemap {
     page("/test-kits/oraflo", 0.9),
     page("/labbmd", 0.8),
     ...publishedKits.map((k) => page(`/test-kits/${k.slug}`, 0.8)),
+    ...drugProfiles.map((d) => page(`/drugs/${d.slug}`, 0.6)),
     ...industries.map((i) => page(`/industries/${i.slug}`, 0.8)),
     page("/channel-partner-program", 0.8),
     page("/channel-partner-program/program-details", 0.7),
     page("/channel-partner-program/get-started", 0.7),
     page("/training", 0.8),
+    page("/drugs", 0.7),
     ...resources.map((r) => page(`/resources/${r.slug}`, 0.8)),
     page("/certifications", 0.6),
     page("/news", 0.6, "weekly"),

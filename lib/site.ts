@@ -51,10 +51,11 @@ export const nav = [
   },
   {
     label: "Training",
-    base: ["/resources", "/news"],
+    base: ["/resources", "/news", "/drugs"],
     children: [
       { href: "/training", label: "Training and education" },
       { href: "/certifications", label: "Certifications" },
+      { href: "/drugs", label: "Drug profiles" },
       { href: "/news", label: "News and insights" },
     ],
   },

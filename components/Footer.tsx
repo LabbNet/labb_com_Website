@@ -54,6 +54,7 @@ export function Footer() {
           <ul>
             <li><Link href="/certifications">Get certified</Link></li>
             <li><Link href="/training">Training and guidebooks</Link></li>
+            <li><Link href="/drugs">Drug profiles</Link></li>
             <li><Link href="/training#data-sheets">Data sheets</Link></li>
             <li><Link href="/channel-partner-program">Channel Partner Program</Link></li>
             <li><Link href="/news">News</Link></li>

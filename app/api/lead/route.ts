@@ -5,6 +5,7 @@ import { isShipping, money, quote } from "@/lib/quickTest";
 import { getQtPricing } from "@/lib/qtPricing";
 import { isSegment, PRODUCTS, type Segment } from "@/lib/segments";
 import { getResource } from "@/lib/resources";
+import { drugSheet } from "@/lib/drugSheets";
 import { COOKIE, cookieOptions, sign, verify } from "@/lib/session";
 
 const str = (v: unknown, max = 200) => (typeof v === "string" ? v.trim().slice(0, max) : "");
@@ -147,6 +148,9 @@ export async function POST(req: Request) {
 
   const resource = lead.resource ? getResource(lead.resource) : undefined;
   if (resource) lead.resource = resource.title;
+  // Drug Profile Series downloads: resource "drug-profile:<slug>".
+  const profile = lead.resource?.startsWith("drug-profile:") ? drugSheet(lead.resource.slice(13)) : undefined;
+  if (profile) lead.resource = `Drug Profile: ${profile.drug}`;
 
   let saved: { id?: string } = {};
   try {
@@ -161,7 +165,7 @@ export async function POST(req: Request) {
 
   const res = NextResponse.json({
     ok: true,
-    download: resource?.fileUrl ?? (resource?.file ? `/api/download/${resource.slug}` : undefined),
+    download: profile ? `/api/drug-profile/${profile.slug}` : resource?.fileUrl ?? (resource?.file ? `/api/download/${resource.slug}` : undefined),
     ...(twoStep && saved.id ? { lead: saved.id, token: leadToken(saved.id) } : {}),
   });
   const existing = await verify(req.headers.get("cookie")?.match(new RegExp(`${COOKIE}=([^;]+)`))?.[1]);

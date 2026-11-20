@@ -1,5 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
+import { DrugProfileGrid } from "@/components/DrugProfileGrid";
 import type { Metadata } from "next";
 import { Breadcrumbs, CtaBand, Faq } from "@/components/ui";
 import { PageHero } from "@/components/PageHero";
@@ -124,6 +125,19 @@ export default function TrainingPage() {
               </div>
             ))}
           </div>
+        </div>
+      </section>
+
+      <section className="section soft" id="drug-profiles">
+        <div className="wrap">
+          <span className="eyebrow">Drug Profile Series</span>
+          <h2>One profile for every drug on a Labb test</h2>
+          <p className="intro">
+            What each drug is, how it affects people at work, how the Labb assay reads it, and a 1 to 10 Screening Priority Index to help you
+            decide what belongs on your panel.
+          </p>
+          <DrugProfileGrid />
+          <div className="btn-row"><Link href="/drugs" className="btn btn-outline-dark">See all drug profiles</Link></div>
         </div>
       </section>
 
