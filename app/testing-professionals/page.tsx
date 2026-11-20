@@ -11,7 +11,7 @@ export const metadata: Metadata = {
 
 const doors = [
   { href: "/collection-sites", g: "collection-sites", eyebrow: "Clinics and collection sites", title: "Every result documented. More clients served.", body: "Objective reads, custom panels from one kit, and the tools to grow." },
-  { href: "/tpas", g: "tpas", eyebrow: "TPAs", title: "Sell, contract and bill programs in one place.", body: "Background checks built in, clinics and labs connected." },
+  { href: "/tpas", g: "tpas", eyebrow: "TPAs", title: "Sell, contract, manage, and bill programs on one platform.", body: "Background checks built in, clinics and labs connected." },
   { href: "/laboratories", g: "laboratories", eyebrow: "Laboratories", title: "Connect with the sites that send you specimens.", body: "A connected network and electronic custody from rapid sites." },
 ];
 

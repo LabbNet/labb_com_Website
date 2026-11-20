@@ -63,7 +63,7 @@ export default function CollectionSites() {
       kits={{
         title: "Recommended setup",
         intro: "A 23 panel urine cup with Flex Testing covers almost any client request, plus oral fluid for clients who want observed collections. Your end client decides which kit category applies.",
-        slugs: ["ua-23a-svt", "or-14a-etest-swab", "orf-31c-oraflo", "or-06a-etest-swab"],
+        slugs: ["ua-06b-svt", "ua-13a-svt", "ua-15a", "ua-16c-svt", "ua-18c-svt", "ua-23a-svt", "or-06a-etest-swab", "or-12a-etest-swab", "or-14a-etest-swab", "orf-31c-oraflo"],
       }}
       faqs={[
         { q: "What does the electronic chain of custody cover?", a: "The Labb eCCF covers rapid urine, rapid oral fluid and non-regulated lab testing. DOT and other federally regulated collections use a paper chain of custody." },

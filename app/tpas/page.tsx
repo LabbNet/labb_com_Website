@@ -4,7 +4,7 @@ import { SegmentPage } from "@/components/SegmentPage";
 export const metadata: Metadata = {
   title: "Software for Drug Testing TPAs | LabbHR by Labb",
   description:
-    "LabbHR gives third party administrators one platform to sell, contract and bill drug testing programs, with background checks built in and collection sites, labs and MROs connected through One by Labb.",
+    "LabbHR gives third party administrators one platform to sell, contract and bill drug testing programs, with background checks built in and collection sites, labs and MROs connected through One by Labb site network.",
   alternates: { canonical: "/tpas" },
 };
 
@@ -14,8 +14,8 @@ export default function TPAs() {
       slug="tpas"
       crumb="TPAs"
       eyebrow="Third party administrators"
-      title="Sell, contract and bill programs on one platform."
-      lede="LabbHR gives TPAs the tools to grow, with background checks built in and collection sites, labs and MROs connected through One by Labb."
+      title="Sell, contract, manage, and bill programs on one platform."
+      lede="LabbHR gives TPAs the tools to grow, with background checks built in and collection sites, labs and MROs connected through One by Labb site network."
       primary={{ href: "#contact", label: "Request a consultation" }}
       secondary={{ href: "/labbhr", label: "About LabbHR" }}
       problem={{
