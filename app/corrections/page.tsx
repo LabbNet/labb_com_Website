@@ -9,7 +9,7 @@ import { LABBPO_LICENSE, labbpo } from "@/lib/platforms";
 export const metadata: Metadata = {
   title: "Probation and Corrections Drug Testing Software",
   description:
-    "Offender management and objective rapid drug testing for probation, parole and jails. LabbPO handles random selection, notification and fee collection; Labb Station gives every rapid test an objective read.",
+    "Offender management and drug testing for probation, parole and jails. LabbPO handles random selection, notification, test tracking and fee collection, with forensic test kits built for courts and programs.",
   alternates: { canonical: "/corrections" },
 };
 
@@ -26,7 +26,7 @@ export default function Corrections() {
         tone="po"
         eyebrow="Corrections · Probation, parole and jails"
         title="Manage more offenders with less effort, from anywhere."
-        lede="LabbPO runs the caseload: random selection, notification, test tracking and fee collection. Labb Station gives every on-site rapid test an objective read and a record that holds up."
+        lede="LabbPO runs the caseload: random selection, notification, test tracking and fee collection, so officers spend less time on paperwork and more time with the people they supervise."
         primary={{ href: "#demo", label: "Request a consultation" }}
         secondary={{ href: "/labbpo", label: "About LabbPO" }}
       />
@@ -46,34 +46,6 @@ export default function Corrections() {
             ))}
           </div>
           <div className="btn-row"><Link href="/labbpo" className="btn btn-outline-dark">See everything in LabbPO</Link></div>
-        </div>
-      </section>
-
-      <section className="section soft">
-        <div className="wrap split" style={{ alignItems: "start" }}>
-          <div>
-            <span className="eyebrow po">Labb Station for on-site testing</span>
-            <h2>An objective read on every rapid test, and a record that holds up in court.</h2>
-            <p className="intro" style={{ marginBottom: 20 }}>
-              Standardize screening across officers and sites, and confirm only when it matters. Rapid tests are not 100% accurate, and a
-              read by eye can be swayed by sympathy, finances or other bias. Anyone reading by eye is exposed to it.
-            </p>
-            <Checks items={[
-              "An objective digital read on every test",
-              "The same process for every officer and site",
-              "A documented record if the court wants an independent review",
-              "Lab confirmation when needed, not on every test",
-              "Results flow directly into LabbPO",
-            ]} />
-          </div>
-          <div className="card rail po">
-            <h3>The goal: catch use early, fairly</h3>
-            <p>
-              Early, reliable screening gets offenders into treatment sooner. An objective read and a complete record make every result fair
-              to the offender and defensible for the agency.
-            </p>
-            <p style={{ marginTop: 14 }}><Link href="/labb-station">About Labb Station</Link></p>
-          </div>
         </div>
       </section>
 
@@ -101,7 +73,7 @@ export default function Corrections() {
             <p className="program-note">Your testing goals, our technology and support: Labb builds the program around your goals and keeps it on track.</p>
           </div>
           <div className="hero-card">
-            <LeadForm variant="demo" segment="corrections" products={["LabbPO", "Labb Station"]} title="Request a consultation" submitLabel="Request a consultation" />
+            <LeadForm variant="demo" segment="corrections" products={["LabbPO"]} title="Request a consultation" submitLabel="Request a consultation" />
           </div>
         </div>
       </section>
