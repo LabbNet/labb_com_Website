@@ -30,7 +30,7 @@ export default async function Page({ searchParams }: { searchParams: Promise<{ s
             <p style={{ marginTop: 28 }}>
               Prefer to talk? Call <a href={site.phoneHref}>{site.phone}</a>.
             </p>
-            <Image src="/img/labb-kit-family.webp" alt="Labb rapid drug test kits: OraFlo and eTest Swab oral fluid devices, eTest Cup urine screens and the Labb app on a phone" width={1200} height={950} sizes="(max-width: 900px) 92vw, 520px" className="quote-family" />
+            <Image src="/img/labb-kit-family-v2.webp" alt="Labb UA Series urine cups and OR Series oral fluid devices with the Labb app on a phone" width={1200} height={740} sizes="(max-width: 900px) 92vw, 520px" className="quote-family" />
           </div>
           <div className="hero-card">
             <LeadForm variant={sample ? "sample" : "quote"} title={sample ? "Request a free sample" : kit ? `Request a quote for ${kit}` : "Request a quote"} submitLabel={sample ? "Request a Sample" : "Get a Quote"} defaultMessage={kit ? `I would like pricing for the ${kit}.` : undefined} />
