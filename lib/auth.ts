@@ -4,6 +4,7 @@ import { promisify } from "node:util";
 import { cookies, headers } from "next/headers";
 import { sql } from "@/lib/db";
 import { COOKIE, cookieOptions, sign, verify } from "@/lib/session";
+import { clientIp, RateLimiter } from "@/lib/http";
 
 const scrypt = promisify(_scrypt) as (pw: string, salt: Buffer, len: number, opts: object) => Promise<Buffer>;
 
@@ -81,7 +82,8 @@ export async function useToken(token: string) {
 
 // ---- Events ----
 export async function logEvent(memberId: string | null, event: string, detail?: string, actorId?: string | null) {
-  const ip = (await headers()).get("x-forwarded-for")?.split(",")[0]?.trim() || null;
+  const found = clientIp(await headers());
+  const ip = found === "unknown" ? null : found;
   await sql()`insert into member_events (member_id, actor_id, event, detail, ip) values (${memberId}, ${actorId ?? null}, ${event}, ${detail ?? null}, ${ip})`;
 }
 
@@ -107,18 +109,15 @@ export async function currentMember(): Promise<Member | null> {
 }
 
 // ---- Login rate limiting (per instance) ----
-const attempts = new Map<string, number[]>();
-export function tooManyAttempts(key: string, max = 8, windowMs = 15 * 60_000) {
-  const now = Date.now();
-  const list = (attempts.get(key) || []).filter((t) => now - t < windowMs);
-  attempts.set(key, list);
-  return list.length >= max;
+const attempts = new RateLimiter(8, 15 * 60_000);
+export function tooManyAttempts(key: string, max = 8) {
+  return attempts.blocked(key, max);
 }
 export function recordAttempt(key: string) {
-  attempts.set(key, [...(attempts.get(key) || []), Date.now()]);
+  attempts.record(key);
 }
 export function clearAttempts(key: string) {
-  attempts.delete(key);
+  attempts.clear(key);
 }
 
 // ---- Same-origin check for form posts ----

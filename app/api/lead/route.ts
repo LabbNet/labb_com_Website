@@ -1,3 +1,4 @@
+import { clientIp, RateLimiter } from "@/lib/http";
 import { NextResponse } from "next/server";
 import { deliverLead, detailsOf, leadToken, saveLead, STAGE_CONTACT, type Lead } from "@/lib/leads";
 import { quickTestCheckout, quickTestCheckoutReady } from "@/lib/commerce";
@@ -33,14 +34,8 @@ function productsOf(v: unknown) {
 }
 
 // Basic per-instance rate limit. Use a shared store (Upstash, Vercel KV) for multi-region.
-const hits = new Map<string, number[]>();
-function limited(ip: string) {
-  const now = Date.now();
-  const list = (hits.get(ip) || []).filter((t) => now - t < 10 * 60_000);
-  list.push(now);
-  hits.set(ip, list);
-  return list.length > 8;
-}
+const leadLimiter = new RateLimiter(8, 10 * 60_000);
+const limited = (ip: string) => leadLimiter.hit(ip);
 
 export async function POST(req: Request) {
   let body: Record<string, unknown>;
@@ -55,7 +50,7 @@ export async function POST(req: Request) {
     return NextResponse.json({ ok: true });
   }
 
-  const ip = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
+  const ip = clientIp(req.headers);
   if (limited(ip)) return NextResponse.json({ error: "Too many requests. Please call (877) 868-9967." }, { status: 429 });
 
   const lead: Lead = {

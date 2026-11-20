@@ -2,7 +2,7 @@ import { currentMember, EMAIL_RE, sameOrigin } from "@/lib/auth";
 import { setFlash } from "@/lib/admin";
 import { field, go } from "@/lib/http";
 import { notifyAddresses, setSetting } from "@/lib/leads";
-import { emailLayout, sendMail } from "@/lib/mail";
+import { emailLayout, esc, sendMail } from "@/lib/mail";
 import { saveQtPricing } from "@/lib/qtPricing";
 
 export async function POST(req: Request) {
@@ -40,8 +40,8 @@ export async function POST(req: Request) {
   } else if (action === "test") {
     const to = await notifyAddresses();
     const ok = await sendMail(to, "Test: Labb website lead notification",
-      emailLayout("Test notification", `<p>This is a test from the labb.com admin area, sent by ${admin.name}. New website leads will arrive at this address.</p>`),
-      `This is a test from the labb.com admin area, sent by ${admin.name}.`);
+      emailLayout("Test notification", `<p>This is a test from the labb.com admin area, sent by ${esc(admin.name)}. New website leads will arrive at this address.</p>`),
+      `This is a test from the labb.com admin area, sent by ${esc(admin.name)}.`);
     await flash(ok ? `Test email sent to ${to.join(", ")}.` : "The test email could not be sent. Check the email settings on Render.", ok ? "ok" : "error");
   }
   return go(req, "/admin/settings");

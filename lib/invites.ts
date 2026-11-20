@@ -1,6 +1,6 @@
 import "server-only";
 import { createToken } from "@/lib/auth";
-import { emailLayout, sendMail } from "@/lib/mail";
+import { emailLayout, esc, sendMail } from "@/lib/mail";
 import { absoluteUrl } from "@/lib/site";
 
 // Creates a 7-day setup link and emails it. Returns the link so an admin can share it by hand
@@ -15,9 +15,9 @@ export async function sendInvite(m: { id: string; email: string; name: string; u
       `Your ${courseTitle || "Labb course"} account`,
       emailLayout(
         "Your Labb course account is ready",
-        `<p>Hi ${m.name.split(" ")[0]},</p>
-         <p>You're enrolled in the <strong>${courseTitle || "Labb course"}</strong>. Your progress saves to your account, so you can stop and pick up where you left off on any device.</p>
-         <p>Your username is <strong>${m.username}</strong>. Use the button below to choose your password. The link works once and expires in 7 days.</p>`,
+        `<p>Hi ${esc(m.name.split(" ")[0])},</p>
+         <p>You're enrolled in the <strong>${esc(courseTitle || "Labb course")}</strong>. Your progress saves to your account, so you can stop and pick up where you left off on any device.</p>
+         <p>Your username is <strong>${esc(m.username)}</strong>. Use the button below to choose your password. The link works once and expires in 7 days.</p>`,
         { href: link, label: "Set up my account" },
       ),
       `You're enrolled in the ${courseTitle || "Labb course"}.\nYour username is ${m.username}.\nSet your password here (expires in 7 days): ${link}`,
@@ -29,9 +29,9 @@ export async function sendInvite(m: { id: string; email: string; name: string; u
     "Your Labb CPP member account",
     emailLayout(
       "Your Labb member account is ready",
-      `<p>Hi ${m.name.split(" ")[0]},</p>
+      `<p>Hi ${esc(m.name.split(" ")[0])},</p>
        <p>Welcome to the Labb Channel Partner Program. Your member account gives you the Clinic Owners Guidebook, industry guidebooks, data sheets and member resources.</p>
-       <p>Your username is <strong>${m.username}</strong>. Use the button below to choose your password. The link works once and expires in 7 days.</p>
+       <p>Your username is <strong>${esc(m.username)}</strong>. Use the button below to choose your password. The link works once and expires in 7 days.</p>
        <p>Questions? Reply to this email or write to <a href="mailto:${cppEmail}">${cppEmail}</a>.</p>`,
       { href: link, label: "Set up my account" },
     ),

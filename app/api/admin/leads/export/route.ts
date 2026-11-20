@@ -7,7 +7,7 @@ export const dynamic = "force-dynamic";
 const cell = (v: unknown) => {
   const s = v === null || v === undefined ? "" : v instanceof Date ? v.toISOString() : typeof v === "object" ? JSON.stringify(v) : String(v);
   // Neutralize spreadsheet formulas and quote every cell.
-  return `"${(/^[=+\-@]/.test(s) ? `'${s}` : s).replace(/"/g, '""')}"`;
+  return `"${(/^[=+\-@\t\r]/.test(s) ? `'${s}` : s).replace(/"/g, '""')}"`;
 };
 
 export async function GET(req: Request) {

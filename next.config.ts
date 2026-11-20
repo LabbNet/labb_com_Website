@@ -22,6 +22,9 @@ const config: NextConfig = {
     const cache = [{ key: "Cache-Control", value: "public, max-age=604800, stale-while-revalidate=86400" }];
     return [
       { source: "/:path*", headers: securityHeaders },
+      // Only labb.com is indexed. The Render address (and any other host) tells search engines to stay
+      // out, so the draft never competes with the real site and launch needs no setting change.
+      { source: "/:path*", missing: [{ type: "host", value: "(www\\.)?labb\\.com" }], headers: [{ key: "X-Robots-Tag", value: "noindex, nofollow" }] },
       ...["/kits/:path*", "/graphics/:path*", "/brand/:path*", "/img/:path*", "/news/:path*", "/data-sheets/:path*"].map((source) => ({ source, headers: cache })),
     ];
   },

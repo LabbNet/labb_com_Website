@@ -1,6 +1,6 @@
 import { checkPassword, clearAttempts, dummyCheck, logEvent, recordAttempt, sameOrigin, startSession, tooManyAttempts, type Member } from "@/lib/auth";
 import { dbConfigured, sql } from "@/lib/db";
-import { field, go } from "@/lib/http";
+import { field, go, clientIp } from "@/lib/http";
 
 export async function POST(req: Request) {
   if (!dbConfigured) return go(req, "/login?error=unavailable");
@@ -11,7 +11,7 @@ export async function POST(req: Request) {
   const next = field(fd, "next", 300) || "/members";
   const back = `/login?next=${encodeURIComponent(next)}`;
 
-  const ip = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
+  const ip = clientIp(req.headers);
   const key = `${ip}|${login}`;
   if (tooManyAttempts(key) || tooManyAttempts(ip, 30)) return go(req, `${back}&error=locked`);
 

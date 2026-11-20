@@ -74,7 +74,8 @@ export type LeadRow = {
   updated_at: Date;
 };
 
-export const esc = (s: unknown = "") => String(s ?? "").replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]!);
+export { esc } from "@/lib/mail";
+import { esc } from "@/lib/mail";
 
 export const leadName = (l: Pick<LeadRow, "first_name" | "last_name" | "company" | "email">) =>
   [l.first_name, l.last_name].filter(Boolean).join(" ") || l.company || l.email;

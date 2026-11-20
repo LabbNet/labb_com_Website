@@ -12,8 +12,11 @@ export async function GET(req: Request, { params }: { params: Promise<{ slug: st
   if (!m) return go(req, `/login?next=${encodeURIComponent(`/learn/${slug}/play`)}`);
   const e = await courseAccess(m, c);
   if (!e) return go(req, `/certifications/${slug}`);
-  const [row] = await sql()<{ state: unknown }[]>`select state from course_enrollments where id = ${e.id}`;
-  const html = await coursePage(c, row?.state ?? null, { name: m.name, clinic: m.clinic });
+  const [row] = await sql()<{ state: Record<string, unknown> | null; completed_at: Date | null; cert_id: string | null; cert_name: string | null }[]>`
+    select state, completed_at, cert_id, cert_name from course_enrollments where id = ${e.id}`;
+  // Show the certificate the server recorded, not whatever the browser last saved.
+  const state = row?.state && row.completed_at ? { ...row.state, completedAt: row.completed_at.toISOString(), certId: row.cert_id, name: row.cert_name ?? m.name } : row?.state ?? null;
+  const html = await coursePage(c, state, { name: m.name, clinic: m.clinic });
   return new Response(html, {
     headers: {
       "Content-Type": "text/html; charset=utf-8",

@@ -17,14 +17,17 @@ export async function POST(req: Request) {
     return new NextResponse("Bad signature", { status: 400 });
   }
 
-  if (event.type === "checkout.session.completed") {
+  // checkout.session.completed fires before delayed payments (ACH and similar) clear, so fulfill only
+  // when Stripe says the session is paid; async_payment_succeeded covers the delayed ones.
+  if (event.type === "checkout.session.completed" || event.type === "checkout.session.async_payment_succeeded") {
     const s = event.data.object;
+    if (s.payment_status !== "paid" && s.payment_status !== "no_payment_required") return NextResponse.json({ received: true, pending: true });
     const email = s.customer_details?.email || s.customer_email;
     const course = s.metadata?.lmsCourse;
     if (email && course) await enrollInLms(email, course);
 
     // Labb Learning course purchase: create or find the learner and enroll them.
-    if (s.metadata?.kind === "course" && email && s.payment_status === "paid") {
+    if (s.metadata?.kind === "course" && email) {
       const c = await getCourse(s.metadata.course || "");
       if (c) await grantCourse({ email, name: s.metadata.name || "", course: c, source: "purchase", stripeSession: s.id, amountCents: s.amount_total ?? undefined });
     }

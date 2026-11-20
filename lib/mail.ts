@@ -1,5 +1,8 @@
 import "server-only";
 
+// Escapes text for HTML email bodies. Use on every value that came from a person or a form.
+export const esc = (s: unknown = "") => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]!);
+
 // Transactional email. Providers are tried in order:
 //   1. SendGrid (SENDGRID_API_KEY)
 //   2. Google Workspace SMTP (SMTP_USER + SMTP_PASS; SMTP_HOST defaults to smtp.gmail.com)

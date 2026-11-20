@@ -1,3 +1,4 @@
+import { safePath } from "@/lib/http";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import type { Metadata } from "next";
@@ -17,7 +18,7 @@ const errors: Record<string, string> = {
 
 export default async function LoginPage({ searchParams }: { searchParams: Promise<{ next?: string; error?: string; signed_out?: string }> }) {
   const { next = "/members", error, signed_out } = await searchParams;
-  if (dbConfigured && (await currentMember())) redirect(next.startsWith("/") && !next.startsWith("//") ? next : "/members");
+  if (dbConfigured && (await currentMember())) redirect(safePath(next, "/members"));
   return (
     <AuthCard title="Member sign in">
       <p className="form-sub">Sign in to your CPP member account for guidebooks, data sheets and member resources.</p>

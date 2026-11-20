@@ -16,26 +16,28 @@ services:
         value: "22"
       - key: NEXT_TELEMETRY_DISABLED
         value: "1"
-      - key: NEXT_PUBLIC_NOINDEX
-        value: "true"
       - key: LEAD_TO_EMAIL
         value: kelly.ramsey@labb.com
       - key: LEAD_FROM_EMAIL
-        value: Labb Website <leads@labb.com>
+        value: Labb Website <info@mail.labb.com>
       - key: SESSION_SECRET
         generateValue: true
-      - key: RESEND_API_KEY
+      # Mail providers are tried in order: SendGrid, then Google Workspace SMTP, then Resend.
+      - key: SENDGRID_API_KEY
         sync: false
       - key: DATABASE_URL
         fromDatabase:
           name: labb-com-db
           property: connectionString
       - key: MAIL_FROM
-        value: Labb <info@labb.com>
+        value: Labb <info@mail.labb.com>
+      - key: MAIL_REPLY_TO
+        value: info@labb.com
       - key: CPP_LEAD_TO_EMAIL
         sync: false
+      # https://labb.com in production. Canonical tags, the sitemap and email links are built from it.
       - key: NEXT_PUBLIC_SITE_URL
-        sync: false
+        value: https://labb.com
 
 databases:
   - name: labb-com-db

@@ -152,7 +152,7 @@ export function summarize(c: Course, state: Record<string, unknown> | null) {
   const completedAt = typeof state?.completedAt === "string" || typeof state?.completedAt === "number" ? new Date(state.completedAt as string) : null;
   return {
     done,
-    complete: done >= c.chapters && !!completedAt && !Number.isNaN(completedAt.getTime()),
+    complete: done >= c.chapters,
     completedAt,
     certId: typeof state?.certId === "string" ? state.certId.slice(0, 60) : null,
     name: typeof state?.name === "string" ? state.name.slice(0, 120) : null,
@@ -174,7 +174,7 @@ export async function uniqueUsername(email: string) {
 // Safe to call twice for the same Stripe session.
 export async function grantCourse(o: { email: string; name: string; course: Course; source: "purchase" | "admin"; stripeSession?: string; amountCents?: number; by?: string }) {
   const { sendInvite } = await import("@/lib/invites");
-  const { emailLayout, sendMail } = await import("@/lib/mail");
+  const { emailLayout, esc, sendMail } = await import("@/lib/mail");
   const { absoluteUrl } = await import("@/lib/site");
   const db = sql();
   const email = o.email.trim().toLowerCase();
@@ -202,7 +202,7 @@ export async function grantCourse(o: { email: string; name: string; course: Cour
   const sent = await sendMail(
     m.email,
     `You're enrolled in the ${o.course.title}`,
-    emailLayout("You're enrolled", `<p>Hi ${m.name.split(" ")[0]},</p><p>The <strong>${o.course.title}</strong> is now in your Labb account. Sign in with your existing username (<strong>${m.username}</strong>) to start.</p>`, { href: absoluteUrl("/learn"), label: "Go to my courses" }),
+    emailLayout("You're enrolled", `<p>Hi ${esc(m.name.split(" ")[0])},</p><p>The <strong>${esc(o.course.title)}</strong> is now in your Labb account. Sign in with your existing username (<strong>${esc(m.username)}</strong>) to start.</p>`, { href: absoluteUrl("/learn"), label: "Go to my courses" }),
     `The ${o.course.title} is now in your Labb account. Sign in at ${absoluteUrl("/learn")} with username ${m.username}.`,
   );
   return { created, invited: false, link: null, sent, already: false };
