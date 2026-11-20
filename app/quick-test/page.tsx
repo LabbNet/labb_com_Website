@@ -60,14 +60,14 @@ export default async function QuickTest() {
             items={[
               {
                 title: "At home",
-                graphic: <GraphicSlot src="/graphics/quick-test/at-home-video-proctored-drug-test.webp" alt="A proctor in a lab coat on a video call on a computer monitor with a webcam, for an at-home video proctored drug test" label="At home: video proctored test" w={743} h={651} sizes="520px" />,
+                graphic: <GraphicSlot src="/graphics/quick-test/at-home-video-proctored-drug-test.webp" alt="A proctor in a lab coat on a video call on a computer monitor with a webcam, for an at-home video proctored drug test" label="At home: video proctored test" w={1200} h={976} sizes="520px" />,
                 body: "Order online. We ship the kit to you overnight, second day or ground. A Labb proctor runs the test with you by video, observed or non-observed. Your report comes to you.",
                 topic: "Quick Test at home",
                 cta: "Questions? Ask us",
               },
               {
                 title: "At a clinic",
-                graphic: <GraphicSlot src="/graphics/employers/employee-drug-testing-urgent-care-clinic.webp" alt="Labb Station on the testing counter at an urgent care clinic" label="At a clinic: rapid test" w={1000} h={700} sizes="520px" />,
+                graphic: <GraphicSlot src="/graphics/quick-test/clinic-rapid-drug-test-labb-station-stand.webp" alt="A phone running Labb Station on a stand beside a UA:06B urine drug test cup, as used at a clinic" label="At a clinic: rapid test" w={1200} h={976} sizes="520px" />,
                 body: "Order online. We send the rapid test to a clinic near you and email you where to go. The clinic collects and Labb reads the result. Your report comes to you.",
                 topic: "Quick Test at a clinic",
                 cta: "Questions? Ask us",
