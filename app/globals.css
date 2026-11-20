@@ -1439,3 +1439,11 @@ td.acts { white-space: nowrap; }
 .rb-text strong { font-size: .8rem; letter-spacing: .01em; }
 .rb-text span { font-size: .7rem; opacity: .8; }
 @media (max-width: 520px) { .reader-badge { left: 8px; top: 8px; padding: 5px 10px 5px 6px; } .rb-icon { width: 24px; height: 24px; } }
+.dg-gauge { display: inline-flex; flex-direction: column; align-items: center; gap: 0; flex: none; line-height: 1; }
+.dg-gauge span { font-size: .7rem; color: var(--muted); margin-top: 1px; }
+.dg-gauge b { color: var(--dark); font-size: .8rem; }
+.dg-top { align-items: flex-start; }
+.di-gauge { display: block; margin: 10px auto 4px; }
+.drug-index { text-align: center; } .drug-index strong { margin-top: 0; font-size: 2.6rem; }
+.drug-index .di-level { display: block; margin-bottom: 10px; } .drug-index .di-assay { display: block; }
+.qt-hero-img { width: 100%; height: auto; mix-blend-mode: multiply; }

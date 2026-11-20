@@ -1,3 +1,4 @@
+import Image from "next/image";
 import type { Metadata } from "next";
 import { Breadcrumbs, Faq } from "@/components/ui";
 import { QuickTestForm } from "@/components/QuickTestForm";
@@ -42,7 +43,7 @@ export default async function QuickTest() {
               <a href="#options" className="btn btn-outline btn-lg">How it works</a>
             </div>
           </div>
-          <GraphicSlot src="/graphics/quick-test/hero.webp" alt="A Labb test kit arriving at home beside a phone" label="Hero: kit at home with a phone" w={1600} h={1200} priority />
+          <Image src="/img/labb-rapid-drug-test-kits-urine-oral-fluid.webp" alt="Labb rapid drug test kits: UA Series urine cups and OR Series oral fluid devices with the Labb app on a phone" width={1200} height={740} priority sizes="(max-width: 900px) 92vw, 560px" className="qt-hero-img" />
         </div>
       </section>
       <Breadcrumbs items={[{ name: "Quick Test", href: "/quick-test" }]} />

@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { PriorityGauge } from "@/components/PriorityGauge";
 import { Breadcrumbs, Checks, JsonLd } from "@/components/ui";
 import { LeadForm } from "@/components/LeadForm";
 import { drugProfile, drugProfiles, kitsFor, levelClass } from "@/lib/drugProfiles";
@@ -52,9 +53,9 @@ export default async function DrugPage({ params }: { params: Promise<{ slug: str
           </div>
           <div className={`drug-index ${levelClass(d.level)}`} aria-label={`Labb Screening Priority Index ${d.index} out of 10, ${d.level} priority`}>
             <span className="di-label">Labb Screening Priority Index</span>
+            <PriorityGauge index={d.index} size={200} className="di-gauge" />
             <strong>{d.index}<small>/10</small></strong>
             <span className="di-level">{d.level} priority</span>
-            <div className="di-bar" aria-hidden="true"><i style={{ width: `${d.index * 10}%` }} /></div>
             {d.assay && <span className="di-assay">Labb assay: <b>{d.assay}</b>{d.specimen ? ` · ${d.specimen}` : ""}</span>}
           </div>
         </div>
