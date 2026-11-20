@@ -51,15 +51,16 @@ export default function LabbPOPage() {
       </section>
 
       <section className="section po-shot-sec">
-        <div className="wrap">
-          <div className="po-shot-head">
+        <div className="wrap po-shot-split">
+          <div className="po-shot-copy">
             <span className="eyebrow po">Inside LabbPO</span>
             <h2>The officer portal, built for the way your department works</h2>
-            <p>Manage offenders, build drug test panels, run daily random selections, set notifications, compare collection site pricing and receive results from clinics, all in one place. A built-in training guide and certification get new officers up to speed.</p>
+            <p>Manage offenders, build drug test panels, run daily random selections, set notifications, compare collection site pricing and receive results from clinics, all in one place.</p>
+            <p>A built-in training guide and certification get new officers up to speed.</p>
           </div>
           <figure className="po-shot">
             <div className="po-shot-bar" aria-hidden="true"><i /><i /><i /></div>
-            <Image src="/graphics/labbpo/officer-portal.webp" alt="The LabbPO officer portal, showing the training guide with offender management, drug test panels, daily selections, notifications, location pricing and clinic integration" width={2000} height={949} sizes="(max-width: 1240px) 94vw, 1150px" />
+            <Image src="/graphics/labbpo/officer-portal-v2.webp" alt="The LabbPO officer portal training guide, with offender management, drug test panels, daily selections, notifications, location pricing and clinic integration" width={1600} height={1063} sizes="(max-width: 900px) 94vw, 680px" />
           </figure>
         </div>
       </section>
