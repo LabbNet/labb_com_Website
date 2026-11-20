@@ -1447,3 +1447,9 @@ td.acts { white-space: nowrap; }
 .drug-index { text-align: center; } .drug-index strong { margin-top: 0; font-size: 2.6rem; }
 .drug-index .di-level { display: block; margin-bottom: 10px; } .drug-index .di-assay { display: block; }
 .qt-hero-img { width: 100%; height: auto; mix-blend-mode: multiply; }
+.station-steps { align-items: center; gap: 48px; }
+.step-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 18px; }
+.step-list li { display: flex; gap: 16px; align-items: flex-start; }
+.step-list .step-no { flex: none; width: 36px; height: 36px; border-radius: 50%; background: var(--orange); color: #fff; font-weight: 800; display: grid; place-items: center; }
+.step-list strong { display: block; font-size: 1.1rem; }
+.step-list p { margin: 2px 0 0; color: var(--muted); }

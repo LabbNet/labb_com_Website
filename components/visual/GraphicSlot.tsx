@@ -28,6 +28,8 @@ export function GraphicSlot({
   if (have) {
     return <Image className={`gslot-img ${className || ""}`} src={src} alt={alt} width={w} height={h} priority={priority} sizes={sizes} />;
   }
+  // Missing graphics render nothing on the public site. Set SHOW_GRAPHIC_SLOTS=1 to see the placeholders.
+  if (process.env.SHOW_GRAPHIC_SLOTS !== "1") return null;
   return (
     <div className={`gslot ${className || ""}`} style={{ aspectRatio: `${w} / ${h}` }} role="img" aria-label={alt}>
       <div>

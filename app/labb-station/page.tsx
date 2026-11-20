@@ -4,8 +4,6 @@ import type { Metadata } from "next";
 import { Breadcrumbs, Faq, JsonLd, CtaBand } from "@/components/ui";
 import { GraphicSlot } from "@/components/visual/GraphicSlot";
 import { RevealTiles } from "@/components/visual/Reveal";
-import { ScanStory } from "@/components/visual/ScanStory";
-import { CompareSlider } from "@/components/visual/CompareSlider";
 import { KitShelf } from "@/components/visual/KitShelf";
 import { ConnectButton } from "@/components/visual/ConnectDrawer";
 import { shelfKits } from "@/lib/kits";
@@ -60,7 +58,7 @@ export default function LabbStationPage() {
               <Image src="/brand/google-play.png" alt="Labb Station on Google Play" width={941} height={309} style={{ height: 38, width: "auto" }} />
             </div>
           </div>
-          <GraphicSlot src="/graphics/station/hero-phone-beside-kits.webp" alt="A phone lying beside a Labb urine cup and oral fluid device" label="Hero: phone beside cup and oral fluid device" w={1600} h={1200} priority />
+          <GraphicSlot src="/graphics/home/labb-app-scanning-urine-drug-test-cup.webp" alt="A hand holding a phone running Labb Station, scanning the test lines on a UA:06B eTest Cup" label="Hero" w={1600} h={1200} priority />
         </div>
       </section>
       <Breadcrumbs items={[{ name: "Platforms", href: "/platforms" }, { name: "Labb Station", href: "/labb-station" }]} />
@@ -71,13 +69,14 @@ export default function LabbStationPage() {
             <h2>How it works.</h2>
             <p className="lede-sm">Five steps on any phone or tablet.</p>
           </div>
-          <ScanStory
-            steps={story.map((s) => ({
-              title: s.title,
-              body: s.body,
-              graphic: <GraphicSlot src={`/graphics/station/${s.g}.webp`} alt={s.title} label={`Phone: ${s.title.toLowerCase()}`} w={1200} h={1200} />,
-            }))}
-          />
+          <div className="split station-steps">
+            <GraphicSlot src="/graphics/home/labb-mobile-app-drug-test-screens.webp" alt="Three phone screens from the Labb app: selecting an organization, choosing a UA:13A test kit, and the donor signature step" label="App screens" w={1600} h={1200} />
+            <ol className="step-list">
+              {story.map((s, n) => (
+                <li key={s.g}><span className="step-no">{n + 1}</span><div><strong>{s.title}</strong><p>{s.body}</p></div></li>
+              ))}
+            </ol>
+          </div>
         </div>
       </section>
 
@@ -87,12 +86,7 @@ export default function LabbStationPage() {
             <h2>Same test. Two very different reads.</h2>
             <p className="lede-sm">Anyone reading by eye is exposed to bias. Labb Station reads only the device.</p>
           </div>
-          <CompareSlider
-            leftLabel="By eye"
-            rightLabel="Labb Station"
-            left={<GraphicSlot src="/graphics/home/compare-by-eye.webp" alt="A rapid test read by eye with a faint line" label="Hand-held cup, faint line" w={1200} h={900} className="gslot-l" />}
-            right={<GraphicSlot src="/graphics/home/compare-labb.webp" alt="A phone showing a documented Labb Station result" label="Phone with documented result" w={1200} h={900} className="gslot-r" />}
-          />
+          <GraphicSlot src="/graphics/home/labb-station-tablet-reading-urine-drug-test-cup.webp" alt="A Labb testing station with a tablet and a UA:16C eTest Cup showing test and control lines" label="Labb Station reading a cup" w={800} h={600} className="photo" />
         </div>
       </section>
 
