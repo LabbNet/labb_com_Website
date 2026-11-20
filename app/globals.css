@@ -1353,3 +1353,29 @@ td.acts { white-space: nowrap; }
 .mc-buy .fine { text-align: left; margin: 0; }
 @media (max-width: 860px) { .mc-item { grid-template-columns: 1fr; } }
 .mc-form input { width: 100%; min-height: 42px; padding: 8px 12px; border: 1px solid var(--border); border-radius: 8px; font: inherit; font-size: .95rem; background: #fff; }
+/* LabbPO: portal and fees, two distinct panels */
+.po-duo { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 24px; align-items: stretch; }
+.po-panel { background: #fff; border: 1px solid var(--border); border-radius: 18px; padding: 32px; }
+.po-panel h2 { margin: 6px 0 10px; font-size: clamp(1.5rem, 2.4vw, 1.9rem); }
+.po-panel > p { margin: 0 0 20px; color: var(--muted); }
+.po-tiles { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.po-tiles li { background: #f4f6f8; border-radius: 10px; padding: 12px 14px 12px 38px; position: relative; font-weight: 600; color: var(--dark); font-size: .95rem; }
+.po-tiles li::before { content: ""; position: absolute; left: 14px; top: 50%; width: 12px; height: 12px; margin-top: -6px; border-radius: 50%; background: #2f6fb0; box-shadow: 0 0 0 3px rgba(47,111,176,.18); }
+.po-panel-dark { background: #23364a; border-color: #23364a; color: #fff; }
+.po-panel-dark .eyebrow { color: #fff; }
+.po-panel-dark h2 { color: #fff; }
+.po-panel-dark > p { color: rgba(255,255,255,.8); }
+.po-fees { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+.po-fees li { background: rgba(255,255,255,.07); border: 1px solid rgba(255,255,255,.14); border-radius: 10px; padding: 14px 16px; }
+.po-fees strong { display: block; color: #fff; margin-bottom: 2px; }
+.po-fees span { font-size: .9rem; color: rgba(255,255,255,.75); }
+@media (max-width: 900px) { .po-duo { grid-template-columns: 1fr; } .po-tiles { grid-template-columns: 1fr; } .po-panel { padding: 24px; } }
+.po-duo { align-items: start; }
+.po-shot-head { max-width: 820px; margin: 0 auto 28px; text-align: center; }
+.po-shot-head .eyebrow { justify-content: center; }
+.po-shot-head h2 { margin: 6px 0 10px; }
+.po-shot-head p { color: var(--muted); margin: 0; }
+.po-shot { margin: 0; border-radius: 14px; overflow: hidden; border: 1px solid #d6dde6; box-shadow: 0 30px 60px -20px rgba(35,54,74,.35), 0 10px 24px -12px rgba(35,54,74,.2); background: #fff; }
+.po-shot-bar { display: flex; gap: 6px; padding: 10px 14px; background: #eef2f6; border-bottom: 1px solid #d6dde6; }
+.po-shot-bar i { width: 10px; height: 10px; border-radius: 50%; background: #c9d2dc; }
+.po-shot img { display: block; width: 100%; height: auto; }

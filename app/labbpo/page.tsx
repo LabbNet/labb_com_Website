@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 import type { Metadata } from "next";
 import { Breadcrumbs, Checks, Faq, JsonLd } from "@/components/ui";
@@ -49,6 +50,20 @@ export default function LabbPOPage() {
         </div>
       </section>
 
+      <section className="section po-shot-sec">
+        <div className="wrap">
+          <div className="po-shot-head">
+            <span className="eyebrow po">Inside LabbPO</span>
+            <h2>The officer portal, built for the way your department works</h2>
+            <p>Manage offenders, build drug test panels, run daily random selections, set notifications, compare collection site pricing and receive results from clinics, all in one place. A built-in training guide and certification get new officers up to speed.</p>
+          </div>
+          <figure className="po-shot">
+            <div className="po-shot-bar" aria-hidden="true"><i /><i /><i /></div>
+            <Image src="/graphics/labbpo/officer-portal.webp" alt="The LabbPO officer portal, showing the training guide with offender management, drug test panels, daily selections, notifications, location pricing and clinic integration" width={2000} height={949} sizes="(max-width: 1240px) 94vw, 1150px" />
+          </figure>
+        </div>
+      </section>
+
       <section className="section soft">
         <div className="wrap">
           <div className="grid g3">
@@ -80,20 +95,24 @@ export default function LabbPOPage() {
       </section>
 
       <section className="section soft">
-        <div className="wrap grid g2" style={{ alignItems: "start" }}>
-          <div>
+        <div className="wrap po-duo">
+          <div className="po-panel">
             <span className="eyebrow po">Offender portal</span>
             <h2>Offenders help themselves</h2>
             <p>A self-service portal answers the questions that usually land on an officer&apos;s phone.</p>
-            <Checks items={labbpo.portal} />
+            <ul className="po-tiles">
+              {labbpo.portal.map((x) => <li key={x}>{x}</li>)}
+            </ul>
           </div>
-          <div>
-            <span className="eyebrow po">Fee collection</span>
+          <div className="po-panel po-panel-dark">
+            <span className="eyebrow">Fee collection</span>
             <h2>Collect testing and supervision fees online</h2>
-            <p>
-              Offenders pay testing fees and probation or state fees online. As an optional benefit, Labb can process offender payments for
-              departments that want it, so collection is no longer one more job for officers.
-            </p>
+            <p>Offenders pay online, so collection is no longer one more job for officers.</p>
+            <ul className="po-fees">
+              <li><strong>Testing fees</strong><span>Paid online before or after each test.</span></li>
+              <li><strong>Probation and state fees</strong><span>Supervision and state fees collected in the same portal.</span></li>
+              <li><strong>Optional: Labb processes payments</strong><span>For departments that want it, Labb can process offender payments.</span></li>
+            </ul>
           </div>
         </div>
       </section>
