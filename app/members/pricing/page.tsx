@@ -3,19 +3,79 @@ import { currentMember } from "@/lib/auth";
 import { fmtDate } from "@/lib/admin";
 import { money, PRICE_CATEGORIES, productImage, productKit, productLink, WALK_IN_SHARE, type PriceItem } from "@/lib/cppPricing";
 import { cppEmail, site } from "@/lib/site";
+import Link from "next/link";
+import { backgroundPrices, BG_CATEGORIES, cppBackgroundCents } from "@/lib/backgroundPricing";
 
 export const dynamic = "force-dynamic";
 
-export default async function MemberPricing() {
+export default async function MemberPricing({ searchParams }: { searchParams: Promise<{ tab?: string }> }) {
   const m = await currentMember();
   if (!m) return null; // layout redirects to sign in
-  const items = await sql()<PriceItem[]>`select * from cpp_price_items where active order by category, sort, lower(name)`;
-  const last = items.reduce<Date | null>((d, i) => (!d || i.updated_at > d ? i.updated_at : d), null);
-
+  const tab = (await searchParams).tab === "background" ? "background" : "drug";
   return (
     <section className="section" style={{ paddingTop: 40 }}>
       <div className="wrap">
         <h1 style={{ fontSize: "clamp(2rem, 4vw, 2.8rem)", marginTop: 12 }}>CPP member pricing</h1>
+        <nav className="price-tabs" aria-label="Pricing type">
+          <Link href="/members/pricing" aria-current={tab === "drug" ? "page" : undefined}>Drug testing</Link>
+          <Link href="/members/pricing?tab=background" aria-current={tab === "background" ? "page" : undefined}>Background checks</Link>
+        </nav>
+        {tab === "drug" ? <DrugPricing /> : <BackgroundPricing />}
+      </div>
+    </section>
+  );
+}
+
+async function BackgroundPricing() {
+  const rows = await backgroundPrices();
+  const last = rows.reduce<Date | null>((d, i) => (!d || i.updated_at > d ? i.updated_at : d), null);
+  return (
+    <>
+      <p className="lede">
+        Your price for background screening ordered through LabbHR: individual checks and ready-made packages. Pricing is confidential to CPP
+        members. Please don&apos;t share it outside your organization.
+      </p>
+      {last && <p className="fine-print">Last updated {fmtDate(last)}. Custom packages, volume pricing and questions: <a href={site.phoneHref}>{site.phone}</a> or <a href={`mailto:${cppEmail}`}>{cppEmail}</a>.</p>}
+      <nav className="price-jump" aria-label="Background check categories">
+        {BG_CATEGORIES.filter((c) => rows.some((r) => r.category === c)).map((c) => <a key={c} href={`#bg-${c.replace(/\W+/g, "-").toLowerCase()}`}>{c}</a>)}
+      </nav>
+      {BG_CATEGORIES.map((c) => {
+        const list = rows.filter((r) => r.category === c);
+        if (!list.length) return null;
+        return (
+          <div key={c} id={`bg-${c.replace(/\W+/g, "-").toLowerCase()}`} className="price-section">
+            <h2>{c === "Packages" ? "Packages" : `${c} checks`}</h2>
+            <div className="bg-table-wrap">
+              <table className="bg-table">
+                <thead><tr><th scope="col">Service</th><th scope="col">What&apos;s included</th><th scope="col" className="num">Your price</th></tr></thead>
+                <tbody>
+                  {list.map((r) => (
+                    <tr key={r.id}>
+                      <th scope="row">{r.name}</th>
+                      <td>{r.includes}{r.note && <span className="bg-note">{r.note}</span>}</td>
+                      <td className="num">{money(cppBackgroundCents(r.cost_cents))}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        );
+      })}
+      <p className="fine-print" style={{ marginTop: 28 }}>
+        Prices are per search. Court, school and other third-party fees, where a source charges one, are passed through at cost. Background
+        checks for employment must follow the FCRA and state law, including disclosure, authorization and adverse action notices.
+      </p>
+    </>
+  );
+}
+
+async function DrugPricing() {
+  const items = await sql()<PriceItem[]>`select * from cpp_price_items where active order by category, sort, lower(name)`;
+  const last = items.reduce<Date | null>((d, i) => (!d || i.updated_at > d ? i.updated_at : d), null);
+
+  return (
+    <>
         <p className="lede">
           Service Level 1 and Service Level 3 pricing, with MSRP and the online sale price, for products and services sold through the Channel Partner Program. Pricing is confidential to CPP
           members. Please don&apos;t share it outside your organization.
@@ -94,7 +154,6 @@ export default async function MemberPricing() {
             </div>
           );
         })}
-      </div>
-    </section>
+    </>
   );
 }

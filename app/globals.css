@@ -1487,3 +1487,26 @@ td.acts { white-space: nowrap; }
   .admin-bar .admin-nav a, .admin-subnav a { white-space: nowrap; flex: none; }
   .admin-bar .admin-nav a { padding: 10px 10px 12px; }
 }
+
+/* CPP pricing: drug testing / background checks tabs */
+.price-tabs { display: inline-flex; gap: 4px; padding: 4px; margin: 8px 0 20px; background: #eef1f1; border-radius: 999px; }
+.price-tabs a { padding: 9px 20px; border-radius: 999px; font-weight: 600; color: var(--dark); text-decoration: none; }
+.price-tabs a[aria-current="page"] { background: var(--dark); color: #fff; }
+.price-tabs a:not([aria-current="page"]):hover { color: var(--orange); }
+.bg-table-wrap { overflow-x: auto; border: 1px solid var(--border); border-radius: 12px; background: #fff; }
+.bg-table { width: 100%; border-collapse: collapse; font-size: .95rem; }
+.bg-table th, .bg-table td { padding: 12px 16px; text-align: left; border-bottom: 1px solid var(--border); vertical-align: top; }
+.bg-table tbody tr:last-child th, .bg-table tbody tr:last-child td { border-bottom: 0; }
+.bg-table thead th { background: #f6f7f7; font-size: .8rem; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
+.bg-table th[scope="row"] { font-weight: 600; width: 32%; }
+.bg-table td { color: var(--muted); }
+.bg-table .num { text-align: right; white-space: nowrap; width: 120px; }
+.bg-table td.num { color: var(--dark); font-weight: 700; font-size: 1.05rem; }
+.bg-note { display: block; margin-top: 4px; font-size: .85rem; color: #9a4f1f; }
+.bg-cost { width: 90px; text-align: right; padding: 6px 8px; border: 1px solid var(--gray); border-radius: 6px; font: inherit; }
+.bg-admin td, .bg-admin th { vertical-align: middle; }
+.member-tabs a { display: inline-flex; align-items: center; gap: 8px; }
+.member-tabs a svg { opacity: .75; }
+.member-tabs a[aria-current="page"] { color: var(--orange); border-bottom-color: var(--orange); }
+.member-tabs a[aria-current="page"] svg { opacity: 1; }
+.bg-table th .bg-note { font-weight: 400; }

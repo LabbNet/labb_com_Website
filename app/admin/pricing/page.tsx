@@ -1,4 +1,6 @@
 import type { Metadata } from "next";
+import Link from "next/link";
+import { backgroundPrices, BG_CATEGORIES, CPP_MARKUP_PCT, cppBackgroundCents } from "@/lib/backgroundPricing";
 import { AdminBar, Flash } from "@/components/AdminBar";
 import { fmtDate, readFlash, requireAdmin } from "@/lib/admin";
 import { sql } from "@/lib/db";
@@ -38,8 +40,70 @@ function ItemFields({ item, category }: { item?: PriceItem; category: PriceCateg
   );
 }
 
-export default async function AdminPricing() {
+export default async function AdminPricing({ searchParams }: { searchParams: Promise<{ tab?: string }> }) {
   await requireAdmin("/admin/pricing");
+  const tab = (await searchParams).tab === "background" ? "background" : "drug";
+  const tabs = (
+    <nav className="price-tabs" aria-label="Pricing type">
+      <Link href="/admin/pricing" aria-current={tab === "drug" ? "page" : undefined}>Drug testing</Link>
+      <Link href="/admin/pricing?tab=background" aria-current={tab === "background" ? "page" : undefined}>Background checks</Link>
+    </nav>
+  );
+  if (tab === "background") {
+    const [rows, flash] = await Promise.all([backgroundPrices(false), readFlash()]);
+    return (
+      <>
+        <AdminBar title="CPP member pricing" current="/admin/pricing" />
+        <section className="section" style={{ paddingTop: 32 }}>
+          <div className="wrap">
+            <Flash flash={flash} />
+            {tabs}
+            <p className="lede" style={{ maxWidth: 820 }}>
+              Enter Labb&apos;s cost for each background service. Members see the CPP price only: cost plus {CPP_MARKUP_PCT}%, rounded up to the nearest $0.05.
+              For a package, enter the total cost of the checks it includes.
+            </p>
+            {BG_CATEGORIES.map((c) => {
+              const list = rows.filter((r) => r.category === c);
+              if (!list.length) return null;
+              return (
+                <div key={c} className="hero-card" style={{ marginTop: 24 }}>
+                  <h2 className="form-title">{c}</h2>
+                  <div className="bg-table-wrap">
+                    <table className="bg-table bg-admin">
+                      <thead><tr><th scope="col">Service</th><th scope="col" className="num">Labb cost</th><th scope="col" className="num">CPP price</th><th scope="col">Shown</th><th scope="col" /></tr></thead>
+                      <tbody>
+                        {list.map((r) => (
+                          <tr key={r.id}>
+                            <th scope="row">{r.name}{r.includes && <span className="bg-note" style={{ color: "var(--muted)" }}>{r.includes}</span>}</th>
+                            <td className="num">
+                              <input form={`bg-${r.id}`} name="cost" inputMode="decimal" defaultValue={cents(r.cost_cents)} aria-label={`Labb cost for ${r.name}`} className="bg-cost" />
+                            </td>
+                            <td className="num">{money(cppBackgroundCents(r.cost_cents))}</td>
+                            <td>
+                              <select form={`bg-${r.id}`} name="active" defaultValue={r.active ? "yes" : "no"} aria-label={`Show ${r.name} to members`}>
+                                <option value="yes">Yes</option><option value="no">Hidden</option>
+                              </select>
+                            </td>
+                            <td>
+                              <form id={`bg-${r.id}`} action="/api/admin/pricing" method="post">
+                                <input type="hidden" name="action" value="bg-update" />
+                                <input type="hidden" name="id" value={r.id} />
+                                <button className="btn btn-outline-dark btn-sm" type="submit">Save</button>
+                              </form>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </section>
+      </>
+    );
+  }
   const [items, flash] = await Promise.all([
     sql()<PriceItem[]>`select * from cpp_price_items order by category, sort, lower(name)`,
     readFlash(),
@@ -51,6 +115,7 @@ export default async function AdminPricing() {
       <section className="section" style={{ paddingTop: 32 }}>
         <div className="wrap">
           <Flash flash={flash} />
+          {tabs}
           <p className="lede" style={{ maxWidth: 820 }}>
             Products and prices here appear on the CPP member Pricing page. Enter the member price and MSRP for Service Level 1 and
             Service Level 3, and the online sale price per kit (members are paid 80% of it for walk-in tests they run). Leave a price blank if it doesn&apos;t apply; an item with no prices shows &ldquo;Contact Labb&rdquo;.

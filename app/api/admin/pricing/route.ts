@@ -17,6 +17,18 @@ export async function POST(req: Request) {
   const category = field(fd, "category", 20);
   const back = `/admin/pricing${isPriceCategory(category) ? `#${category}` : ""}`;
 
+  if (action === "bg-update") {
+    const cost = parseCents(field(fd, "cost", 20));
+    if (!/^\d+$/.test(id) || cost == null) {
+      await flash("Enter the cost as a number, for example 8.95.", "error");
+      return go(req, "/admin/pricing?tab=background");
+    }
+    const [r] = await db<{ name: string }[]>`update cpp_background_prices set cost_cents = ${cost}, active = ${fd.get("active") !== "no"},
+      updated_at = now(), updated_by = ${admin.id} where id = ${id} returning name`;
+    if (r) await flash(`Saved ${r.name}.`);
+    return go(req, "/admin/pricing?tab=background");
+  }
+
   if (action === "delete") {
     if (/^\d+$/.test(id)) {
       const [r] = await db<{ name: string }[]>`delete from cpp_price_items where id = ${id} returning name`;
