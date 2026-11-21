@@ -22,7 +22,7 @@ export default async function AgreementAdmin() {
   const current = versions.find((v) => v.active);
   return (
     <>
-      <AdminBar title="CPP agreement" current="/admin/members" />
+      <AdminBar title="CPP agreement" current="/admin/members/agreement" />
       <section className="section" style={{ paddingTop: 32 }}>
         <div className="wrap" style={{ maxWidth: 980 }}>
           <p style={{ marginTop: 0 }}><Link href="/admin/members">← All members</Link></p>

@@ -1,33 +1,62 @@
 import Link from "next/link";
 
-const LINKS = [
-  { href: "/admin/analytics", label: "Analytics" },
-  { href: "/admin/leads", label: "Leads" },
-  { href: "/admin/members", label: "CPP members" },
-  { href: "/admin/trade-shows", label: "Trade shows" },
-  { href: "/admin/pricing", label: "Pricing" },
-  { href: "/admin/quotes", label: "Quotes" },
-  { href: "/admin/email", label: "Email" },
-  { href: "/admin/courses", label: "Courses" },
-  { href: "/admin/learners", label: "Learners" },
-  { href: "/admin/settings", label: "Settings" },
+// Admin navigation: five sections. The current section's pages show as tabs underneath.
+const SECTIONS = [
+  { label: "Analytics", links: [{ href: "/admin/analytics", label: "Analytics" }] },
+  {
+    label: "Sales",
+    links: [
+      { href: "/admin/leads", label: "Leads" },
+      { href: "/admin/quotes", label: "Quotes" },
+      { href: "/admin/email", label: "Email" },
+    ],
+  },
+  {
+    label: "CPP",
+    links: [
+      { href: "/admin/members", label: "Members" },
+      { href: "/admin/members/agreement", label: "Agreement" },
+      { href: "/admin/pricing", label: "Pricing" },
+      { href: "/admin/trade-shows", label: "Trade shows" },
+    ],
+  },
+  {
+    label: "Learning",
+    links: [
+      { href: "/admin/courses", label: "Courses" },
+      { href: "/admin/learners", label: "Learners" },
+    ],
+  },
+  { label: "Settings", links: [{ href: "/admin/settings", label: "Settings" }] },
 ];
 
 export function AdminBar({ title, current }: { title: string; current: string }) {
+  const section = SECTIONS.find((s) => s.links.some((l) => l.href === current));
   return (
-    <section className="member-bar">
+    <section className="member-bar admin-bar">
       <div className="wrap">
-        <div>
-          <span className="eyebrow">Labb admin</span>
-          <strong>{title}</strong>
+        <div className="ab-top">
+          <div>
+            <span className="eyebrow">Labb admin</span>
+            <strong>{title}</strong>
+          </div>
+          <div className="ab-util">
+            <Link href="/members">Member area</Link>
+            <form action="/api/auth/logout" method="post"><button type="submit" className="linkish">Sign out</button></form>
+          </div>
         </div>
         <nav aria-label="Admin" className="admin-nav">
-          {LINKS.map((l) => (
-            <Link key={l.href} href={l.href} aria-current={current === l.href ? "page" : undefined}>{l.label}</Link>
+          {SECTIONS.map((s) => (
+            <Link key={s.label} href={s.links[0].href} aria-current={s === section ? "true" : undefined}>{s.label}</Link>
           ))}
-          <Link href="/members">Member area</Link>
-          <form action="/api/auth/logout" method="post"><button type="submit" className="linkish">Sign out</button></form>
         </nav>
+        {section && section.links.length > 1 && (
+          <nav aria-label={`${section.label} pages`} className="admin-subnav">
+            {section.links.map((l) => (
+              <Link key={l.href} href={l.href} aria-current={current === l.href ? "page" : undefined}>{l.label}</Link>
+            ))}
+          </nav>
+        )}
       </div>
     </section>
   );

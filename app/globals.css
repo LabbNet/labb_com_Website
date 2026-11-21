@@ -1464,3 +1464,26 @@ td.acts { white-space: nowrap; }
 .countersign { display: grid; grid-template-columns: minmax(0, 320px) auto; gap: 10px 16px; align-items: end; margin-top: 16px; padding: 16px; background: #fbf4ee; border-radius: 12px; }
 .countersign .form-sub { grid-column: 1 / -1; }
 @media (max-width: 640px) { .countersign { grid-template-columns: 1fr; } }
+
+/* Admin bar: sections plus tabs for the current section */
+.admin-bar .wrap { display: block; padding-top: 14px; padding-bottom: 0; }
+.ab-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; }
+.ab-util { display: flex; gap: 16px; align-items: center; font-size: .85rem; }
+.ab-util a, .ab-util .linkish { color: var(--muted); font-weight: 500; font-size: .85rem; text-decoration: none; }
+.ab-util a:hover, .ab-util .linkish:hover { color: var(--orange); }
+.admin-bar .admin-nav { display: flex; gap: 6px; margin-top: 12px; flex-wrap: wrap; }
+.admin-bar .admin-nav a { padding: 10px 14px 12px; border-bottom: 3px solid transparent; color: var(--dark); font-weight: 600; text-decoration: none; }
+.admin-bar .admin-nav a:hover { color: var(--orange); }
+.admin-bar .admin-nav a[aria-current="true"] { color: var(--orange); border-bottom-color: var(--orange); }
+.admin-subnav { display: flex; gap: 8px; flex-wrap: wrap; padding: 10px 0 12px; border-top: 1px solid var(--gray); }
+.admin-subnav a { padding: 6px 14px; border-radius: 999px; color: var(--dark); font-weight: 500; font-size: .9rem; text-decoration: none; }
+.admin-subnav a:hover { background: #fff; }
+.admin-subnav a[aria-current="page"] { background: var(--dark); color: #fff; }
+.admin-bar .admin-nav + .admin-subnav { margin-top: 0; }
+.ab-util a, .ab-util .linkish { white-space: nowrap; }
+@media (max-width: 640px) {
+  .admin-bar .admin-nav, .admin-bar .admin-subnav { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; -webkit-overflow-scrolling: touch; }
+  .admin-bar .admin-nav::-webkit-scrollbar, .admin-subnav::-webkit-scrollbar { display: none; }
+  .admin-bar .admin-nav a, .admin-subnav a { white-space: nowrap; flex: none; }
+  .admin-bar .admin-nav a { padding: 10px 10px 12px; }
+}
