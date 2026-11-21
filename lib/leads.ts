@@ -248,6 +248,30 @@ export async function deliverLead(lead: Lead, existingId?: string) {
     }
   }
 
+  // Every new lead also asks Labb to decide who owns it: a CPP member or Labb.
+  // Newsletter sign-ups and CPP applications aren't sales leads, so they're skipped.
+  if (lead.type !== "newsletter" && lead.type !== "cpp-application") {
+    const assignTo = (process.env.LEAD_ASSIGN_EMAILS || "James@labb.com,Kelly.Ramsey@labb.com").split(",").map((e) => e.trim()).filter(Boolean);
+    const who = [`${lead.firstName || ""} ${lead.lastName || ""}`.trim(), lead.company].filter(Boolean).join(", ") || lead.email;
+    const where = [lead.city, lead.state].filter(Boolean).join(", ");
+    try {
+      await sendMail(
+        assignTo,
+        `Lead completed: assign to CPP or Labb (${who})`,
+        emailLayout(
+          "Lead completed",
+          `<p><strong>Lead completed and assignment to CPP or Labb is required.</strong></p>
+           <p>${esc(who)}${where ? ` · ${esc(where)}` : ""}<br>${esc(segmentLabel(lead.segment))} · ${esc(lead.type)}${lead.page ? ` · from ${esc(lead.page)}` : ""}</p>`,
+          id ? { href: absoluteUrl(`/admin/leads/${id}`), label: "Assign the lead" } : undefined,
+        ),
+        `Lead completed and assignment to CPP or Labb is required.\n${who}${where ? ` (${where})` : ""}\n${segmentLabel(lead.segment)} · ${lead.type}${id ? `\nAssign it: ${absoluteUrl(`/admin/leads/${id}`)}` : ""}`,
+        { replyTo: lead.email },
+      );
+    } catch (e) {
+      console.error("[lead] assignment email failed", e);
+    }
+  }
+
   if (process.env.LEAD_WEBHOOK_URL) {
     try {
       await fetch(process.env.LEAD_WEBHOOK_URL, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id, ...lead }) });

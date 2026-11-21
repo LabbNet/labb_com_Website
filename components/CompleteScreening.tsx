@@ -8,7 +8,7 @@ import { usePathname } from "next/navigation";
 const HIDE = /^\/(admin|members|learn|login|account|forgot-password|reset-password|unsubscribe|privacy|terms|thank-you|get-a-quote|contact|certifications\/purchased|contract)(\/|$)/;
 
 const SERVICES = [
-  { t: "Background checks", b: "Criminal, employment and identity searches, run with the consent and notices the law requires." },
+  { t: "Background checks", b: "Criminal, employment and identity searches, run with the consent and notices the law requires.", href: "/background-checks" },
   { t: "Physicals", b: "Pre-employment and periodic physicals through clinics in the Labb network." },
   { t: "Rapid and lab-based testing", b: "Rapid oral fluid and urine screens and lab-based testing, for regulated (DOT) and non-regulated programs." },
   { t: "Other screening services", b: "Ask about the rest of your onboarding and compliance checklist." },
@@ -33,7 +33,7 @@ export function CompleteScreening() {
         </div>
         <ul className="complete-list">
           {SERVICES.map((s) => (
-            <li key={s.t}><strong>{s.t}</strong><span>{s.b}</span></li>
+            <li key={s.t}><strong>{"href" in s && s.href ? <Link href={s.href}>{s.t}</Link> : s.t}</strong><span>{s.b}</span>{"href" in s && s.href && <Link href={s.href} className="complete-more">See all background checks <span aria-hidden="true">&rarr;</span></Link>}</li>
           ))}
         </ul>
       </div>

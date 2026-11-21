@@ -3,7 +3,7 @@ import Link from "next/link";
 import { AdminBar } from "@/components/AdminBar";
 import { AnalyticsChart } from "@/components/AnalyticsChart";
 import { requireAdmin } from "@/lib/admin";
-import { breakdown, daily, entryPages, kpis, live, liveCount, RANGES, signedIn, topPages, totalRows, type Kpis, type RangeKey } from "@/lib/analytics";
+import { breakdown, daily, entryPages, FORM_LABELS, formsByPage, formsByType, formTotals, kpis, live, liveCount, RANGES, signedIn, topPages, totalRows, type Kpis, type RangeKey } from "@/lib/analytics";
 
 export const metadata: Metadata = { title: "Analytics", robots: { index: false, follow: false } };
 export const dynamic = "force-dynamic";
@@ -56,6 +56,7 @@ export default async function Analytics({ searchParams }: { searchParams: Promis
   const sp = await searchParams;
   const range = (sp.range && sp.range in RANGES ? sp.range : "30") as RangeKey;
   const f = { days: Number(range), staff: sp.staff === "1" };
+  const [fNow, fPrev, fTypes, fPages] = await Promise.all([formTotals(f), formTotals(f, f.days), formsByType(f), formsByPage(f)]);
   const [k, prev, series, pages, entries, refs, devices, browsers, oses, campaigns, users, now, total, liveN] = await Promise.all([
     kpis(f), kpis(f, f.days), daily(f), topPages(f), entryPages(f), breakdown(f, "referrer"), breakdown(f, "device"),
     breakdown(f, "browser"), breakdown(f, "os"), breakdown(f, "utm_campaign"), signedIn(f), live(), totalRows(), liveCount(),
@@ -117,6 +118,53 @@ export default async function Analytics({ searchParams }: { searchParams: Promis
                 <tbody>{[...series].reverse().map((d) => <tr key={d.day}><td>{d.day}</td><td>{num(d.views)}</td><td>{num(d.visitors)}</td></tr>)}</tbody>
               </table>
             </details>
+          </div>
+
+          <div className="an-card" id="forms">
+            <div className="an-card-head">
+              <h3>Form completions</h3>
+              <span className="fine">{RANGES[range]}. Every form submitted on the website, including Quick Test orders.</span>
+            </div>
+            <div className="an-kpis an-kpis-3">
+              <div className="an-kpi">
+                <span className="an-kpi-label">Forms completed</span>
+                <strong>{num(fNow.forms)}</strong>
+                <Delta now={fNow.forms} before={fPrev.forms} />
+              </div>
+              <div className="an-kpi">
+                <span className="an-kpi-label">Leads (not newsletter)</span>
+                <strong>{num(fNow.leads)}</strong>
+                <Delta now={fNow.leads} before={fPrev.leads} />
+              </div>
+              <div className="an-kpi">
+                <span className="an-kpi-label">Visitor conversion</span>
+                <strong>{k.visitors ? `${Math.min(100, (fNow.leads / k.visitors) * 100).toFixed(1)}%` : "n/a"}</strong>
+                <span className="fine" style={{ textAlign: "left" }}>Leads per 100 visitors</span>
+              </div>
+            </div>
+            <div className="an-forms-grid">
+              <Bars title="By form" rows={fTypes.map((t) => ({ label: FORM_LABELS[t.type] || t.type, value: t.n }))} unit="completed" empty="No forms completed in this range yet." />
+              <div className="an-card">
+                <h3>By page</h3>
+                {!fPages.length ? <p className="fine">No forms completed in this range yet.</p> : (
+                  <div className="an-scroll">
+                    <table className="admin-table">
+                      <thead><tr><th scope="col">Page</th><th scope="col">Completed</th><th scope="col">Visitors</th><th scope="col">Conversion</th></tr></thead>
+                      <tbody>
+                        {fPages.map((p) => (
+                          <tr key={p.page}>
+                            <th scope="row">{p.page.startsWith("/") ? <a href={p.page} target="_blank" rel="noreferrer">{p.page}</a> : "Not recorded"}</th>
+                            <td>{num(p.n)}</td><td>{num(p.visitors)}</td>
+                            <td>{p.visitors && p.page.startsWith("/") ? `${Math.min(100, (p.n / p.visitors) * 100).toFixed(1)}%` : "n/a"}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+              </div>
+            </div>
+            <p className="fine" style={{ textAlign: "left", marginTop: 10 }}><a href="/admin/leads">Open the leads</a> to see each submission.</p>
           </div>
 
           <div className="an-grid-2">

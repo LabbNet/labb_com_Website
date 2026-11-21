@@ -30,6 +30,7 @@ export function Footer() {
             <li><Link href="/corrections">Corrections</Link></li>
             <li><Link href="/treatment-recovery">Treatment and recovery</Link></li>
             <li><Link href="/quick-test">Individuals: Quick Test</Link></li>
+            <li><Link href="/background-checks">Background checks</Link></li>
           </ul>
         </div>
         <div>

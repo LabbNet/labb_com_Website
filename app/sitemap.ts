@@ -49,6 +49,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     page("/channel-partner-program/get-started", 0.7),
     page("/training", 0.8),
     page("/drugs", 0.7),
+    page("/background-checks", 0.8),
     ...resources.map((r) => page(`/resources/${r.slug}`, 0.8)),
     page("/certifications", 0.6),
     page("/news", 0.6, "weekly"),

@@ -66,7 +66,7 @@ export default function UseAClinic() {
           { t: "Send employees to the clinic", b: "Employees visit a nearby clinic for their test, with no special scheduling system to learn." },
           { t: "Get results in minutes", b: "Rapid tests are read objectively with Labb Station and the result is documented electronically." },
           { t: "Confirm non-negatives", b: "Non-negative screens go to the lab for confirmation and medical review without extra paperwork." },
-          { t: "Add more when you need it", b: "Combine drug testing with background checks, physicals and other services in the same program." },
+          { t: "Add more when you need it", b: "Combine drug testing with background checks, physicals and other services in the same program.", href: "/background-checks" },
         ],
       }}
       faqs={[

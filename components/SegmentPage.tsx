@@ -7,7 +7,7 @@ import { ConnectButton } from "@/components/visual/ConnectDrawer";
 import { getKit, shelfKits } from "@/lib/kits";
 import type { Segment } from "@/lib/segments";
 
-type Card = { t: string; b: React.ReactNode };
+type Card = { t: string; b: React.ReactNode; href?: string };
 
 // Shared layout for the "Who we serve" audience pages. Product facts come from lib/platforms and
 // lib/kits; each page supplies its own headline, pains, answer and call to action.
@@ -90,6 +90,7 @@ export function SegmentPage(p: {
                 <div className="icon-dot" aria-hidden="true">{i + 1}</div>
                 <h3>{c.t}</h3>
                 <p>{c.b}</p>
+                {c.href && <Link href={c.href} className="card-more">Learn more <span aria-hidden="true">&rarr;</span></Link>}
               </div>
             ))}
           </div>

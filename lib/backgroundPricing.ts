@@ -5,7 +5,7 @@ import { sql } from "@/lib/db";
 export const CPP_MARKUP_PCT = 10;
 export const cppBackgroundCents = (costCents: number) => Math.ceil((costCents * (100 + CPP_MARKUP_PCT)) / 500) * 5;
 
-export const BG_CATEGORIES = ["Packages", "Criminal", "Sanctions and watch lists", "Identity", "Verifications", "Driving", "Civil and credit", "Media"] as const;
+export { BG_CATEGORIES } from "@/lib/bgCategories";
 
 export type BackgroundPrice = {
   id: string; ref: string; kind: "package" | "check"; category: string; name: string; includes: string | null;

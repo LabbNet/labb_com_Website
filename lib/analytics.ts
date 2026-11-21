@@ -96,3 +96,56 @@ export async function totalRows() {
   const [r] = await sql()<{ n: number; first: Date | null }[]>`select count(*)::int as n, min(ts) as first from page_views`;
   return r;
 }
+
+// Form completions (website leads) in the same window. Quick Test orders count once paid or submitted.
+export const FORM_LABELS: Record<string, string> = {
+  quote: "Get a quote",
+  contact: "Contact",
+  demo: "Demo request",
+  "early-access": "Early access",
+  clinic: "Clinic or collection site",
+  handbook: "Guidebook and drug profile downloads",
+  sample: "Sample request",
+  "certification-waitlist": "Certification waitlist",
+  newsletter: "Newsletter",
+  "quick-test": "Quick Test order",
+  "cpp-application": "CPP application",
+};
+
+function leadWhere(f: F, offsetDays = 0) {
+  const db = sql();
+  return db`created_at >= now() - make_interval(days => ${f.days + offsetDays}) and created_at < now() - make_interval(days => ${offsetDays})`;
+}
+
+export async function formTotals(f: F, offsetDays = 0) {
+  const [r] = await sql()<{ forms: number; leads: number }[]>`
+    select count(*)::int as forms, count(*) filter (where type <> 'newsletter')::int as leads from leads where ${leadWhere(f, offsetDays)}`;
+  return r;
+}
+
+export async function formsByType(f: F) {
+  return sql()<{ type: string; n: number }[]>`
+    select type, count(*)::int as n from leads where ${leadWhere(f)} group by type order by n desc`;
+}
+
+// Completions per page with that page's visitors, so each form's conversion rate can be shown.
+export async function formsByPage(f: F, limit = 15) {
+  const db = sql();
+  return db<{ page: string; n: number; visitors: number }[]>`
+    with l as (
+      select coalesce(nullif(split_part(split_part(page, '?', 1), '#', 1), ''), '(unknown)') as page, count(*)::int as n
+      from leads where ${leadWhere(f)} group by 1
+    )
+    select l.page, l.n, coalesce((select count(distinct visitor)::int from page_views where path = l.page and ${where(f)}), 0) as visitors
+    from l order by l.n desc limit ${limit}`;
+}
+
+export async function formsDaily(f: F) {
+  return sql()<{ day: string; n: number }[]>`
+    with days as (
+      select generate_series((now() at time zone ${TZ})::date - (${f.days} - 1), (now() at time zone ${TZ})::date, interval '1 day')::date as day
+    )
+    select to_char(d.day, 'YYYY-MM-DD') as day, count(l.id)::int as n
+    from days d left join leads l on (l.created_at at time zone ${TZ})::date = d.day and ${leadWhere(f)}
+    group by d.day order by d.day`;
+}

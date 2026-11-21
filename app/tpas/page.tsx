@@ -38,7 +38,7 @@ export default function TPAs() {
         title: "Stay independent and grow",
         cards: [
           { t: "Run the business", b: "Sales, marketing, contracting and accounting in one platform." },
-          { t: "Background checks built in", b: "Order background checks in the same platform as drug testing." },
+          { t: "Background checks built in", b: "Order background checks in the same platform as drug testing.", href: "/background-checks" },
           { t: "Objective rapid reads", b: "Every Labb Station tool is included, so clients who test rapid get an objective, documented read." },
           { t: "Connected through One by Labb", b: "Work with collection sites, labs, MROs and employers on one network." },
           { t: "Electronic chain of custody", b: "An eCCF for rapid urine, rapid oral fluid and non-regulated lab tests, so programs run paperless." },
