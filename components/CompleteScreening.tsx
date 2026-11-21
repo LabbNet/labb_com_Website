@@ -5,7 +5,7 @@ import { usePathname } from "next/navigation";
 
 // Site-wide band: background checks, physicals and other services alongside drug testing.
 // Hidden on account, admin, course, legal and utility pages.
-const HIDE = /^\/(admin|members|learn|login|account|forgot-password|reset-password|unsubscribe|privacy|terms|thank-you|get-a-quote|contact|certifications\/purchased)(\/|$)/;
+const HIDE = /^\/(admin|members|learn|login|account|forgot-password|reset-password|unsubscribe|privacy|terms|thank-you|get-a-quote|contact|certifications\/purchased|contract)(\/|$)/;
 
 const SERVICES = [
   { t: "Background checks", b: "Criminal, employment and identity searches, run with the consent and notices the law requires." },

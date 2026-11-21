@@ -1,5 +1,6 @@
 import { clientIp, RateLimiter } from "@/lib/http";
 import { NextResponse } from "next/server";
+import { addCppProspect } from "@/lib/contracts";
 import { deliverLead, detailsOf, leadToken, saveLead, STAGE_CONTACT, type Lead } from "@/lib/leads";
 import { quickTestCheckout, quickTestCheckoutReady } from "@/lib/commerce";
 import { isShipping, money, quote } from "@/lib/quickTest";
@@ -156,6 +157,15 @@ export async function POST(req: Request) {
       { error: "We couldn't send your request. Please call (877) 868-9967 or email info@labb.com." },
       { status: 502 },
     );
+  }
+
+  // A CPP application also becomes a Prospect on the CPP member list. Never blocks the form.
+  if (lead.type === "cpp-application") {
+    try {
+      await addCppProspect(lead);
+    } catch (e) {
+      console.error("[lead] CPP prospect not created", e);
+    }
   }
 
   const res = NextResponse.json({

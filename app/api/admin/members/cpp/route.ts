@@ -2,6 +2,7 @@ import { currentMember, logEvent, sameOrigin } from "@/lib/auth";
 import { setFlash } from "@/lib/admin";
 import { sql } from "@/lib/db";
 import { field, go } from "@/lib/http";
+import { saveTemplate, sendContract } from "@/lib/contracts";
 
 // CPP program record for a member: start date, active/inactive, and signed contract files.
 const MAX_BYTES = 15 * 1024 * 1024;
@@ -33,6 +34,29 @@ export async function POST(req: Request) {
   const action = field(fd, "action", 20);
   const back = `/admin/members/${id}`;
   const db = sql();
+  if (action === "template") {
+    const file = fd.get("agreement");
+    const title = field(fd, "title", 120) || "Channel Partner Program Agreement";
+    const version = field(fd, "version", 30);
+    const backT = "/admin/members/agreement";
+    if (!(file instanceof File) || !file.size || !version) {
+      await setFlash("Choose the agreement PDF and enter its version.", "error", undefined, "/admin");
+      return go(req, backT);
+    }
+    const bytes = new Uint8Array(await file.arrayBuffer());
+    if (file.size > MAX_BYTES || !sniff("pdf", bytes)) {
+      await setFlash("Upload the agreement as a PDF under 15 MB.", "error", undefined, "/admin");
+      return go(req, backT);
+    }
+    try {
+      await saveTemplate(bytes, file.name.replace(/[^\w.\- ()]/g, "_").slice(0, 160), title, version, admin.id);
+    } catch {
+      await setFlash("That PDF couldn't be read. Export it again and upload the new copy.", "error", undefined, "/admin");
+      return go(req, backT);
+    }
+    await setFlash(`${title} version ${version} is now the agreement sent for signature.`, "ok", undefined, "/admin");
+    return go(req, backT);
+  }
   const [m] = await db<{ id: string; name: string; cpp_status: string; cpp_start_date: string | null }[]>`
     select id, name, cpp_status, to_char(cpp_start_date, 'YYYY-MM-DD') as cpp_start_date from members where id = ${id}`;
   if (!m) return go(req, "/admin/members");
@@ -40,7 +64,8 @@ export async function POST(req: Request) {
 
   if (action === "program") {
     const start = field(fd, "start", 10);
-    const status = fd.get("cpp_status") === "inactive" ? "inactive" : "active";
+    const raw = fd.get("cpp_status");
+    const status = raw === "inactive" ? "inactive" : raw === "prospect" ? "prospect" : "active";
     if (start && !/^\d{4}-\d{2}-\d{2}$/.test(start)) {
       await flash("Enter the start date as a full date.", "error");
       return go(req, back);
@@ -52,7 +77,7 @@ export async function POST(req: Request) {
         updated_at = now()
       where id = ${m.id}`;
     if ((m.cpp_start_date || null) !== startVal) await logEvent(m.id, "cpp_start_date", startVal ?? "cleared", admin.id);
-    if (m.cpp_status !== status) await logEvent(m.id, status === "active" ? "cpp_active" : "cpp_inactive", undefined, admin.id);
+    if (m.cpp_status !== status) await logEvent(m.id, `cpp_${status}`, undefined, admin.id);
     await flash(`Saved the CPP record for ${m.name}.`);
     return go(req, back);
   }
@@ -84,6 +109,16 @@ export async function POST(req: Request) {
       values (${m.id}, ${name}, ${TYPES[ext]}, ${bytes.length}, ${Buffer.from(bytes)}, ${note}, ${admin.id})`;
     await logEvent(m.id, "contract_uploaded", name, admin.id);
     await flash(`Contract uploaded for ${m.name}.`);
+    return go(req, back);
+  }
+
+  if (action === "send-contract") {
+    const r = await sendContract(m.id, admin.id);
+    if (r.error) await flash(r.error, "error");
+    else {
+      await logEvent(m.id, "contract_sent", `Signing link emailed to ${r.to}`, admin.id);
+      await flash(`Contract sent to ${r.to}. The signing link works for 30 days.`);
+    }
     return go(req, back);
   }
 

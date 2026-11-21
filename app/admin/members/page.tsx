@@ -27,8 +27,8 @@ export default async function AdminMembers({ searchParams }: { searchParams: Pro
     where (${q} = '' or lower(name) like ${like} or lower(email) like ${like} or lower(username) like ${like} or lower(coalesce(clinic, '')) like ${like})
       and (${show} = 'all' or (${show} = 'current' and status <> 'disabled') or status = ${show})
       and (${cpp} = 'all' or (role = 'member' and cpp_status = ${cpp}))
-    order by status = 'disabled', status <> 'invited', lower(name)`;
-  const counts = await sql()<{ status: string; n: number }[]>`select status, count(*)::int as n from members group by status`;
+    order by status = 'disabled', cpp_status <> 'prospect', status <> 'invited', lower(name)`;
+  const counts = await sql()<{ status: string; n: number }[]>`select status, count(*)::int as n from members where not (status = 'invited' and cpp_status = 'prospect') group by status`;
   const c = Object.fromEntries(counts.map((r) => [r.status, r.n]));
   const cppCounts = await sql()<{ cpp_status: string; n: number }[]>`select cpp_status, count(*)::int as n from members where role = 'member' group by cpp_status`;
   const cc = Object.fromEntries(cppCounts.map((r) => [r.cpp_status, r.n]));
@@ -75,12 +75,13 @@ export default async function AdminMembers({ searchParams }: { searchParams: Pro
                 <div><strong>{c.active || 0}</strong><span>Active</span></div>
                 <div><strong>{c.invited || 0}</strong><span>Invited, not set up</span></div>
                 <div><strong>{c.disabled || 0}</strong><span>Disabled</span></div>
+                <div><strong>{cc.prospect || 0}</strong><span>CPP prospects</span></div>
                 <div><strong>{cc.active || 0}</strong><span>CPP active</span></div>
                 <div><strong>{cc.inactive || 0}</strong><span>CPP inactive</span></div>
               </div>
               <details className="hero-card add-member" open={rows.length === 0}>
                 <summary className="btn btn-primary">+ Add a member</summary>
-                <p className="form-sub" style={{ marginTop: 14 }}>Creates the account and emails a setup link. Add members after their CPP agreement is signed, then open the member to upload the contract.</p>
+                <p className="form-sub" style={{ marginTop: 14 }}>Creates the account and emails a setup link. CPP applications from the website appear here as Prospects. Open one to send the agreement for signature; add the login once it is signed.</p>
               <form action="/api/admin/members" method="post" autoComplete="off">
                 <input type="hidden" name="action" value="create" />
                 <div className="fields add-member-fields">
@@ -120,6 +121,7 @@ export default async function AdminMembers({ searchParams }: { searchParams: Pro
                 </select>
                 <select name="cpp" defaultValue={cpp} aria-label="Filter by CPP status">
                   <option value="all">Any CPP status</option>
+                  <option value="prospect">CPP prospect</option>
                   <option value="active">CPP active</option>
                   <option value="inactive">CPP inactive</option>
                 </select>
@@ -140,12 +142,12 @@ export default async function AdminMembers({ searchParams }: { searchParams: Pro
                         <td>
                           {m.role === "member" ? (
                             <>
-                              <span className={`status ${m.cpp_status === "active" ? "s-active" : "s-disabled"}`}>{m.cpp_status === "active" ? "Active" : "Inactive"}</span>{" "}
+                              <span className={`status ${m.cpp_status === "active" ? "s-active" : m.cpp_status === "prospect" ? "s-invited" : "s-disabled"}`}>{m.cpp_status === "active" ? "Active" : m.cpp_status === "prospect" ? "Prospect" : "Inactive"}</span>{" "}
                               <span className="inline-sub">{m.cpp_start ? `since ${m.cpp_start}` : "no start date"} · {m.contracts ? `${m.contracts} contract${m.contracts > 1 ? "s" : ""}` : "no contract"}</span>
                             </>
                           ) : <span className="sub">Labb staff</span>}
                         </td>
-                        <td><span className={`status s-${m.status}`}>{m.status === "invited" ? "Invited" : m.status === "active" ? "Active" : "Disabled"}</span></td>
+                        <td><span className={`status s-${m.status}`}>{m.status === "invited" ? (m.cpp_status === "prospect" ? "No login yet" : "Invited") : m.status === "active" ? "Active" : "Disabled"}</span></td>
                         <td>{fmt(m.last_login_at)}</td>
                         <td className="acts">
                           {m.status === "invited" && act(m.id, "resend", "Re-send invite")}

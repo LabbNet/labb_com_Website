@@ -10,7 +10,8 @@ export const esc = (s: unknown = "") => String(s ?? "").replace(/[&<>"']/g, (c) 
 // Returns false (and logs) when nothing is configured or every provider fails,
 // so callers can fall back to showing a copyable link to the admin.
 
-type MailOpts = { replyTo?: string; from?: string };
+export type MailAttachment = { filename: string; content: Buffer; type: string };
+type MailOpts = { replyTo?: string; from?: string; attachments?: MailAttachment[] };
 
 const defaultFrom = () => process.env.MAIL_FROM || process.env.LEAD_FROM_EMAIL || "Labb <info@mail.labb.com>";
 
@@ -41,6 +42,9 @@ async function viaSendGrid(to: string[], subject: string, html: string, text: st
         { type: "text/plain", value: text },
         { type: "text/html", value: html },
       ],
+      ...(o.attachments?.length
+        ? { attachments: o.attachments.map((a) => ({ filename: a.filename, type: a.type, content: a.content.toString("base64"), disposition: "attachment" })) }
+        : {}),
     }),
   });
   if (!res.ok) throw new Error(`SendGrid ${res.status}: ${await res.text()}`);
@@ -55,14 +59,20 @@ async function viaSmtp(to: string[], subject: string, html: string, text: string
     secure: port === 465,
     auth: { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS },
   });
-  await transport.sendMail({ from: o.from || defaultFrom(), to, replyTo: o.replyTo, subject, html, text });
+  await transport.sendMail({
+    from: o.from || defaultFrom(), to, replyTo: o.replyTo, subject, html, text,
+    attachments: o.attachments?.map((a) => ({ filename: a.filename, content: a.content, contentType: a.type })),
+  });
 }
 
 async function viaResend(to: string[], subject: string, html: string, text: string, o: MailOpts) {
   const res = await fetch("https://api.resend.com/emails", {
     method: "POST",
     headers: { Authorization: `Bearer ${process.env.RESEND_API_KEY}`, "Content-Type": "application/json" },
-    body: JSON.stringify({ from: o.from || defaultFrom(), to, reply_to: o.replyTo, subject, html, text }),
+    body: JSON.stringify({
+      from: o.from || defaultFrom(), to, reply_to: o.replyTo, subject, html, text,
+      ...(o.attachments?.length ? { attachments: o.attachments.map((a) => ({ filename: a.filename, content: a.content.toString("base64") })) } : {}),
+    }),
   });
   if (!res.ok) throw new Error(`Resend ${res.status}: ${await res.text()}`);
 }
