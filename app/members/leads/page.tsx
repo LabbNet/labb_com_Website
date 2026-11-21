@@ -9,6 +9,7 @@ import { quotesFor } from "@/lib/quotes";
 import { PRICE_CATEGORIES } from "@/lib/cppPricing";
 import { QuoteForm, type QuoteProduct } from "@/components/QuoteForm";
 import { QuoteList } from "@/components/QuoteList";
+import { CPP_SEQUENCES, runsForLeads, sequenceName, STEP_DAYS } from "@/lib/sequences";
 
 export const metadata: Metadata = { title: "My leads", robots: { index: false, follow: false } };
 export const dynamic = "force-dynamic";
@@ -20,6 +21,7 @@ export default async function MemberLeads() {
     sql()<LeadRow[]>`select * from leads where partner_id = ${m.id} and owner = 'partner' and not archived order by passed_at desc nulls last, created_at desc`,
     readFlash(),
   ]);
+  const runs = await runsForLeads(rows.map((l) => String(l.id)));
   const quotes = rows.length ? await quotesFor({ memberId: m.id, leadIds: rows.map((l) => String(l.id)) }) : [];
   const products = (await sql()<{ id: string; name: string; sku: string | null; unit: string | null; category: string; sl1_msrp_cents: number | null }[]>`
     select id, name, sku, unit, category, sl1_msrp_cents from cpp_price_items where active order by category, sort, lower(name)`)
@@ -59,6 +61,14 @@ export default async function MemberLeads() {
               </div>
               <div className="field"><label htmlFor="al-vo">Estimated tests per month</label><input id="al-vo" name="volume" maxLength={60} placeholder="For example: 40" /></div>
               <div className="field full"><label htmlFor="al-pr">Interested in</label><input id="al-pr" name="products" maxLength={300} placeholder="For example: rapid urine testing, background checks, LabbHR" /></div>
+              <div className="field full">
+                <label htmlFor="al-sq">Send a free guidebook (optional)</label>
+                <select id="al-sq" name="sequence" defaultValue="">
+                  <option value="">Don&apos;t send anything yet</option>
+                  {CPP_SEQUENCES.map((q) => <option key={q.id} value={q.id}>{q.name}</option>)}
+                </select>
+                <span className="fine">Five emails over {STEP_DAYS[STEP_DAYS.length - 1]} days from your clinic, via Labb: the guidebook, three articles and a follow-up. Replies come to you.</span>
+              </div>
               <div className="field full"><label htmlFor="al-ms">Notes</label><textarea id="al-ms" name="message" maxLength={2000} placeholder="Where the opportunity stands, decision maker, timing" /></div>
             </div>
             <button className="btn btn-primary" type="submit" style={{ marginTop: 16 }}>Add lead</button>
@@ -68,7 +78,7 @@ export default async function MemberLeads() {
         {!rows.length && <p className="hero-card">No leads yet. Labb will pass leads to you here, and you can add your own above.</p>}
         <div style={{ display: "grid", gap: 20 }}>
           {rows.map((l) => (
-            <div className="hero-card" key={l.id}>
+            <div className="hero-card" key={l.id} id={`lead-${l.id}`}>
               <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "space-between", gap: 12 }}>
                 <div>
                   <h2 style={{ fontSize: "1.2rem", margin: 0 }}>{leadName(l)}</h2>
@@ -105,6 +115,38 @@ export default async function MemberLeads() {
                 </div>
                 <button className="btn btn-outline-dark" type="submit" style={{ justifySelf: "start" }}>Save update</button>
               </form>
+              <details className="lead-pass" open={runs.some((r) => r.lead_id === String(l.id))}>
+                <summary>Send a free guidebook</summary>
+                <form action="/api/members/leads" method="post" className="lead-pass-form">
+                  <input type="hidden" name="action" value="sequence" />
+                  <input type="hidden" name="id" value={l.id} />
+                  <label htmlFor={`sq-${l.id}`} className="sr-only">Guidebook</label>
+                  <select id={`sq-${l.id}`} name="sequence" required defaultValue="">
+                    <option value="" disabled>Choose a guidebook</option>
+                    {CPP_SEQUENCES.map((q) => <option key={q.id} value={q.id}>{q.name}</option>)}
+                  </select>
+                  <button className="btn btn-outline-dark" type="submit">Start emails</button>
+                </form>
+                <p className="fine">Five emails to {l.email} over {STEP_DAYS[STEP_DAYS.length - 1]} days, sent from your clinic via Labb. Replies come to you.</p>
+                {runs.filter((r) => r.lead_id === String(l.id)).length > 0 && (
+                  <ul className="seq-runs">
+                    {runs.filter((r) => r.lead_id === String(l.id)).map((r) => (
+                      <li key={r.id}>
+                        <span><strong>{sequenceName(r.sequence)}</strong> <span className={`status s-${r.status === "active" ? "contacted" : r.status === "completed" ? "won" : "lost"}`}>{r.status}</span></span>
+                        <span className="fine">{r.sent} of {STEP_DAYS.length} sent{r.next_due ? ` · next ${fmtDate(r.next_due)}` : ""} · started {fmtDate(r.created_at)}</span>
+                        {r.status === "active" && (
+                          <form action="/api/members/leads" method="post">
+                            <input type="hidden" name="action" value="sequence-stop" />
+                            <input type="hidden" name="id" value={l.id} />
+                            <input type="hidden" name="run" value={r.id} />
+                            <button className="linkish" type="submit">Stop</button>
+                          </form>
+                        )}
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </details>
               {others.length > 0 && (
                 <details className="lead-pass">
                   <summary>Pass this lead to another CPP member</summary>

@@ -11,7 +11,7 @@ import { channelLabel, CHANNELS, defaultMessage, dispatchDue, socialConfigured }
 export const metadata: Metadata = { title: "Edit article", robots: { index: false, follow: false } };
 export const dynamic = "force-dynamic";
 
-type Row = { id: string; slug: string; title: string; description: string; body: string; cover_type: string | null; image_alt: string | null; author: string; status: string; publish_at: Date | null; updated_at: Date };
+type Row = { id: string; slug: string; title: string; description: string; body: string; cover_type: string | null; cover_url: string | null; image_alt: string | null; author: string; status: string; publish_at: Date | null; updated_at: Date };
 
 export default async function ArticleEditor({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -19,7 +19,7 @@ export default async function ArticleEditor({ params }: { params: Promise<{ id: 
   if (id !== "new" && !/^\d{1,18}$/.test(id)) notFound();
   await dispatchDue();
   const db = sql();
-  const [a] = id === "new" ? [undefined] : await db<Row[]>`select id, slug, title, description, body, cover_type, image_alt, author, status, publish_at, updated_at from articles where id = ${id}`;
+  const [a] = id === "new" ? [undefined] : await db<Row[]>`select id, slug, title, description, body, cover_type, cover_url, image_alt, author, status, publish_at, updated_at from articles where id = ${id}`;
   if (id !== "new" && !a) notFound();
   const [posts, flash] = await Promise.all([
     a ? db<{ id: string; channels: string[]; status: string; scheduled_at: Date; sent_at: Date | null; result: Record<string, string> | null; by: string | null }[]>`
@@ -50,7 +50,7 @@ export default async function ArticleEditor({ params }: { params: Promise<{ id: 
                   <input id="ar-c" name="cover" type="file" accept="image/jpeg,image/png,image/webp" />
                   <span className="fine" style={{ textAlign: "left" }}>JPG, PNG or WebP under 8 MB. 1200 x 675 or larger works on every platform. Instagram needs an image.</span>
                 </div>
-                {a?.cover_type && <img src={`/api/articles/${a.id}/cover?v=${a.updated_at.getTime()}`} alt="" className="article-cover-preview" />}
+                {a?.cover_type ? <img src={`/api/articles/${a.id}/cover?v=${a.updated_at.getTime()}`} alt="" className="article-cover-preview" /> : a?.cover_url ? <img src={a.cover_url} alt="" className="article-cover-preview" /> : null}
                 <div className="field"><label htmlFor="ar-alt">Image description (for accessibility)</label><input id="ar-alt" name="image_alt" maxLength={200} defaultValue={a?.image_alt ?? ""} /></div>
                 <div className="field">
                   <label htmlFor="ar-b">Article<span className="req">*</span></label>

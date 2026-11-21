@@ -16,6 +16,8 @@ export type Article = {
   words: number;
   draft?: boolean; // hidden from lists and the sitemap; viewable at its URL for review
   dbId?: string; // written in Admin -> Articles
+  modifiedAt?: string;
+  guidebook?: string | null; // the guidebook this article supports
 };
 
 // Articles imported from the old site (content/articles.json).
@@ -23,7 +25,7 @@ const legacy: Article[] = (data as Article[]).sort((a, b) => b.publishedAt.local
 
 type Row = {
   id: string; slug: string; title: string; description: string; body: string; cover_type: string | null; cover_w: number | null;
-  cover_h: number | null; image_alt: string | null; author: string; status: string; publish_at: Date | null; updated_at: Date;
+  cover_h: number | null; cover_url: string | null; guidebook: string | null; image_alt: string | null; author: string; status: string; publish_at: Date | null; updated_at: Date;
 };
 
 const toArticle = (r: Row): Article => ({
@@ -31,7 +33,7 @@ const toArticle = (r: Row): Article => ({
   title: r.title,
   publishedAt: (r.publish_at ?? r.updated_at).toISOString(),
   author: r.author,
-  image: r.cover_type ? `/api/articles/${r.id}/cover?v=${r.updated_at.getTime()}` : undefined,
+  image: r.cover_type ? `/api/articles/${r.id}/cover?v=${r.updated_at.getTime()}` : r.cover_url || undefined,
   imageAlt: r.image_alt,
   imageW: r.cover_w ?? undefined,
   imageH: r.cover_h ?? undefined,
@@ -40,9 +42,11 @@ const toArticle = (r: Row): Article => ({
   words: wordCount(r.body),
   draft: !(r.status === "published" && r.publish_at && r.publish_at.getTime() <= Date.now()),
   dbId: r.id,
+  modifiedAt: r.updated_at.toISOString(),
+  guidebook: r.guidebook,
 });
 
-const COLS = "id, slug, title, description, body, cover_type, cover_w, cover_h, image_alt, author, status, publish_at, updated_at";
+const COLS = "id, slug, title, description, body, cover_type, cover_w, cover_h, cover_url, guidebook, image_alt, author, status, publish_at, updated_at";
 
 async function live(): Promise<Article[]> {
   if (!dbConfigured) return [];

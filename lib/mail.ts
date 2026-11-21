@@ -11,7 +11,7 @@ export const esc = (s: unknown = "") => String(s ?? "").replace(/[&<>"']/g, (c) 
 // so callers can fall back to showing a copyable link to the admin.
 
 export type MailAttachment = { filename: string; content: Buffer; type: string };
-type MailOpts = { replyTo?: string; from?: string; attachments?: MailAttachment[] };
+type MailOpts = { replyTo?: string; from?: string; attachments?: MailAttachment[]; headers?: Record<string, string> };
 
 const defaultFrom = () => process.env.MAIL_FROM || process.env.LEAD_FROM_EMAIL || "Labb <info@mail.labb.com>";
 
@@ -34,7 +34,7 @@ async function viaSendGrid(to: string[], subject: string, html: string, text: st
     method: "POST",
     headers: { Authorization: `Bearer ${process.env.SENDGRID_API_KEY}`, "Content-Type": "application/json" },
     body: JSON.stringify({
-      personalizations: [{ to: to.map((email) => ({ email })) }],
+      personalizations: [{ to: to.map((email) => ({ email })), ...(o.headers ? { headers: o.headers } : {}) }],
       from: parseFrom(o.from || defaultFrom()),
       ...(o.replyTo ? { reply_to: { email: o.replyTo } } : {}),
       subject,
@@ -60,7 +60,7 @@ async function viaSmtp(to: string[], subject: string, html: string, text: string
     auth: { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS },
   });
   await transport.sendMail({
-    from: o.from || defaultFrom(), to, replyTo: o.replyTo, subject, html, text,
+    from: o.from || defaultFrom(), to, replyTo: o.replyTo, subject, html, text, headers: o.headers,
     attachments: o.attachments?.map((a) => ({ filename: a.filename, content: a.content, contentType: a.type })),
   });
 }
@@ -70,7 +70,7 @@ async function viaResend(to: string[], subject: string, html: string, text: stri
     method: "POST",
     headers: { Authorization: `Bearer ${process.env.RESEND_API_KEY}`, "Content-Type": "application/json" },
     body: JSON.stringify({
-      from: o.from || defaultFrom(), to, reply_to: o.replyTo, subject, html, text,
+      from: o.from || defaultFrom(), to, reply_to: o.replyTo, subject, html, text, ...(o.headers ? { headers: o.headers } : {}),
       ...(o.attachments?.length ? { attachments: o.attachments.map((a) => ({ filename: a.filename, content: a.content.toString("base64") })) } : {}),
     }),
   });

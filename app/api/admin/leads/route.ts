@@ -4,6 +4,7 @@ import { sql } from "@/lib/db";
 import { field, go } from "@/lib/http";
 import { emailPartner, logLeadEvent, type LeadRow } from "@/lib/leads";
 import { isSegment, isStatus, segmentLabel, statusLabel } from "@/lib/segments";
+import { sequenceName, startSequence, stopSequence } from "@/lib/sequences";
 
 // Admin actions on a lead. Nothing here deletes a lead: every change is logged in lead_events.
 export async function POST(req: Request) {
@@ -61,6 +62,22 @@ export async function POST(req: Request) {
       await db`update leads set owner = 'labb', partner_id = null, updated_at = now() where id = ${id}`;
       await logLeadEvent(id, "returned", null, actor);
       await flash("Lead passed back to Labb.");
+    }
+  } else if (action === "sequence") {
+    const seq = field(fd, "sequence", 80);
+    const r = await startSequence(seq, lead, admin, false);
+    if (!r.ok) await flash(r.error, "error");
+    else {
+      await logLeadEvent(id, "sequence", `${r.name} sequence started`, actor);
+      await flash(`${r.name} sequence started. The first email went to ${lead.email}.`);
+    }
+  } else if (action === "sequence-stop") {
+    const run = field(fd, "run", 20);
+    const [r] = await db<{ sequence: string }[]>`select sequence from sequence_runs where id = ${/^\d+$/.test(run) ? run : "0"} and lead_id = ${id} and status = 'active'`;
+    if (r) {
+      await stopSequence(run);
+      await logLeadEvent(id, "sequence", `${sequenceName(r.sequence)} sequence stopped`, actor);
+      await flash(`${sequenceName(r.sequence)} sequence stopped.`);
     }
   } else if (action === "archive" || action === "unarchive") {
     const archived = action === "archive";

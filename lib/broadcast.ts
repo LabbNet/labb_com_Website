@@ -5,12 +5,13 @@ import { sendMail } from "@/lib/mail";
 import { site } from "@/lib/site";
 
 // HTML email broadcasts to CPP members or newsletter subscribers, sent through SendGrid in batches.
-export type Audience = "cpp" | "employers" | "clinics" | "newsletter";
+export type Audience = "cpp" | "employers" | "clinics" | "newsletter" | "sequences";
 export const AUDIENCES: Record<Audience, { label: string; why: string }> = {
   cpp: { label: "CPP members", why: "You're receiving this because you're a member of the Labb Channel Partner Program." },
   employers: { label: "Employer newsletter", why: "You're receiving this because you joined the Labb newsletter for employers at labb.com." },
   clinics: { label: "Clinic newsletter", why: "You're receiving this because you joined the Labb newsletter for clinics and collection sites at labb.com." },
   newsletter: { label: "All newsletter subscribers (old list)", why: "You're receiving this because you subscribed to Labb updates at labb.com." },
+  sequences: { label: "Guidebook emails", why: "You're receiving this because a Labb guidebook was shared with you." },
 };
 // The lists offered when composing an email. "newsletter" is kept only for older campaigns.
 export const SEND_AUDIENCES: Audience[] = ["cpp", "employers", "clinics"];
@@ -36,6 +37,7 @@ export async function getCampaign(id: string) {
 // Recipients: active CPP members with active accounts, or everyone who signed up for the newsletter. Minus unsubscribes.
 export async function recipients(audience: Audience): Promise<{ email: string; name: string | null }[]> {
   const db = sql();
+  if (audience === "sequences") return []; // guidebook sequences are sent one lead at a time (lib/sequences.ts)
   if (audience === "cpp") {
     return db<{ email: string; name: string | null }[]>`
       select distinct on (lower(m.email)) lower(m.email) as email, m.name from members m
@@ -45,7 +47,7 @@ export async function recipients(audience: Audience): Promise<{ email: string; n
   }
   // Newsletter lists: people who opted in on a form, by the kind of organization they told us they are.
   // Clinics that apply to the CPP join the clinic list. An unsubscribe from the old single list still applies.
-  const segs = audience === "newsletter" ? null : LIST_SEGMENTS[audience];
+  const segs = audience === "newsletter" ? null : LIST_SEGMENTS[audience as "employers" | "clinics"];
   return db<{ email: string; name: string | null }[]>`
     select distinct on (lower(l.email)) lower(l.email) as email, nullif(trim(coalesce(l.first_name, '') || ' ' || coalesce(l.last_name, '')), '') as name
     from leads l
@@ -58,7 +60,7 @@ export async function recipients(audience: Audience): Promise<{ email: string; n
 
 export async function audienceCounts(): Promise<Record<Audience, number>> {
   const [cpp, employers, clinics, newsletter] = await Promise.all((["cpp", "employers", "clinics", "newsletter"] as Audience[]).map((a) => recipients(a)));
-  return { cpp: cpp.length, employers: employers.length, clinics: clinics.length, newsletter: newsletter.length };
+  return { cpp: cpp.length, employers: employers.length, clinics: clinics.length, newsletter: newsletter.length, sequences: 0 };
 }
 
 // ---- Unsubscribe links (signed, no stored tokens) ----
@@ -84,6 +86,11 @@ export function oneClickUrl(email: string, audience: Audience) {
 }
 export async function suppress(email: string, audience: Audience) {
   await sql()`insert into email_suppressions (email, audience) values (${email.toLowerCase()}, ${audience}) on conflict do nothing`;
+  if (audience === "sequences") {
+    // Stop every guidebook sequence still running for this address.
+    const runs = await sql()<{ id: string }[]>`update sequence_runs set status = 'unsubscribed', updated_at = now() where lower(email) = ${email.toLowerCase()} and status = 'active' returning id`;
+    if (runs.length) await sql()`update sequence_sends set status = 'canceled' where status = 'queued' and run_id = any(${runs.map((r) => r.id)})`;
+  }
 }
 
 // ---- Building the message ----
@@ -105,6 +112,7 @@ Ramsey Diagnostics Corporation d/b/a Labb, 2115 Granby Street, Norfolk, VA 23517
 }
 
 // Full message HTML. `unsub` is the real link for a preview/test, or the SendGrid placeholder for a broadcast.
+export { footer as listFooter };
 export function buildHtml(c: Pick<Campaign, "audience" | "subject" | "preheader" | "html" | "wrap">, unsub: string) {
   const body = cleanHtml(c.html);
   const pre = c.preheader

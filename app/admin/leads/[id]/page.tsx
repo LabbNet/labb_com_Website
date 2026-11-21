@@ -6,6 +6,7 @@ import { fmtDate, readFlash, requireAdmin } from "@/lib/admin";
 import { sql } from "@/lib/db";
 import { partnerOptions } from "@/lib/leadQuery";
 import { detailRows, leadName, type LeadRow } from "@/lib/leads";
+import { runsForLeads, SEQUENCES, sequenceName, STEP_DAYS } from "@/lib/sequences";
 import { LEAD_STATUSES, SEGMENT_PATH, SEGMENTS, isSegment, segmentLabel, statusLabel } from "@/lib/segments";
 
 export const metadata: Metadata = { title: "Lead", robots: { index: false, follow: false } };
@@ -24,6 +25,7 @@ const EVENT_LABEL: Record<string, string> = {
   unarchived: "Restored from archive",
   segment: "Segment changed",
   partner_emailed: "Partner emailed",
+  sequence: "Guidebook emails",
 };
 
 export default async function AdminLead({ params }: { params: Promise<{ id: string }> }) {
@@ -34,11 +36,12 @@ export default async function AdminLead({ params }: { params: Promise<{ id: stri
   const [lead] = await db<LeadRow[]>`
     select l.*, m.name as partner_name, m.clinic as partner_clinic from leads l left join members m on m.id = l.partner_id where l.id = ${id}`;
   if (!lead) notFound();
-  const [events, partners, flash] = await Promise.all([
+  const [events, partners, flash, runs] = await Promise.all([
     db<{ id: string; event: string; detail: string | null; actor_name: string | null; created_at: Date }[]>`
       select id, event, detail, actor_name, created_at from lead_events where lead_id = ${id} order by created_at desc, id desc`,
     partnerOptions(),
     readFlash(),
+    runsForLeads([String(lead.id)]),
   ]);
 
   const d = lead.data || {};
@@ -133,6 +136,34 @@ export default async function AdminLead({ params }: { params: Promise<{ id: stri
                   <p style={{ margin: 0 }}>Passed to <strong>{lead.partner_clinic || lead.partner_name}</strong>{lead.passed_at ? ` on ${fmtDate(lead.passed_at)}` : ""}.</p>
                   <button className="btn btn-outline-dark" type="submit">Pass back to Labb</button>
                 </>)}
+              </div>
+
+              <div className="hero-card">
+                {post("sequence", <>
+                  <h3><label htmlFor="l-seq">Guidebook emails</label></h3>
+                  <select id="l-seq" name="sequence" required defaultValue="">
+                    <option value="" disabled>Choose a guidebook</option>
+                    <optgroup label="Employers (CPP members can send these)">
+                      {SEQUENCES.filter((q) => q.audience === "employer").map((q) => <option key={q.id} value={q.id}>{q.name}</option>)}
+                    </optgroup>
+                    <optgroup label="Clinics">
+                      {SEQUENCES.filter((q) => q.audience === "clinic").map((q) => <option key={q.id} value={q.id}>{q.name}</option>)}
+                    </optgroup>
+                  </select>
+                  <button className="btn btn-primary" type="submit">Start sequence</button>
+                  <p className="fine" style={{ margin: 0 }}>{STEP_DAYS.length} emails over {STEP_DAYS[STEP_DAYS.length - 1]} days: the guidebook, three articles and a follow-up. <Link href="/admin/sequences">Preview</Link></p>
+                </>)}
+                {runs.length > 0 && (
+                  <ul className="seq-runs">
+                    {runs.map((r) => (
+                      <li key={r.id}>
+                        <span><strong>{sequenceName(r.sequence)}</strong> <span className={`status s-${r.status === "active" ? "contacted" : r.status === "completed" ? "won" : "lost"}`}>{r.status}</span></span>
+                        <span className="fine">{r.sent} of {STEP_DAYS.length} sent{r.next_due ? ` · next ${fmtDate(r.next_due)}` : ""} · {r.partner_id ? "by CPP member " : ""}{r.starter_name || "System"}, {fmtDate(r.created_at)}</span>
+                        {r.status === "active" && post("sequence-stop", <><input type="hidden" name="run" value={r.id} /><button className="linkish" type="submit">Stop</button></>)}
+                      </li>
+                    ))}
+                  </ul>
+                )}
               </div>
 
               <div className="hero-card">

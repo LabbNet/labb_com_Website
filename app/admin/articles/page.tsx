@@ -31,7 +31,7 @@ export default async function ArticlesAdmin() {
             <p className="lede" style={{ margin: 0, maxWidth: 760 }}>Write articles for labb.com/news, publish now or schedule a release, then send them to LinkedIn, Facebook, X, Instagram and the newsletter.</p>
             <Link href="/admin/articles/new" className="btn btn-primary">+ New article</Link>
           </div>
-          {!rows.length ? <p className="hero-card">No articles yet. The 9 articles from the old site still show on News.</p> : (
+          {!rows.length ? <p className="hero-card">No articles yet.</p> : (
             <div className="bg-table-wrap">
               <table className="bg-table">
                 <thead><tr><th scope="col">Article</th><th scope="col">Status</th><th scope="col">Release</th><th scope="col">Shared</th></tr></thead>

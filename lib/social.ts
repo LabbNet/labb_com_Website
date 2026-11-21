@@ -121,5 +121,8 @@ export async function dispatchDue(force = false) {
       console.error("[social] post failed", d.id, e);
     }
   }
+  // Guidebook sequence emails ride the same clock.
+  const { dispatchSequences } = await import("@/lib/sequences");
+  await dispatchSequences().catch((e) => console.error("[sequences] dispatch failed", e));
   return due.length;
 }

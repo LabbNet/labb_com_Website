@@ -6,6 +6,7 @@ import { Breadcrumbs, CtaBand, JsonLd } from "@/components/ui";
 import { findArticle, listArticles } from "@/lib/articles";
 import { currentMember } from "@/lib/auth";
 import { absoluteUrl, site } from "@/lib/site";
+import { getResource } from "@/lib/resources";
 
 export const dynamic = "force-dynamic";
 
@@ -28,7 +29,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
     description: a.description,
     alternates: { canonical: `/news/${a.slug}` },
     robots: a.draft ? { index: false, follow: false } : undefined,
-    openGraph: { type: "article", publishedTime: a.publishedAt, images: a.image ? [{ url: a.image }] : undefined },
+    openGraph: { type: "article", publishedTime: a.publishedAt, modifiedTime: a.modifiedAt, images: a.image ? [{ url: a.image }] : undefined },
   };
 }
 
@@ -36,6 +37,7 @@ export default async function ArticlePage({ params }: { params: Promise<{ slug: 
   const a = await load((await params).slug);
   if (!a) notFound();
   const more = (await listArticles()).filter((x) => x.slug !== a.slug).slice(0, 3);
+  const guide = a.guidebook ? getResource(a.guidebook) : undefined;
   const date = new Date(a.publishedAt).toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" });
 
   return (
@@ -53,6 +55,16 @@ export default async function ArticlePage({ params }: { params: Promise<{ slug: 
           )}
           <div className="prose" dangerouslySetInnerHTML={{ __html: a.html }} />
           <aside className="prose" style={{ marginTop: 48 }}>
+            {guide && (
+              <div className="card top guide-cta" style={{ marginBottom: 20 }}>
+                <Image src={guide.cover} alt={`${guide.shortTitle} cover`} width={guide.coverW} height={guide.coverH} sizes="140px" />
+                <div>
+                  <h2 style={{ fontSize: "1.3rem" }}>Free: {guide.shortTitle}</h2>
+                  <p>{guide.lede}</p>
+                  <div className="btn-row" style={{ marginTop: 16 }}><Link href={`/resources/${guide.slug}`} className="btn btn-primary">Get the guidebook</Link></div>
+                </div>
+              </div>
+            )}
             <div className="card top">
               <h2 style={{ fontSize: "1.3rem" }}>Run rapid testing in-house</h2>
               <p>Get a quote or a free sample, and see how an objective digital read works for your program.</p>
@@ -82,6 +94,7 @@ export default async function ArticlePage({ params }: { params: Promise<{ slug: 
           headline: a.title,
           description: a.description,
           datePublished: a.publishedAt,
+          dateModified: a.modifiedAt && a.modifiedAt > a.publishedAt ? a.modifiedAt : a.publishedAt,
           image: a.image ? absoluteUrl(a.image) : undefined,
           author: { "@type": "Organization", name: "Labb" },
           publisher: { "@id": `${site.url}/#org` },
