@@ -1532,3 +1532,14 @@ td.acts { white-space: nowrap; }
 .bg-check-group li .bg-note { color: #9a4f1f; }
 .an-forms-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 16px; margin-top: 16px; }
 @media (max-width: 900px) { .an-forms-grid { grid-template-columns: 1fr; } }
+.cost-icon { display: grid; place-items: center; width: 120px; height: 120px; border-radius: 24px; background: var(--orange); color: #fff; box-shadow: 0 10px 24px rgba(0,0,0,.3); }
+.cost-icon svg { width: 64px; height: 64px; }
+@media (max-width: 860px) { .cost-icon { width: 90px; height: 90px; border-radius: 18px; } .cost-icon svg { width: 48px; height: 48px; } }
+.leads-head { display: flex; justify-content: space-between; align-items: flex-end; gap: 16px; flex-wrap: wrap; margin-bottom: 20px; }
+.add-lead { margin-bottom: 24px; scroll-margin-top: 120px; }
+.add-lead summary { cursor: pointer; display: flex; flex-direction: column; gap: 2px; list-style: none; }
+.add-lead summary::-webkit-details-marker { display: none; }
+.add-lead summary strong::after { content: " +"; color: var(--orange); }
+.add-lead[open] summary strong::after { content: " −"; }
+.add-lead summary .fine { text-align: left; }
+.cost-icon svg { width: 78px; height: 78px; }

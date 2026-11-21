@@ -4,7 +4,7 @@ import { fmtDate, readFlash } from "@/lib/admin";
 import { currentMember } from "@/lib/auth";
 import { sql } from "@/lib/db";
 import { leadName, type LeadRow } from "@/lib/leads";
-import { LEAD_STATUSES, segmentLabel, statusLabel } from "@/lib/segments";
+import { LEAD_STATUSES, MEMBER_LEAD_SEGMENTS, segmentLabel, statusLabel } from "@/lib/segments";
 import { quotesFor } from "@/lib/quotes";
 import { PRICE_CATEGORIES } from "@/lib/cppPricing";
 import { QuoteForm, type QuoteProduct } from "@/components/QuoteForm";
@@ -31,17 +31,48 @@ export default async function MemberLeads() {
   return (
     <section className="section" style={{ paddingTop: 32 }}>
       <div className="wrap">
-        <h1 style={{ fontSize: "1.8rem" }}>Leads from Labb</h1>
-        <p>Labb passes leads to channel partners. Please contact each one promptly and keep its status current so Labb knows how it went.</p>
+        <div className="leads-head">
+          <div>
+            <h1 style={{ fontSize: "1.8rem", margin: 0 }}>My leads</h1>
+            <p style={{ margin: "6px 0 0" }}>Leads Labb passes to you and leads you add yourself. Contact each one promptly and keep its status current so Labb knows how it went.</p>
+          </div>
+          <a href="#add" className="btn btn-primary">+ Add a lead</a>
+        </div>
         <Flash flash={flash} />
-        {!rows.length && <p className="hero-card">No leads have been passed to you yet.</p>}
+        <details className="hero-card add-lead" id="add">
+          <summary><strong>Add a lead</strong><span className="fine">Found a prospect yourself? Add it here so it&apos;s registered to you and Labb can support the deal.</span></summary>
+          <form action="/api/members/leads" method="post" style={{ marginTop: 16 }}>
+            <input type="hidden" name="action" value="add" />
+            <div className="fields">
+              <div className="field full"><label htmlFor="al-co">Organization<span className="req">*</span></label><input id="al-co" name="company" required maxLength={160} autoComplete="organization" /></div>
+              <div className="field"><label htmlFor="al-fn">Contact first name<span className="req">*</span></label><input id="al-fn" name="first_name" required maxLength={80} /></div>
+              <div className="field"><label htmlFor="al-ln">Last name</label><input id="al-ln" name="last_name" maxLength={80} /></div>
+              <div className="field"><label htmlFor="al-em">Email<span className="req">*</span></label><input id="al-em" name="email" type="email" required maxLength={200} /></div>
+              <div className="field"><label htmlFor="al-ph">Phone</label><input id="al-ph" name="phone" type="tel" maxLength={40} /></div>
+              <div className="field"><label htmlFor="al-ci">City</label><input id="al-ci" name="city" maxLength={80} /></div>
+              <div className="field"><label htmlFor="al-st">State</label><input id="al-st" name="state" maxLength={40} /></div>
+              <div className="field">
+                <label htmlFor="al-sg">Type of organization</label>
+                <select id="al-sg" name="segment" defaultValue="employer">
+                  {MEMBER_LEAD_SEGMENTS.map((sg) => <option key={sg} value={sg}>{segmentLabel(sg)}</option>)}
+                </select>
+              </div>
+              <div className="field"><label htmlFor="al-vo">Estimated tests per month</label><input id="al-vo" name="volume" maxLength={60} placeholder="For example: 40" /></div>
+              <div className="field full"><label htmlFor="al-pr">Interested in</label><input id="al-pr" name="products" maxLength={300} placeholder="For example: rapid urine testing, background checks, LabbHR" /></div>
+              <div className="field full"><label htmlFor="al-ms">Notes</label><textarea id="al-ms" name="message" maxLength={2000} placeholder="Where the opportunity stands, decision maker, timing" /></div>
+            </div>
+            <button className="btn btn-primary" type="submit" style={{ marginTop: 16 }}>Add lead</button>
+            <p className="fine" style={{ textAlign: "left", marginTop: 10 }}>Labb is notified of every lead you add. Customers in the CPP are Labb customers, served through you.</p>
+          </form>
+        </details>
+        {!rows.length && <p className="hero-card">No leads yet. Labb will pass leads to you here, and you can add your own above.</p>}
         <div style={{ display: "grid", gap: 20 }}>
           {rows.map((l) => (
             <div className="hero-card" key={l.id}>
               <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "space-between", gap: 12 }}>
                 <div>
                   <h2 style={{ fontSize: "1.2rem", margin: 0 }}>{leadName(l)}</h2>
-                  <span className="fine">{segmentLabel(l.segment)} · passed {fmtDate(l.passed_at)} ET</span>
+                  <span className="fine">{segmentLabel(l.segment)} · {l.type === "partner-added" ? "added" : "passed"} {fmtDate(l.passed_at)} ET</span>
                 </div>
                 <span className={`status s-${l.status}`} style={{ alignSelf: "flex-start" }}>{statusLabel(l.status)}</span>
               </div>

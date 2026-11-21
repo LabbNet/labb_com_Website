@@ -50,3 +50,6 @@ export const VOLUME = ["Under 25 tests a month", "25 to 100", "100 to 500", "500
 // Segments offered in the "I am a" dropdown. Forms are LabbHR-focused, so corrections is not offered
 // (the corrections page still tags its own leads).
 export const FORM_SEGMENTS = SEGMENTS.filter((s) => s.value !== "corrections");
+
+// Segments a CPP member can add a lead for (the CPP covers LabbHR and rapid testing only).
+export const MEMBER_LEAD_SEGMENTS = ["employer", "tpa", "collection-site", "drug-testing-business", "other"] as const;

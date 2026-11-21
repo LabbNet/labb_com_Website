@@ -141,8 +141,15 @@ export default function Employers() {
               if (!cost) return null;
               return (
                 <aside className="cost-callout">
-                  <Link href="/resources/drug-testing-cost-guidebook" className="cost-cover" aria-label={cost.shortTitle}>
-                    <Image src={cost.cover} alt="" width={cost.coverW} height={cost.coverH} sizes="140px" />
+                  <Link href="/resources/drug-testing-cost-guidebook" className="cost-icon" aria-label={cost.shortTitle}>
+                    <svg viewBox="0 0 64 64" width="64" height="64" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M10 54h44" />
+                      <path d="M16 54V40M26 54V32M36 54V36" />
+                      <path d="M14 30l10-8 8 5 12-12" />
+                      <path d="M38 15h6v6" />
+                      <circle cx="46" cy="44" r="10" />
+                      <path d="M49 40.5c-.8-1-2-1.5-3.3-1.5-1.9 0-3.2 1-3.2 2.4 0 3.4 6.8 1.7 6.8 5.2 0 1.4-1.4 2.4-3.4 2.4-1.4 0-2.7-.6-3.4-1.6M46 37v2M46 49v2" strokeWidth="2.4" />
+                    </svg>
                   </Link>
                   <div className="cost-body">
                     <span className="eyebrow">Budgeting a program?</span>

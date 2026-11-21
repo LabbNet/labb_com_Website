@@ -110,11 +110,12 @@ export const FORM_LABELS: Record<string, string> = {
   newsletter: "Newsletter",
   "quick-test": "Quick Test order",
   "cpp-application": "CPP application",
+  "partner-added": "Added by a CPP member",
 };
 
 function leadWhere(f: F, offsetDays = 0) {
   const db = sql();
-  return db`created_at >= now() - make_interval(days => ${f.days + offsetDays}) and created_at < now() - make_interval(days => ${offsetDays})`;
+  return db`created_at >= now() - make_interval(days => ${f.days + offsetDays}) and created_at < now() - make_interval(days => ${offsetDays}) and type <> 'partner-added'`;
 }
 
 export async function formTotals(f: F, offsetDays = 0) {
