@@ -1597,3 +1597,11 @@ td.acts { white-space: nowrap; }
 .ct-pick label { display: flex; gap: 8px; align-items: baseline; flex-wrap: wrap; font-weight: 400; }
 .ct-group details summary { cursor: pointer; margin-top: 8px; }
 .ct-pages { display: flex; gap: 18px; align-items: center; margin-top: 24px; }
+
+/* Legal documents */
+.legal-toc { background: #f3f5f5; border-radius: 12px; padding: 18px 24px; margin: 24px 0 8px; }
+.legal-toc p { margin: 0 0 6px; }
+.legal-toc ol { margin: 0; padding-left: 22px; columns: 2; column-gap: 32px; font-size: .95rem; }
+.legal-toc li { break-inside: avoid; margin-bottom: 4px; }
+@media (max-width: 700px) { .legal-toc ol { columns: 1; } }
+.legal-doc h2 { scroll-margin-top: 110px; }
