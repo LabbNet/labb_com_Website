@@ -1,6 +1,6 @@
 import { clientIp, RateLimiter } from "@/lib/http";
 import { NextResponse } from "next/server";
-import { addCppProspect } from "@/lib/contracts";
+import { addCppProspect, sendCppRequestWelcome } from "@/lib/contracts";
 import { deliverLead, detailsOf, leadToken, saveLead, STAGE_CONTACT, type Lead } from "@/lib/leads";
 import { quickTestCheckout, quickTestCheckoutReady } from "@/lib/commerce";
 import { isShipping, money, quote } from "@/lib/quickTest";
@@ -165,6 +165,11 @@ export async function POST(req: Request) {
       await addCppProspect(lead);
     } catch (e) {
       console.error("[lead] CPP prospect not created", e);
+    }
+    try {
+      await sendCppRequestWelcome(lead.email);
+    } catch (e) {
+      console.error("[lead] CPP welcome email failed", e);
     }
   }
 

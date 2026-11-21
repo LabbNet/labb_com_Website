@@ -326,3 +326,12 @@ export async function addCppProspect(lead: {
   await db`insert into member_events (member_id, event, detail) values (${m.id}, 'prospect_created', 'CPP application on the website')`;
   return m.id;
 }
+
+// Welcome email sent to everyone who submits the CPP agreement request form (private/emails/cpp-request-welcome.html).
+export async function sendCppRequestWelcome(email: string) {
+  const { readFile } = await import("node:fs/promises");
+  const { join } = await import("node:path");
+  const { toText } = await import("@/lib/broadcast");
+  const html = await readFile(join(process.cwd(), "private", "emails", "cpp-request-welcome.html"), "utf8");
+  return sendMail(email, "Thanks for your CPP request: what Labb provides members", html, toText(html), { replyTo: cppEmail });
+}
