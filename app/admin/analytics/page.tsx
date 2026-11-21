@@ -3,7 +3,7 @@ import Link from "next/link";
 import { AdminBar } from "@/components/AdminBar";
 import { AnalyticsChart } from "@/components/AnalyticsChart";
 import { requireAdmin } from "@/lib/admin";
-import { breakdown, daily, entryPages, FORM_LABELS, formsByPage, formsByType, formTotals, kpis, live, liveCount, RANGES, signedIn, topPages, totalRows, type Kpis, type RangeKey } from "@/lib/analytics";
+import { companies, identifiedShare, knownVisitors, breakdown, daily, entryPages, FORM_LABELS, formsByPage, formsByType, formTotals, kpis, live, liveCount, RANGES, signedIn, topPages, totalRows, type Kpis, type RangeKey } from "@/lib/analytics";
 
 export const metadata: Metadata = { title: "Analytics", robots: { index: false, follow: false } };
 export const dynamic = "force-dynamic";
@@ -57,6 +57,8 @@ export default async function Analytics({ searchParams }: { searchParams: Promis
   const range = (sp.range && sp.range in RANGES ? sp.range : "30") as RangeKey;
   const f = { days: Number(range), staff: sp.staff === "1" };
   const [fNow, fPrev, fTypes, fPages] = await Promise.all([formTotals(f), formTotals(f, f.days), formsByType(f), formsByPage(f)]);
+  const [orgs, known, share] = await Promise.all([companies(f), knownVisitors(f), identifiedShare(f)]);
+  const lookupOn = Boolean(process.env.IPINFO_TOKEN);
   const [k, prev, series, pages, entries, refs, devices, browsers, oses, campaigns, users, now, total, liveN] = await Promise.all([
     kpis(f), kpis(f, f.days), daily(f), topPages(f), entryPages(f), breakdown(f, "referrer"), breakdown(f, "device"),
     breakdown(f, "browser"), breakdown(f, "os"), breakdown(f, "utm_campaign"), signedIn(f), live(), totalRows(), liveCount(),
@@ -118,6 +120,60 @@ export default async function Analytics({ searchParams }: { searchParams: Promis
                 <tbody>{[...series].reverse().map((d) => <tr key={d.day}><td>{d.day}</td><td>{num(d.views)}</td><td>{num(d.visitors)}</td></tr>)}</tbody>
               </table>
             </details>
+          </div>
+
+          <div className="an-card" id="visitors">
+            <div className="an-card-head">
+              <h3>Who&apos;s visiting</h3>
+              <span className="fine">{RANGES[range]}. {share.sessions ? `${Math.round((share.with_org / share.sessions) * 100)}% of visits matched to a company, ${Math.round((share.known / share.sessions) * 100)}% to a known person.` : ""}</span>
+            </div>
+            <div className="an-grid-2">
+              <div className="an-card">
+                <h3>Companies</h3>
+                {!lookupOn && <p className="fine">Company lookup is off. Add an IPINFO_TOKEN in Render to name the companies behind visits.</p>}
+                {lookupOn && !orgs.length && <p className="fine">No company visits matched in this range yet. Visits from home internet and mobile networks can&apos;t be matched to a company.</p>}
+                {orgs.length > 0 && (
+                  <div className="an-scroll">
+                    <table className="admin-table">
+                      <thead><tr><th scope="col">Company</th><th scope="col">Visits</th><th scope="col">Pages</th><th scope="col">Last seen</th></tr></thead>
+                      <tbody>
+                        {orgs.map((o) => (
+                          <tr key={`${o.org}-${o.org_domain}`}>
+                            <th scope="row">
+                              {o.org}{o.pricing && <span className="status s-contacted" style={{ marginLeft: 6 }}>buying pages</span>}
+                              <span className="bg-note">{o.org_domain || ""}{o.top_path ? ` · most viewed ${o.top_path}` : ""}</span>
+                              {o.lead_id && <span className="bg-note">Lead: <Link href={`/admin/leads/${o.lead_id}`}>{o.lead_name}</Link></span>}
+                            </th>
+                            <td>{num(o.sessions)}</td><td>{num(o.views)}</td><td>{ago(o.last_seen)}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+              </div>
+              <div className="an-card">
+                <h3>Known visitors</h3>
+                {!known.length ? <p className="fine">People are recognized after they submit a form or click a link in a Labb email. None in this range yet.</p> : (
+                  <div className="an-scroll">
+                    <table className="admin-table">
+                      <thead><tr><th scope="col">Person</th><th scope="col">Visits</th><th scope="col">Pages</th><th scope="col">Last seen</th></tr></thead>
+                      <tbody>
+                        {known.map((k) => (
+                          <tr key={k.email}>
+                            <th scope="row">
+                              {k.lead_id ? <Link href={`/admin/leads/${k.lead_id}`}>{k.name || k.email}</Link> : k.name || k.email}
+                              <span className="bg-note">{[k.company || k.org, k.top_path ? `most viewed ${k.top_path}` : null, k.source === "email" ? "via email" : null].filter(Boolean).join(" · ")}</span>
+                            </th>
+                            <td>{num(k.sessions)}</td><td>{num(k.views)}</td><td>{ago(k.last_seen)}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+              </div>
+            </div>
           </div>
 
           <div className="an-card" id="forms">

@@ -14,7 +14,7 @@ function where(f: F, offsetDays = 0) {
   const to = db`now() - make_interval(days => ${offsetDays})`;
   // Leave out Labb admins' own browsing unless asked.
   const staff = f.staff ? db`true` : db`coalesce(role, '') <> 'admin'`;
-  return db`ts >= ${from} and ts < ${to} and ${staff} and path not like '/\_\_%'`;
+  return db`ts >= ${from} and ts < ${to} and ${staff} and left(path, 3) <> '/__'`; // (a LIKE with \_ here lost its escape in the template string and hid most pages)
 }
 
 export type Kpis = { views: number; visitors: number; sessions: number; avg_ms: number | null; bounce: number | null; members: number; returning: number };
@@ -149,4 +149,50 @@ export async function formsDaily(f: F) {
     select to_char(d.day, 'YYYY-MM-DD') as day, count(l.id)::int as n
     from days d left join leads l on (l.created_at at time zone ${TZ})::date = d.day and ${leadWhere(f)}
     group by d.day order by d.day`;
+}
+
+// ---- Visitor identification ----
+// Organizations behind visits (IP lookup), with the leads whose email domain matches.
+export async function companies(f: F, limit = 40) {
+  return sql()<{ org: string; org_domain: string | null; visitors: number; sessions: number; views: number; last_seen: Date; top_path: string | null; pricing: boolean; lead_id: string | null; lead_name: string | null }[]>`
+    select p.org, p.org_domain, count(distinct p.visitor)::int as visitors, count(distinct p.session)::int as sessions, count(*)::int as views,
+      max(p.ts) as last_seen, mode() within group (order by p.path) as top_path,
+      bool_or(p.path ~ '^/(quick-test|get-a-quote|channel-partner-program|test-kits)') as pricing,
+      (select l.id::text from leads l where p.org_domain is not null and lower(split_part(l.email, '@', 2)) = lower(max(p.org_domain)) order by l.created_at desc limit 1) as lead_id,
+      (select coalesce(nullif(trim(coalesce(l.company, '') ), ''), l.email) from leads l where p.org_domain is not null and lower(split_part(l.email, '@', 2)) = lower(max(p.org_domain)) order by l.created_at desc limit 1) as lead_name
+    from (select * from page_views where ${where(f)} and org is not null and org_kind in ('business', 'education', 'government')) p
+    group by p.org, p.org_domain order by last_seen desc limit ${limit}`;
+}
+
+// People recognized from a form or an email click, and what they looked at.
+export async function knownVisitors(f: F, limit = 40) {
+  return sql()<{ email: string; lead_id: string | null; name: string | null; company: string | null; source: string; sessions: number; views: number; last_seen: Date; top_path: string | null; org: string | null }[]>`
+    select k.email, max(k.lead_id::text) as lead_id,
+      (select nullif(trim(coalesce(l.first_name, '') || ' ' || coalesce(l.last_name, '')), '') from leads l where l.id = max(k.lead_id)) as name,
+      (select l.company from leads l where l.id = max(k.lead_id)) as company,
+      string_agg(distinct k.source, ', ') as source,
+      count(distinct p.session)::int as sessions, count(p.id)::int as views, max(p.ts) as last_seen,
+      mode() within group (order by p.path) as top_path, max(p.org) as org
+    from visitor_links k join (select * from page_views where ${where(f)}) p on p.visitor = k.visitor
+    group by k.email order by last_seen desc limit ${limit}`;
+}
+
+export async function identifiedShare(f: F) {
+  const [r] = await sql()<{ sessions: number; with_org: number; known: number }[]>`
+    select count(distinct session)::int as sessions,
+      count(distinct session) filter (where org_kind in ('business', 'education', 'government'))::int as with_org,
+      count(distinct session) filter (where visitor in (select visitor from visitor_links))::int as known
+    from page_views where ${where(f)}`;
+  return r;
+}
+
+// A lead's website activity across every browser linked to them.
+export async function leadActivity(leadId: string, email: string) {
+  const db = sql();
+  const views = await db<{ ts: Date; path: string; title: string | null; session: string; duration_ms: number | null; referrer: string | null; utm_source: string | null; utm_campaign: string | null; org: string | null; device: string | null }[]>`
+    select p.ts, p.path, p.title, p.session, p.duration_ms, p.referrer, p.utm_source, p.utm_campaign, p.org, p.device
+    from page_views p
+    where p.visitor in (select visitor from visitor_links where lead_id = ${leadId} or lower(email) = ${email.toLowerCase()})
+    order by p.ts desc limit 300`;
+  return views;
 }

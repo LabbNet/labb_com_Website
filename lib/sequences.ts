@@ -4,6 +4,7 @@ import { esc, sendMail } from "@/lib/mail";
 import { listFooter, oneClickUrl, toText, unsubUrl } from "@/lib/broadcast";
 import { getResource } from "@/lib/resources";
 import { site } from "@/lib/site";
+import { linkToken, tagLinks } from "@/lib/visitors";
 
 // Guidebook promotional sequences: five emails over about two and a half weeks that deliver a guidebook
 // and then feature the News articles written for it. Labb admins can start any sequence for a lead.
@@ -167,7 +168,7 @@ async function sendOne(sendId: string) {
     : [null];
   const msg = await compose(run, s.step, partner ?? null);
   if (!msg) return done("canceled", "No article for this step");
-  const html = wrap(msg.subject, msg.body, unsubUrl(run.email, "sequences"));
+  const html = tagLinks(wrap(msg.subject, msg.body, unsubUrl(run.email, "sequences")), linkToken(run.email));
   const ok = await sendMail(run.email, msg.subject, html, toText(html), {
     replyTo: partner?.email || "info@labb.com",
     ...(partner ? { from: `${(partner.clinic || partner.name).replace(/[<>"]/g, "")} via Labb <info@mail.labb.com>` } : {}),

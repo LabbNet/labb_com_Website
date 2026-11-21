@@ -2,6 +2,8 @@ import { dispatchDue } from "@/lib/social";
 import { cookies, headers } from "next/headers";
 import { sql } from "@/lib/db";
 import { COOKIE, verify } from "@/lib/session";
+import { clientIp } from "@/lib/http";
+import { linkFromToken, orgForView } from "@/lib/visitors";
 
 // First-party page view beacon. POST {t:"v", ...} records a view and returns its id;
 // POST {t:"d", id, ms} sets how long the visitor stayed on that page.
@@ -65,6 +67,10 @@ export async function POST(req: Request) {
     values (${path}, ${clip(body.ti, 200)}, ${ref}, ${clip(body.us, 100)}, ${clip(body.um, 100)}, ${clip(body.uc, 150)}, ${visitor}, ${session},
       ${access?.mid ?? null}, ${access?.role ?? null}, ${d}, ${b}, ${o}, ${region})
     returning id`;
+  // Visitor identification: the company behind the IP, and the person when they arrive from a Labb email.
+  void orgForView(clientIp(h), row.id, session).catch((e) => console.error("[visitors] org", e));
+  const lk = clip(body.k, 400);
+  if (lk) await linkFromToken(visitor, lk).catch((e) => console.error("[visitors] link", e));
   // Keep about 25 months of history.
   if (Math.random() < 0.002) await db`delete from page_views where ts < now() - interval '25 months'`;
   return Response.json({ id: Number(row.id) });

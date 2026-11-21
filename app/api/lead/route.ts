@@ -1,6 +1,8 @@
 import { clientIp, RateLimiter } from "@/lib/http";
 import { NextResponse } from "next/server";
 import { addCppProspect, sendCppRequestWelcome } from "@/lib/contracts";
+import { linkVisitor } from "@/lib/visitors";
+import { cookies } from "next/headers";
 import { deliverLead, detailsOf, leadToken, saveLead, STAGE_CONTACT, type Lead } from "@/lib/leads";
 import { quickTestCheckout, quickTestCheckoutReady } from "@/lib/commerce";
 import { isShipping, money, quote } from "@/lib/quickTest";
@@ -134,6 +136,7 @@ export async function POST(req: Request) {
   if (lead.type === "quick-test" && quickTestCheckoutReady()) {
     try {
       const id = await saveLead(lead);
+      await linkVisitor((await cookies()).get("labb_v")?.value, lead.email, id, "form").catch(() => {});
       const url = await quickTestCheckout(id, lead);
       return NextResponse.json({ ok: true, checkout: url });
     } catch (e) {
@@ -158,6 +161,9 @@ export async function POST(req: Request) {
       { status: 502 },
     );
   }
+
+  // Known visitors: link this browser's visits to the person who submitted the form.
+  await linkVisitor((await cookies()).get("labb_v")?.value, lead.email, saved.id ?? null, "form").catch((e) => console.error("[visitors] link", e));
 
   // A CPP application also becomes a Prospect on the CPP member list. Never blocks the form.
   if (lead.type === "cpp-application") {

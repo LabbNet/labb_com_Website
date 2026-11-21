@@ -1,4 +1,5 @@
 import "server-only";
+import { linkToken, tagLinks } from "@/lib/visitors";
 import { createHmac, timingSafeEqual } from "node:crypto";
 import { sql } from "@/lib/db";
 import { sendMail } from "@/lib/mail";
@@ -105,6 +106,7 @@ export async function suppress(email: string, audience: Audience) {
 
 // ---- Building the message ----
 const UNSUB = "%%unsubscribe_url%%";
+const LK = "%%lk%%"; // per-recipient token on labb.com links (lib/visitors)
 const esc = (s: string) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 
 export function cleanHtml(html: string) {
@@ -172,8 +174,8 @@ export async function sendTest(c: Campaign, to: string) {
 export async function sendCampaign(c: Campaign): Promise<{ sent: number; failed: number; error?: string }> {
   const list = await recipients(c.audience);
   const replyTo = c.audience === "cpp" ? "LCPPS@labb.com" : "info@labb.com";
-  const html = buildHtml(c, UNSUB);
-  const text = toText(html);
+  const html = tagLinks(buildHtml(c, UNSUB), LK);
+  const text = toText(buildHtml(c, UNSUB));
   let sent = 0;
   let failed = 0;
   let error: string | undefined;
@@ -188,7 +190,7 @@ export async function sendCampaign(c: Campaign): Promise<{ sent: number; failed:
           personalizations: batch.map((r) => {
             return {
               to: [{ email: r.email, ...(r.name ? { name: r.name } : {}) }],
-              substitutions: { [UNSUB]: unsubUrl(r.email, c.audience) },
+              substitutions: { [UNSUB]: unsubUrl(r.email, c.audience), [LK]: linkToken(r.email) },
               headers: { "List-Unsubscribe": `<${oneClickUrl(r.email, c.audience)}>`, "List-Unsubscribe-Post": "List-Unsubscribe=One-Click" },
             };
           }),
@@ -213,7 +215,7 @@ export async function sendCampaign(c: Campaign): Promise<{ sent: number; failed:
   } else {
     // No SendGrid: one message per person through whatever mail provider is set up.
     for (const r of list) {
-      const one = buildHtml(c, unsubUrl(r.email, c.audience));
+      const one = tagLinks(buildHtml(c, unsubUrl(r.email, c.audience)), linkToken(r.email));
       (await sendMail(r.email, c.subject, one, toText(one), { replyTo })) ? sent++ : failed++;
     }
     if (failed) error = "Some messages failed. Check the mail settings.";

@@ -21,7 +21,9 @@ Use of the Site is also subject to our [Website Terms of Use](/terms). LabbMD an
 
 **Information collected automatically**
 
-- **Site analytics:** pages viewed, time on page, referring site, campaign tags, device type, browser, operating system and country. We use a random visitor identifier stored in your browser to count visits; it does not contain your name or email.
+- **Site analytics:** pages viewed, time on page, referring site, campaign tags, device type, browser, operating system and country. We use a random visitor identifier stored in your browser and in a first-party cookie to count visits; it does not contain your name or email.
+- **Recognizing returning visitors:** when you submit a form on the Site or click a link in an email from Labb, we connect your browser's visitor identifier to your contact record. This lets us see which pages you have viewed on the Site, before and after, so we can follow up about what interests you. Links in our emails carry a coded identifier for this purpose.
+- **Company lookup:** we use an IP data provider to identify the organization associated with the network you visit from, such as your employer. We store the organization's name and a coded version of your IP address, not the IP address itself. Visits from home and mobile networks are not matched to a person.
 - **Cookies:** cookies that keep you signed in and remember when you have unlocked a guidebook. If we use Google Tag Manager or similar tools, they may set their own cookies to measure traffic and marketing.
 - **Email activity:** delivery and bounce information, and where our email provider reports it, opens and clicks, used to send email reliably and measure what readers find useful.
 - **Security logs:** IP address and request information, used to protect the Site and prevent abuse.
@@ -48,14 +50,14 @@ We use Platform information to provide, maintain, secure and improve the Platfor
 - To provide accounts, courses, certificates, the CPP member area and electronic signing.
 - To send newsletters, guidebook email series and other marketing you have agreed to receive.
 - To connect you with a Labb Channel Partner clinic that can serve you.
-- To measure and improve the Site, our content and our marketing.
+- To measure and improve the Site, our content and our marketing, including understanding which organizations and known contacts visit and what they view.
 - To protect the Site, prevent fraud, enforce our terms and meet legal obligations.
 
 ## 5. How we share information
 
 We do not sell personal information. We share it only as follows:
 
-- **Service providers** that work for us, such as hosting, payment processing, email delivery, shipping, video proctoring, analytics, and customer relationship management. They may use the information only to provide their services to us.
+- **Service providers** that work for us, such as hosting, payment processing, email delivery, shipping, video proctoring, analytics, IP data lookup, and customer relationship management. They may use the information only to provide their services to us.
 - **Channel Partner Program members.** When a CPP member clinic is best placed to serve your request, we share your contact and request details with that clinic. A clinic that sends you a Labb guidebook series receives the replies you send.
 - **Laboratories and medical review officers,** when confirmation testing or review is ordered for a test.
 - **People you authorize,** such as the employer, attorney or court you choose to receive a Quick Test report.
@@ -71,7 +73,7 @@ Every marketing email includes an unsubscribe link. Unsubscribing removes you fr
 
 Depending on where you live, you may have the right to know what personal information we hold about you, to get a copy, to correct it, to delete it, and to opt out of targeted advertising or the sale or sharing of personal information. To make a request, email info@labb.com or call (877) 868-9967. We will verify your request before acting on it, and you may use an authorized agent. If we deny your request, you may appeal by replying to our decision; we will respond within the time required by law. We will not discriminate against you for using these rights.
 
-To opt out of any sale or sharing of personal information, email us with the subject "Do not sell or share." You can also block or delete cookies in your browser settings, though some parts of the Site may not work without them.
+To opt out of any sale or sharing of personal information, email us with the subject "Do not sell or share." You can also block or delete cookies and site data in your browser settings, which resets the visitor identifier and ends any link between your browser and your contact record; some parts of the Site may not work without cookies. You can ask us to delete your website activity by emailing info@labb.com.
 
 Requests about donor records on the Platform should go to the organization that tested you.
 

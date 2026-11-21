@@ -1605,3 +1605,7 @@ td.acts { white-space: nowrap; }
 .legal-toc li { break-inside: avoid; margin-bottom: 4px; }
 @media (max-width: 700px) { .legal-toc ol { columns: 1; } }
 .legal-doc h2 { scroll-margin-top: 110px; }
+.lead-visits { display: grid; gap: 10px; }
+.lead-visits details { padding: 14px 18px; text-align: left; }
+.lead-visits summary { cursor: pointer; }
+.lead-visits ol { margin: 10px 0 0; padding-left: 22px; display: grid; gap: 4px; }

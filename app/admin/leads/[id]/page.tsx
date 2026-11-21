@@ -6,6 +6,7 @@ import { fmtDate, readFlash, requireAdmin } from "@/lib/admin";
 import { sql } from "@/lib/db";
 import { partnerOptions } from "@/lib/leadQuery";
 import { detailRows, leadName, type LeadRow } from "@/lib/leads";
+import { leadActivity } from "@/lib/analytics";
 import { runsForLeads, SEQUENCES, sequenceName, STEP_DAYS } from "@/lib/sequences";
 import { LEAD_STATUSES, SEGMENT_PATH, SEGMENTS, isSegment, segmentLabel, statusLabel } from "@/lib/segments";
 
@@ -43,6 +44,9 @@ export default async function AdminLead({ params }: { params: Promise<{ id: stri
     readFlash(),
     runsForLeads([String(lead.id)]),
   ]);
+  const views = await leadActivity(String(lead.id), lead.email);
+  const visits = [...new Set(views.map((v) => v.session))];
+  const orgSeen = views.find((v) => v.org)?.org;
 
   const d = lead.data || {};
   const facts: [string, unknown][] = [
@@ -188,6 +192,30 @@ export default async function AdminLead({ params }: { params: Promise<{ id: stri
               </div>
             </div>
           </div>
+
+          <h2 style={{ fontSize: "1.3rem", marginTop: 40 }}>Website activity</h2>
+          {!views.length ? (
+            <p className="fine" style={{ textAlign: "left" }}>No visits linked yet. Visits are linked when this person submits a form or clicks a link in a Labb email from their browser.</p>
+          ) : (
+            <>
+              <p className="fine" style={{ textAlign: "left" }}>{visits.length} {visits.length === 1 ? "visit" : "visits"} · {views.length} pages · first seen {fmtDate(views[views.length - 1].ts)} ET{orgSeen ? ` · network: ${orgSeen}` : ""}</p>
+              <div className="lead-visits">
+                {visits.slice(0, 15).map((sid) => {
+                  const pv = views.filter((v) => v.session === sid).reverse();
+                  const first = pv[0];
+                  const src = first.utm_source ? `${first.utm_source}${first.utm_campaign ? ` / ${first.utm_campaign}` : ""}` : first.referrer || "Direct";
+                  return (
+                    <details key={sid} className="hero-card">
+                      <summary><strong>{fmtDate(first.ts)} ET</strong> <span className="fine">· {pv.length} {pv.length === 1 ? "page" : "pages"} · from {src}{first.device ? ` · ${first.device}` : ""}</span></summary>
+                      <ol>
+                        {pv.map((v, i) => <li key={i}><a href={v.path} target="_blank" rel="noreferrer">{v.title?.replace(/ \| Labb$/, "") || v.path}</a> <span className="fine">{v.path}{v.duration_ms ? ` · ${Math.round(v.duration_ms / 1000)}s` : ""}</span></li>)}
+                      </ol>
+                    </details>
+                  );
+                })}
+              </div>
+            </>
+          )}
 
           <h2 style={{ fontSize: "1.3rem", marginTop: 40 }}>History</h2>
           <ul className="history">

@@ -25,6 +25,15 @@ export function Tracker() {
     const v = store(typeof localStorage !== "undefined" ? localStorage : undefined, "labb_v");
     const s = store(typeof sessionStorage !== "undefined" ? sessionStorage : undefined, "labb_s");
     const q = new URLSearchParams(location.search);
+    // First-party cookie with the same id, so forms can link this browser to the person who submits them.
+    try { document.cookie = `labb_v=${v}; path=/; max-age=63072000; SameSite=Lax${location.protocol === "https:" ? "; Secure" : ""}`; } catch {}
+    // A Labb email link carries "lk" to recognize the reader. Take it out of the address bar so it isn't shared.
+    const lk = q.get("lk");
+    if (lk) {
+      const u = new URL(location.href);
+      u.searchParams.delete("lk");
+      history.replaceState(history.state, "", u.pathname + u.search + u.hash);
+    }
     const state = { id: null as number | null, start: Date.now(), s, sent: false };
     cur.current = state;
     const send = () => {
@@ -43,7 +52,7 @@ export function Tracker() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           t: "v", p: path, ti: document.title, r: document.referrer, v, s,
-          us: q.get("utm_source"), um: q.get("utm_medium"), uc: q.get("utm_campaign"),
+          us: q.get("utm_source"), um: q.get("utm_medium"), uc: q.get("utm_campaign"), k: lk,
         }),
         keepalive: true,
       }).then((r) => (r.ok && r.status === 200 ? r.json() : null)).then((j) => { if (j?.id) state.id = j.id; }).catch(() => {});
