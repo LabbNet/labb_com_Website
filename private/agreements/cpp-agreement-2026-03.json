@@ -1,0 +1,13 @@
+{
+  "file": "cpp-agreement-2026-03.pdf",
+  "title": "Channel Partner Program Agreement",
+  "version": "2026.03 Final",
+  "fields": [
+    { "key": "partner_name",  "page": 0, "x": 327, "y": 889.5, "w": 138, "size": 9.5 },
+    { "key": "partner_state", "page": 0, "x": 483, "y": 889.5, "w": 90,  "size": 9.5 },
+    { "key": "partner_sig",   "page": 5, "x": 343, "y": 376.5, "w": 200, "size": 9 },
+    { "key": "partner_date",  "page": 5, "x": 350, "y": 312.5, "w": 180, "size": 9 },
+    { "key": "labb_sig",      "page": 5, "x": 91,  "y": 376.5, "w": 200, "size": 9 },
+    { "key": "labb_date",     "page": 5, "x": 98,  "y": 312.5, "w": 180, "size": 9 }
+  ]
+}

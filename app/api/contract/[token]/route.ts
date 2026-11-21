@@ -14,12 +14,13 @@ export async function POST(req: Request, { params }: { params: Promise<{ token: 
   const name = field(fd, "name", 120);
   const title = field(fd, "title", 120);
   const company = field(fd, "company", 200);
+  const state = field(fd, "state", 60);
   const typed = field(fd, "signature", 120);
-  if (!name || !company) return back("missing");
+  if (!name || !company || !state) return back("missing");
   if (fd.get("consent") !== "yes" || fd.get("agree") !== "yes") return back("consent");
   if (norm(typed) !== norm(name)) return back("signature");
   try {
-    const res = await signContract(r, { name, title, company, ip: clientIp(req.headers), agent: (req.headers.get("user-agent") || "unknown").slice(0, 300) });
+    const res = await signContract(r, { name, title, company, state, ip: clientIp(req.headers), agent: (req.headers.get("user-agent") || "unknown").slice(0, 300) });
     if (res.error) return back();
   } catch (e) {
     console.error("[contract] signing failed", e);

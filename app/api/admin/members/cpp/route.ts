@@ -1,8 +1,8 @@
 import { currentMember, logEvent, sameOrigin } from "@/lib/auth";
 import { setFlash } from "@/lib/admin";
 import { sql } from "@/lib/db";
-import { field, go } from "@/lib/http";
-import { saveTemplate, sendContract } from "@/lib/contracts";
+import { clientIp, field, go } from "@/lib/http";
+import { countersign, saveTemplate, sendContract } from "@/lib/contracts";
 
 // CPP program record for a member: start date, active/inactive, and signed contract files.
 const MAX_BYTES = 15 * 1024 * 1024;
@@ -118,6 +118,21 @@ export async function POST(req: Request) {
     else {
       await logEvent(m.id, "contract_sent", `Signing link emailed to ${r.to}`, admin.id);
       await flash(`Contract sent to ${r.to}. The signing link works for 30 days.`);
+    }
+    return go(req, back);
+  }
+
+  if (action === "countersign") {
+    const title = field(fd, "title", 120);
+    if (!title) {
+      await flash("Enter your title for the signature line.", "error");
+      return go(req, back);
+    }
+    const r = await countersign(field(fd, "rid", 20), { id: admin.id, name: admin.name }, title, clientIp(req.headers));
+    if (r.error) await flash(r.error, "error");
+    else {
+      await logEvent(m.id, "contract_countersigned", `Countersigned by ${admin.name}`, admin.id);
+      await flash(`Countersigned. The fully executed agreement was emailed to ${r.company ?? "the partner"} and saved to Contracts.`);
     }
     return go(req, back);
   }

@@ -1461,3 +1461,6 @@ td.acts { white-space: nowrap; }
 .sign-form .check input { margin-top: 4px; flex: none; }
 .sig-input { font-family: "Times New Roman", Georgia, serif; font-style: italic; font-size: 1.5rem !important; }
 .agreement-head { display: flex; justify-content: space-between; gap: 20px; align-items: center; flex-wrap: wrap; }
+.countersign { display: grid; grid-template-columns: minmax(0, 320px) auto; gap: 10px 16px; align-items: end; margin-top: 16px; padding: 16px; background: #fbf4ee; border-radius: 12px; }
+.countersign .form-sub { grid-column: 1 / -1; }
+@media (max-width: 640px) { .countersign { grid-template-columns: 1fr; } }

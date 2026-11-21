@@ -6,7 +6,7 @@ export const metadata: Metadata = { title: "Sign your CPP agreement", robots: { 
 export const dynamic = "force-dynamic";
 
 const ERRORS: Record<string, string> = {
-  missing: "Enter your full name and the business name.",
+  missing: "Enter your full name, the business name and the state of incorporation.",
   consent: "Check both boxes to sign.",
   signature: "Type your full name in the signature box exactly as you entered it above.",
   session: "Your session expired. Please try again.",
@@ -22,7 +22,7 @@ export default async function SignContract({ params, searchParams }: { params: P
     return (
       <Shell>
         <h1>Thank you. Your agreement is signed.</h1>
-        <p className="lede">A signed copy of the {r.title} is on its way to {r.sent_to}. Labb will contact you about next steps.</p>
+        <p className="lede">A copy of the {r.title} with your signature is on its way to {r.sent_to}. Labb will countersign it and email you the fully executed agreement.</p>
         <p>Questions? Email <a href={`mailto:${cppEmail}`}>{cppEmail}</a>.</p>
       </Shell>
     );
@@ -57,6 +57,10 @@ export default async function SignContract({ params, searchParams }: { params: P
           <div className="field">
             <label htmlFor="s-company">Legal business name</label>
             <input id="s-company" name="company" defaultValue={r.legal_name || r.clinic || ""} required maxLength={200} autoComplete="organization" />
+          </div>
+          <div className="field">
+            <label htmlFor="s-state">State of incorporation</label>
+            <input id="s-state" name="state" placeholder="For example: Virginia" required maxLength={60} autoComplete="address-level1" />
           </div>
           <div className="field">
             <label htmlFor="s-name">Your full name</label>

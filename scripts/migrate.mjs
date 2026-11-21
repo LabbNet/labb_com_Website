@@ -29,6 +29,24 @@ try {
   }
   console.log("[migrate] up to date");
 
+  // Agreement PDFs shipped in private/agreements (a PDF plus a .json with title, version and field
+  // positions). Each is loaded once, by fingerprint; it becomes the active agreement only if none is active.
+  const agDir = join(dirname(fileURLToPath(import.meta.url)), "..", "private", "agreements");
+  let manifests = [];
+  try { manifests = readdirSync(agDir).filter((f) => f.endsWith(".json")); } catch {}
+  for (const mf of manifests) {
+    const meta = JSON.parse(readFileSync(join(agDir, mf), "utf8"));
+    const pdf = readFileSync(join(agDir, meta.file));
+    const { createHash } = await import("node:crypto");
+    const hash = createHash("sha256").update(pdf).digest("hex");
+    const [have] = await sql`select id from contract_templates where sha256 = ${hash}`;
+    if (have) continue;
+    const [{ n }] = await sql`select count(*)::int as n from contract_templates where active`;
+    await sql`insert into contract_templates (title, version, filename, data, sha256, active, fields)
+      values (${meta.title}, ${meta.version}, ${meta.file}, ${pdf}, ${hash}, ${n === 0}, ${sql.json(meta.fields || null)})`;
+    console.log(`[migrate] loaded agreement ${meta.title} ${meta.version}${n === 0 ? " (active)" : ""}`);
+  }
+
   // First-admin bootstrap: if ADMIN_EMAIL is set and no admin exists yet, create one and print a
   // one-time setup link (7 days) to the service logs. Does nothing once an admin exists.
   const adminEmail = (process.env.ADMIN_EMAIL || "").trim().toLowerCase();

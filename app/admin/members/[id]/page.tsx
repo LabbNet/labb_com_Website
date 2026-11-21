@@ -24,7 +24,8 @@ const EVENT_LABEL: Record<string, string> = {
   cpp_prospect: "CPP set to prospect",
   prospect_created: "Became a CPP prospect",
   contract_sent: "Contract sent",
-  contract_signed: "Contract signed",
+  contract_signed: "Contract signed by partner",
+  contract_countersigned: "Contract countersigned by Labb",
   contract_uploaded: "Contract uploaded",
   contract_deleted: "Contract deleted",
 };
@@ -41,7 +42,7 @@ type Row = {
 
 export default async function AdminMember({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  await requireAdmin(`/admin/members/${id}`);
+  const admin = await requireAdmin(`/admin/members/${id}`);
   if (!/^[0-9a-f-]{36}$/i.test(id)) notFound();
   const db = sql();
   const [m] = await db<Row[]>`
@@ -61,8 +62,10 @@ export default async function AdminMember({ params }: { params: Promise<{ id: st
     readFlash(),
     activeTemplate(),
     db<{ id: string; status: string; sent_to: string; sent_at: Date; expires_at: Date; viewed_at: Date | null; signed_at: Date | null;
-      signer_name: string | null; version: string; member_contract_id: string | null; by_name: string | null }[]>`
-      select r.id, r.status, r.sent_to, r.sent_at, r.expires_at, r.viewed_at, r.signed_at, r.signer_name, t.version, r.member_contract_id, u.name as by_name
+      signer_name: string | null; version: string; member_contract_id: string | null; by_name: string | null;
+      labb_signed_at: Date | null; labb_signer_name: string | null }[]>`
+      select r.id, r.status, r.sent_to, r.sent_at, r.expires_at, r.viewed_at, r.signed_at, r.signer_name, t.version, r.member_contract_id, u.name as by_name,
+        r.labb_signed_at, r.labb_signer_name
       from contract_requests r join contract_templates t on t.id = r.template_id left join members u on u.id = r.sent_by
       where r.member_id = ${id} order by r.sent_at desc limit 10`,
   ]);
@@ -96,7 +99,10 @@ export default async function AdminMember({ params }: { params: Promise<{ id: st
                 <p className="form-sub" style={{ margin: 0 }}>
                   {signed
                     ? <>Signed {fmtDate(signed.signed_at!)} by <strong>{signed.signer_name}</strong> (version {signed.version}).{" "}
-                        {signed.member_contract_id && <a href={`/api/admin/members/contracts/${signed.member_contract_id}`} target="_blank" rel="noopener">Open the signed PDF</a>}</>
+                        {signed.labb_signed_at
+                          ? <>Countersigned by {signed.labb_signer_name} {fmtDate(signed.labb_signed_at)}. <strong>Fully executed.</strong>{" "}</>
+                          : <strong>Waiting for Labb&apos;s countersignature.</strong>}{" "}
+                        {signed.member_contract_id && <a href={`/api/admin/members/contracts/${signed.member_contract_id}`} target="_blank" rel="noopener">Open the PDF</a>}</>
                     : pending
                       ? <>Sent to {pending.sent_to} {fmtDate(pending.sent_at)}{pending.viewed_at ? `, opened ${fmtDate(pending.viewed_at)}` : ", not opened yet"}. The link expires {fmtDate(pending.expires_at)}.</>
                       : template
@@ -110,12 +116,25 @@ export default async function AdminMember({ params }: { params: Promise<{ id: st
                 <button className="btn btn-primary" type="submit" disabled={!template}>{pending || signed ? "Send Contract again" : "Send Contract"}</button>
               </form>
             </div>
+            {signed && !signed.labb_signed_at && (
+              <form action="/api/admin/members/cpp" method="post" className="countersign">
+                <input type="hidden" name="id" value={m.id} />
+                <input type="hidden" name="action" value="countersign" />
+                <input type="hidden" name="rid" value={signed.id} />
+                <div className="field">
+                  <label htmlFor="cs-title">Your title on Labb&apos;s signature line</label>
+                  <input id="cs-title" name="title" defaultValue="Chief Executive Officer" maxLength={120} required />
+                </div>
+                <button className="btn btn-primary" type="submit">Countersign for Labb</button>
+                <p className="form-sub" style={{ margin: 0 }}>Signs as you ({admin.name}) with today&apos;s date, which becomes the Effective Date, and emails the fully executed copy to the partner.</p>
+              </form>
+            )}
             {requests.length > 0 && (
               <ul className="contract-list" style={{ marginTop: 14 }}>
                 {requests.map((r) => (
                   <li key={r.id}>
                     <div>
-                      <strong>{r.status === "signed" ? "Signed" : r.status === "void" ? "Replaced by a newer link" : r.expires_at.getTime() < Date.now() ? "Expired" : r.status === "viewed" ? "Opened, not signed" : "Sent, not opened"}</strong>
+                      <strong>{r.status === "signed" ? (r.labb_signed_at ? "Fully executed" : "Signed by partner") : r.status === "void" ? "Replaced by a newer link" : r.expires_at.getTime() < Date.now() ? "Expired" : r.status === "viewed" ? "Opened, not signed" : "Sent, not opened"}</strong>
                       {" "}· version {r.version}
                       <span className="sub">Sent {fmtDate(r.sent_at)} to {r.sent_to}{r.by_name ? ` by ${r.by_name}` : ""}{r.signed_at ? ` · signed ${fmtDate(r.signed_at)}` : ""}</span>
                     </div>
