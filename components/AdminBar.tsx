@@ -16,6 +16,7 @@ const SECTIONS = [
       { href: "/admin/articles", label: "Articles" },
       { href: "/admin/email", label: "Email" },
       { href: "/admin/sequences", label: "Sequences" },
+      { href: "/admin/contacts", label: "Contacts" },
     ],
   },
   {

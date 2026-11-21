@@ -1579,3 +1579,21 @@ td.acts { white-space: nowrap; }
 .seq-runs li form { display: inline; }
 
 .seq-preview { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 20px; }
+
+/* Admin contacts */
+.ct-upload { display: flex; flex-wrap: wrap; gap: 16px; align-items: flex-end; margin-top: 14px; }
+.ct-upload .field { margin: 0; }
+.ct-filter { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin: 18px 0; }
+.ct-filter input { min-width: 260px; }
+.ct-groups { display: grid; gap: 14px; }
+.ct-group { text-align: left; }
+.ct-group h3 { margin: 0; font-size: 1.05rem; }
+.ct-filter input, .ct-filter select { padding: 8px 10px; border: 1px solid #c9d1d3; border-radius: 8px; font: inherit; }
+.ct-head { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 12px; align-items: center; }
+.ct-assign { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.ct-assign form { display: contents; }
+.ct-assign .btn-sm, .btn-sm { padding: 6px 12px; font-size: .85rem; }
+.ct-pick ul { list-style: none; padding: 0; margin: 10px 0; display: grid; gap: 6px; }
+.ct-pick label { display: flex; gap: 8px; align-items: baseline; flex-wrap: wrap; font-weight: 400; }
+.ct-group details summary { cursor: pointer; margin-top: 8px; }
+.ct-pages { display: flex; gap: 18px; align-items: center; margin-top: 24px; }

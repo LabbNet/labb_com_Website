@@ -14,7 +14,7 @@ export function Newsletter() {
       const res = await fetch("/api/lead", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ type: "newsletter", segment: fd.get("audience") === "clinic" ? "collection-site" : "employer", email: fd.get("email"), website: fd.get("website"), newsletter: true, page: window.location.pathname, elapsed: Date.now() - started.current }),
+        body: JSON.stringify({ type: "newsletter", segment: ({ clinic: "collection-site", treatment: "treatment", corrections: "corrections" } as Record<string, string>)[String(fd.get("audience"))] || "employer", email: fd.get("email"), website: fd.get("website"), newsletter: true, page: window.location.pathname, elapsed: Date.now() - started.current }),
       });
       setState(res.ok ? "done" : "error");
     } catch {
@@ -29,6 +29,8 @@ export function Newsletter() {
         <legend className="sr-only">I am</legend>
         <label><input type="radio" name="audience" value="employer" defaultChecked /> Employer</label>
         <label><input type="radio" name="audience" value="clinic" /> Clinic or collection site</label>
+        <label><input type="radio" name="audience" value="treatment" /> Treatment center</label>
+        <label><input type="radio" name="audience" value="corrections" /> Corrections</label>
       </fieldset>
       <label htmlFor="nl-email">Email address</label>
       <input id="nl-email" name="email" type="email" required autoComplete="email" placeholder="you@company.com" />
