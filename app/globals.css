@@ -1543,3 +1543,27 @@ td.acts { white-space: nowrap; }
 .add-lead[open] summary strong::after { content: " −"; }
 .add-lead summary .fine { text-align: left; }
 .cost-icon svg { width: 78px; height: 78px; }
+
+/* Articles admin */
+.article-editor { display: grid; grid-template-columns: minmax(0, 1.6fr) minmax(320px, 1fr); gap: 24px; align-items: start; }
+.article-side { position: sticky; top: 120px; }
+.article-body-input { font-family: ui-monospace, Menlo, Consolas, monospace; font-size: .92rem; line-height: 1.55; }
+.article-cover-preview { max-width: 320px; border-radius: 10px; border: 1px solid var(--border); }
+.publish-choice { border: 0; padding: 0; margin: 0; display: grid; gap: 8px; }
+.publish-choice legend { font-weight: 600; margin-bottom: 6px; }
+.publish-choice label { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; font-weight: 400; }
+.publish-choice input[type="datetime-local"], .send-when input[type="datetime-local"] { min-height: 38px; border: 1px solid var(--gray); border-radius: 8px; padding: 4px 8px; font: inherit; }
+.send-panel fieldset { border: 0; padding: 0; margin: 0 0 12px; }
+.send-panel legend { font-weight: 600; margin-bottom: 8px; }
+.send-outlets { display: flex; flex-wrap: wrap; gap: 8px; }
+.outlet { display: inline-flex; align-items: center; gap: 8px; padding: 8px 14px; border: 1px solid var(--gray); border-radius: 999px; cursor: pointer; font-weight: 600; font-size: .92rem; background: #fff; }
+.outlet input { accent-color: var(--orange); }
+.outlet.on { border-color: var(--orange); background: #fbf1ea; color: #9a4f1f; }
+.outlet.all { border-style: dashed; }
+.send-when { display: flex; flex-wrap: wrap; gap: 10px 16px; align-items: center; margin: 12px 0 16px; }
+.send-when label { display: inline-flex; gap: 6px; align-items: center; }
+.article-danger { display: flex; gap: 18px; margin-top: 16px; padding-left: 4px; }
+@media (max-width: 960px) { .article-editor { grid-template-columns: 1fr; } .article-side { position: static; } }
+.nl-who { border: 0; padding: 0; margin: 0 0 8px; display: flex; flex-wrap: wrap; gap: 6px 14px; }
+.nl-who label { display: inline-flex; align-items: center; gap: 6px; font-size: .85rem; color: inherit; font-weight: 500; }
+.nl-who input { accent-color: var(--orange); }

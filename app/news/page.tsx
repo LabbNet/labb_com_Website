@@ -2,7 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import type { Metadata } from "next";
 import { Breadcrumbs, CtaBand } from "@/components/ui";
-import { articles } from "@/lib/articles";
+import { listArticles } from "@/lib/articles";
 
 export const metadata: Metadata = {
   title: "Drug Testing News and Insights",
@@ -12,7 +12,10 @@ export const metadata: Metadata = {
 
 const fmt = (d: string) => new Date(d).toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" });
 
-export default function NewsIndex() {
+export const dynamic = "force-dynamic";
+
+export default async function NewsIndex() {
+  const articles = await listArticles();
   return (
     <>
       <Breadcrumbs items={[{ name: "News", href: "/news" }]} />

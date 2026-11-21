@@ -3,16 +3,25 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import { Breadcrumbs, CtaBand, JsonLd } from "@/components/ui";
-import { allArticleSlugs, articles, getArticle } from "@/lib/articles";
+import { findArticle, listArticles } from "@/lib/articles";
+import { currentMember } from "@/lib/auth";
 import { absoluteUrl, site } from "@/lib/site";
 
-export function generateStaticParams() {
-  return allArticleSlugs().map((slug) => ({ slug }));
+export const dynamic = "force-dynamic";
+
+// Articles written in admin that aren't live yet are visible only to Labb admins (for preview).
+async function load(slug: string) {
+  const a = await findArticle(slug);
+  if (!a) return undefined;
+  if (a.dbId && a.draft) {
+    const m = await currentMember();
+    if (m?.role !== "admin") return undefined;
+  }
+  return a;
 }
-export const dynamicParams = false;
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
-  const a = getArticle((await params).slug);
+  const a = await load((await params).slug);
   if (!a) return {};
   return {
     title: a.title,
@@ -24,9 +33,9 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
 }
 
 export default async function ArticlePage({ params }: { params: Promise<{ slug: string }> }) {
-  const a = getArticle((await params).slug);
+  const a = await load((await params).slug);
   if (!a) notFound();
-  const more = articles.filter((x) => x.slug !== a.slug).slice(0, 3);
+  const more = (await listArticles()).filter((x) => x.slug !== a.slug).slice(0, 3);
   const date = new Date(a.publishedAt).toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" });
 
   return (
@@ -35,7 +44,7 @@ export default async function ArticlePage({ params }: { params: Promise<{ slug: 
       <article className="section" style={{ paddingTop: 32 }}>
         <div className="wrap">
           <header className="prose" style={{ marginBottom: 32 }}>
-            {a.draft && <p className="fine-print" style={{ color: "var(--orange)", fontWeight: 700 }}>Draft: not listed in News yet.</p>}
+            {a.draft && <p className="fine-print" style={{ color: "var(--orange)", fontWeight: 700 }}>{a.dbId ? "Preview: this article isn't live yet. Only Labb admins can see it." : "Draft: not listed in News yet."}</p>}
             <p className="article-meta">{date} · {Math.max(1, Math.round(a.words / 220))} min read</p>
             <h1 style={{ fontSize: "clamp(2rem, 4vw, 2.9rem)" }}>{a.title}</h1>
           </header>

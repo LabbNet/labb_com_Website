@@ -9,7 +9,7 @@ import { resources } from "@/lib/resources";
 
 // Clinic-facing books have free landing pages but are presented in the clinic library, not the employer list.
 const CLINIC_BOOKS = ["clinic-owners-guidebook", "background-screening-guidebook"];
-import { articles } from "@/lib/articles";
+import { listArticles } from "@/lib/articles";
 
 export const metadata: Metadata = {
   title: "Drug Testing Training, Guidebooks and Certification",
@@ -36,7 +36,8 @@ const faqs = [
   { q: "Is this DOT training?", a: "No. Labb guidebooks cover company (non-DOT) testing. DOT certification is being added as a benefit for Channel Partner Program members." },
 ];
 
-export default function TrainingPage() {
+export default async function TrainingPage() {
+  const articles = await listArticles();
   return (
     <>
       <PageHero

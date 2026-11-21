@@ -1,4 +1,4 @@
-import { AUDIENCES, type Audience, type Campaign } from "@/lib/broadcast";
+import { AUDIENCES, SEND_AUDIENCES, type Audience, type Campaign } from "@/lib/broadcast";
 
 // Compose / edit form for an email broadcast (server component; plain form post).
 export function EmailCompose({ c, counts }: { c?: Campaign; counts: Record<Audience, number> }) {
@@ -8,7 +8,7 @@ export function EmailCompose({ c, counts }: { c?: Campaign; counts: Record<Audie
       {c && <input type="hidden" name="id" value={c.id} />}
       <fieldset className="aud-pick">
         <legend>Send to</legend>
-        {(Object.keys(AUDIENCES) as Audience[]).map((a) => (
+        {[...SEND_AUDIENCES, ...(c && !SEND_AUDIENCES.includes(c.audience) ? [c.audience] : [])].map((a: Audience) => (
           <label key={a} className="aud-opt">
             <input type="radio" name="audience" value={a} defaultChecked={(c?.audience ?? "cpp") === a} required />
             <span><strong>{AUDIENCES[a].label}</strong><em>{counts[a]} {counts[a] === 1 ? "person" : "people"}</em></span>

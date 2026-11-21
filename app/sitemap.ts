@@ -1,12 +1,15 @@
 import { drugProfiles } from "@/lib/drugProfiles";
 import type { MetadataRoute } from "next";
-import { articles } from "@/lib/articles";
+import { listArticles } from "@/lib/articles";
 import { industries } from "@/lib/industries";
 import { publishedKits } from "@/lib/kits";
 import { resources } from "@/lib/resources";
 import { absoluteUrl } from "@/lib/site";
 
-export default function sitemap(): MetadataRoute.Sitemap {
+export const dynamic = "force-dynamic";
+
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
+  const articles = await listArticles();
   const now = new Date();
   const page = (path: string, priority: number, changeFrequency: "weekly" | "monthly" | "yearly" = "monthly") => ({
     url: absoluteUrl(path),

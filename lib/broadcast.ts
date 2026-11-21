@@ -5,12 +5,20 @@ import { sendMail } from "@/lib/mail";
 import { site } from "@/lib/site";
 
 // HTML email broadcasts to CPP members or newsletter subscribers, sent through SendGrid in batches.
-export type Audience = "cpp" | "newsletter";
+export type Audience = "cpp" | "employers" | "clinics" | "newsletter";
 export const AUDIENCES: Record<Audience, { label: string; why: string }> = {
   cpp: { label: "CPP members", why: "You're receiving this because you're a member of the Labb Channel Partner Program." },
-  newsletter: { label: "Newsletter subscribers", why: "You're receiving this because you subscribed to Labb updates at labb.com." },
+  employers: { label: "Employer newsletter", why: "You're receiving this because you joined the Labb newsletter for employers at labb.com." },
+  clinics: { label: "Clinic newsletter", why: "You're receiving this because you joined the Labb newsletter for clinics and collection sites at labb.com." },
+  newsletter: { label: "All newsletter subscribers (old list)", why: "You're receiving this because you subscribed to Labb updates at labb.com." },
 };
-export const isAudience = (a: string): a is Audience => a === "cpp" || a === "newsletter";
+// The lists offered when composing an email. "newsletter" is kept only for older campaigns.
+export const SEND_AUDIENCES: Audience[] = ["cpp", "employers", "clinics"];
+export const isAudience = (a: string): a is Audience => a in AUDIENCES;
+
+// Which form segments feed each newsletter list.
+// Earlier footer sign-ups had no type ("other"); they stay on the employer list.
+const LIST_SEGMENTS: Record<"employers" | "clinics", string[]> = { employers: ["employer", "other", "general"], clinics: ["collection-site"] };
 
 export type Campaign = {
   id: string; audience: Audience; subject: string; preheader: string; html: string; wrap: boolean;
@@ -35,17 +43,22 @@ export async function recipients(audience: Audience): Promise<{ email: string; n
         and not exists (select 1 from email_suppressions s where s.email = lower(m.email) and s.audience = 'cpp')
       order by lower(m.email)`;
   }
+  // Newsletter lists: people who opted in on a form, by the kind of organization they told us they are.
+  // Clinics that apply to the CPP join the clinic list. An unsubscribe from the old single list still applies.
+  const segs = audience === "newsletter" ? null : LIST_SEGMENTS[audience];
   return db<{ email: string; name: string | null }[]>`
     select distinct on (lower(l.email)) lower(l.email) as email, nullif(trim(coalesce(l.first_name, '') || ' ' || coalesce(l.last_name, '')), '') as name
     from leads l
-    where (l.type = 'newsletter' or l.data->>'newsletter' = 'true') and l.email like '%@%'
-      and not exists (select 1 from email_suppressions s where s.email = lower(l.email) and s.audience = 'newsletter')
+    where ((l.type = 'newsletter' or l.data->>'newsletter' = 'true') or (${audience === "clinics"} and l.type = 'cpp-application'))
+      and (${segs === null} or l.segment = any(${segs ?? []}) or (${audience === "clinics"} and l.type = 'cpp-application'))
+      and l.email like '%@%'
+      and not exists (select 1 from email_suppressions s where s.email = lower(l.email) and s.audience in (${audience}, 'newsletter'))
     order by lower(l.email), l.created_at desc`;
 }
 
-export async function audienceCounts() {
-  const [cpp, nl] = await Promise.all([recipients("cpp"), recipients("newsletter")]);
-  return { cpp: cpp.length, newsletter: nl.length };
+export async function audienceCounts(): Promise<Record<Audience, number>> {
+  const [cpp, employers, clinics, newsletter] = await Promise.all((["cpp", "employers", "clinics", "newsletter"] as Audience[]).map((a) => recipients(a)));
+  return { cpp: cpp.length, employers: employers.length, clinics: clinics.length, newsletter: newsletter.length };
 }
 
 // ---- Unsubscribe links (signed, no stored tokens) ----

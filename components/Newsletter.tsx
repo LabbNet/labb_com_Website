@@ -14,7 +14,7 @@ export function Newsletter() {
       const res = await fetch("/api/lead", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ type: "newsletter", email: fd.get("email"), website: fd.get("website"), newsletter: true, page: window.location.pathname, elapsed: Date.now() - started.current }),
+        body: JSON.stringify({ type: "newsletter", segment: fd.get("audience") === "clinic" ? "collection-site" : "employer", email: fd.get("email"), website: fd.get("website"), newsletter: true, page: window.location.pathname, elapsed: Date.now() - started.current }),
       });
       setState(res.ok ? "done" : "error");
     } catch {
@@ -25,6 +25,11 @@ export function Newsletter() {
   if (state === "done") return <p className="nl-done">Thanks. You&apos;re on the list.</p>;
   return (
     <form className="nl" onSubmit={onSubmit}>
+      <fieldset className="nl-who">
+        <legend className="sr-only">I am</legend>
+        <label><input type="radio" name="audience" value="employer" defaultChecked /> Employer</label>
+        <label><input type="radio" name="audience" value="clinic" /> Clinic or collection site</label>
+      </fieldset>
       <label htmlFor="nl-email">Email address</label>
       <input id="nl-email" name="email" type="email" required autoComplete="email" placeholder="you@company.com" />
       <div className="hp" aria-hidden="true"><input name="website" tabIndex={-1} autoComplete="off" /></div>

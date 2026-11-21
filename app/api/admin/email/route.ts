@@ -1,7 +1,7 @@
 import { currentMember, sameOrigin } from "@/lib/auth";
 import { setFlash } from "@/lib/admin";
 import { sql } from "@/lib/db";
-import { getCampaign, isAudience, recipients, sendCampaign, sendTest } from "@/lib/broadcast";
+import { getCampaign, isAudience, recipients, SEND_AUDIENCES, sendCampaign, sendTest } from "@/lib/broadcast";
 import { field, go } from "@/lib/http";
 
 const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
@@ -32,7 +32,7 @@ export async function POST(req: Request) {
       html = await file.text();
     }
     const back = id ? `/admin/email/${id}` : "/admin/email";
-    const err = !isAudience(audience) ? "Choose who gets the email."
+    const err = !isAudience(audience) || !SEND_AUDIENCES.includes(audience) ? "Choose who gets the email."
       : !subject ? "Enter a subject line."
       : !html.trim() ? "Paste the email HTML or upload an .html file."
       : html.length > MAX_HTML ? "The email HTML is too large (900 KB max). Host images online instead of embedding them."

@@ -1,3 +1,4 @@
+import { dispatchDue } from "@/lib/social";
 import { cookies, headers } from "next/headers";
 import { sql } from "@/lib/db";
 import { COOKIE, verify } from "@/lib/session";
@@ -27,6 +28,8 @@ export async function POST(req: Request) {
   } catch {
     return new Response(null, { status: 400 });
   }
+  // Scheduled article posts ride along on site traffic (at most once a minute, never delays the response).
+  void dispatchDue().catch((e) => console.error("[social] dispatch", e));
   const db = sql();
 
   if (body.t === "d") {

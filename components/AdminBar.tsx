@@ -8,6 +8,12 @@ const SECTIONS = [
     links: [
       { href: "/admin/leads", label: "Leads" },
       { href: "/admin/quotes", label: "Quotes" },
+    ],
+  },
+  {
+    label: "Content",
+    links: [
+      { href: "/admin/articles", label: "Articles" },
       { href: "/admin/email", label: "Email" },
     ],
   },
