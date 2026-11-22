@@ -63,7 +63,7 @@ export async function recipients(audience: Audience): Promise<{ email: string; n
         and l.email like '%@%'
       union all
       select lower(c.email), nullif(trim(coalesce(c.first_name, '') || ' ' || coalesce(c.last_name, '')), ''), c.created_at
-      from contact_imports c where c.status = 'assigned' and (c.list = ${audience} or ${segs === null}) and c.email like '%@%'
+      from contact_imports c where c.status = 'assigned' and (c.list = ${audience} or (${segs === null} and c.list <> 'clinic-locations')) and c.email like '%@%'
     ) x
     where not exists (select 1 from email_suppressions s where s.email = x.email and s.audience in (${audience}, 'newsletter'))
     order by email, created_at desc`;

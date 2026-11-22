@@ -3,14 +3,13 @@ import type { Metadata } from "next";
 import { AdminBar, Flash } from "@/components/AdminBar";
 import { fmtDate, readFlash, requireAdmin } from "@/lib/admin";
 import { sql } from "@/lib/db";
-import { LISTS } from "@/lib/broadcast";
-import { LIST_LABELS, SOURCES, sourceLabel } from "@/lib/contacts";
+import { ALL_LISTS as LISTS, LIST_LABELS, SOURCES, sourceLabel } from "@/lib/contacts";
 
 export const metadata: Metadata = { title: "Contacts", robots: { index: false, follow: false } };
 export const dynamic = "force-dynamic";
 
 const PER = 40;
-type C = { id: string; email: string; first_name: string | null; last_name: string | null; company: string | null; city: string | null; state: string | null; phone: string | null; source: string; list: string | null; status: string; assigned_at: Date | null };
+type C = { id: string; email: string | null; address?: string | null; first_name: string | null; last_name: string | null; company: string | null; city: string | null; state: string | null; phone: string | null; source: string; list: string | null; status: string; assigned_at: Date | null };
 
 // Opt-ins imported from HubSpot and Labb Station wait here until an admin puts them on a list.
 export default async function Contacts({ searchParams }: { searchParams: Promise<{ view?: string; q?: string; state?: string; p?: string }> }) {
@@ -35,7 +34,7 @@ export default async function Contacts({ searchParams }: { searchParams: Promise
     readFlash(),
   ]);
   const n = (k: string) => counts.find((c) => c.k === k)?.n ?? 0;
-  const filter = db`(${q} = '' or lower(coalesce(company, '')) like ${like} or lower(email) like ${like} or lower(coalesce(first_name, '') || ' ' || coalesce(last_name, '')) like ${like})
+  const filter = db`(${q} = '' or lower(coalesce(company, '')) like ${like} or lower(coalesce(email, '')) like ${like} or lower(coalesce(first_name, '') || ' ' || coalesce(last_name, '')) like ${like})
     and (${st} = '' or upper(trim(coalesce(state, ''))) = ${st})`;
 
   // Pending: grouped by company, biggest first, so a whole company goes onto a list with one click.
@@ -52,19 +51,19 @@ export default async function Contacts({ searchParams }: { searchParams: Promise
     const keys = g.map((x) => x.key);
     const cs = keys.length
       ? await db<(C & { key: string })[]>`select *, lower(trim(coalesce(company, ''))) as key from contact_imports
-          where status = 'pending' and lower(trim(coalesce(company, ''))) = any(${keys}) and ${filter} order by lower(email)`
+          where status = 'pending' and lower(trim(coalesce(company, ''))) = any(${keys}) and ${filter} order by lower(coalesce(email, ''))`
       : [];
     groups = g.map((x) => ({ ...x, contacts: cs.filter((c) => c.key === x.key) }));
   } else {
     const r = await db<(C & { total: number })[]>`
       select *, count(*) over ()::int as total from contact_imports
       where ${view === "ignored" ? db`status = 'ignored'` : db`status = 'assigned' and list = ${view}`} and ${filter}
-      order by lower(coalesce(company, '')), lower(email) limit 100 offset ${(page - 1) * 100}`;
+      order by lower(coalesce(company, '')), lower(coalesce(email, '')) limit 100 offset ${(page - 1) * 100}`;
     rows = r;
     total = r[0]?.total ?? 0;
   }
   const pages = Math.max(1, Math.ceil(total / (view === "pending" ? PER : 100)));
-  const name = (c: C) => [c.first_name, c.last_name].filter(Boolean).join(" ");
+  const name = (c: C) => [c.first_name, c.last_name].filter(Boolean).join(" ") || (c.email ? "" : c.company || "");
 
   const listButtons = (hidden: React.ReactNode, label: string) => (
     <div className="ct-assign">
@@ -112,7 +111,7 @@ export default async function Contacts({ searchParams }: { searchParams: Promise
               </div>
               <button className="btn btn-primary" type="submit">Upload</button>
             </form>
-            <p className="fine" style={{ margin: "10px 0 0" }}>Only upload people who opted in to Labb email. Every upload is checked against existing contacts by email, so nobody is added twice; contacts already sorted onto a list keep their list.</p>
+            <p className="fine" style={{ margin: "10px 0 0" }}><strong>Clinic locations (no marketing)</strong> never receive newsletters. Use it for clinics that haven&apos;t opted in and for lab sites such as Quest and LabCorp; rows there may have no email if they include Company and Address. Only upload people who opted in to Labb email. Every upload is checked against existing contacts by email, so nobody is added twice; contacts already sorted onto a list keep their list.</p>
           </details>
 
           <nav className="price-tabs" aria-label="Contact lists">
@@ -176,7 +175,7 @@ export default async function Contacts({ searchParams }: { searchParams: Promise
                       {rows.map((c) => (
                         <tr key={c.id}>
                           <td><input type="checkbox" name="id" value={c.id} aria-label={`Select ${c.email}`} /></td>
-                          <th scope="row">{name(c) || c.email}<span className="bg-note" style={{ color: "var(--muted)" }}>{c.email}</span></th>
+                          <th scope="row">{name(c) || c.email}<span className="bg-note" style={{ color: "var(--muted)" }}>{c.email || [c.address, c.phone].filter(Boolean).join(" · ") || "No email"}</span></th>
                           <td>{c.company}</td>
                           <td>{[c.city, c.state].filter(Boolean).join(", ")}</td>
                           <td>{sourceLabel(c.source)}</td>
