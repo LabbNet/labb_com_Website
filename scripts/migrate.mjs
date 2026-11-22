@@ -12,7 +12,7 @@ if (!url) {
 }
 const host = new URL(url).hostname;
 const local = host === "localhost" || host === "127.0.0.1" || !host.includes(".");
-const sql = postgres(url, { max: 1, ssl: local ? false : "require", onnotice: () => {} });
+const sql = postgres(url, { max: 1, ssl: local ? false : "require", onnotice: (n) => { if (String(n.message || "").startsWith("[")) console.log(n.message); } });
 const dir = join(dirname(fileURLToPath(import.meta.url)), "..", "db", "migrations");
 
 try {
