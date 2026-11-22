@@ -4,7 +4,7 @@ import { sql } from "@/lib/db";
 import { emailLayout, esc, sendMail } from "@/lib/mail";
 import { absoluteUrl } from "@/lib/site";
 import { linkToken, tagLinks } from "@/lib/visitors";
-import { leadName, type LeadRow } from "@/lib/leads";
+import { leadName, logLeadEvent, type LeadRow } from "@/lib/leads";
 
 // Labb lead meetings: weekly hours per Labb team member (Eastern time), 30 minute video calls that
 // prospects book from a private link, and the emails around accepting a lead.
@@ -231,6 +231,47 @@ export async function emailCancelled(lead: LeadRow, m: Mtg, host: { name: string
       { replyTo: host.email, attachments: [{ filename: "labb-meeting.ics", content: cancelIcs(lead.email), type: "text/calendar; method=CANCEL" }] });
   }
 }
+
+// Book (or reschedule) a call for a lead from a slot the prospect picked. Emails both sides and logs it.
+export async function bookMeeting(lead: LeadRow, token: string, startIso: string, notes: string | null, phone: string): Promise<"booked" | "taken" | "pick"> {
+  const db = sql();
+  const start = new Date(startIso);
+  if (!startIso || Number.isNaN(start.getTime())) return "pick";
+  const slot = (await openSlots(lead.meeting_host || null)).find((s) => s.start.getTime() === start.getTime());
+  if (!slot) return "taken";
+  const [host] = await db<{ id: string; name: string; email: string; meeting_url: string | null }[]>`select id, name, email, meeting_url from members where id = ${slot.hostId}`;
+  const end = new Date(start.getTime() + SLOT_MIN * 60000);
+  const [old] = await db<(Mtg & { host_name: string; host_email: string })[]>`
+    select g.id, g.starts_at, g.ends_at, g.room_url, m.name as host_name, m.email as host_email
+    from lead_meetings g join members m on m.id = g.host_id
+    where g.lead_id = ${lead.id} and g.status = 'booked' and g.ends_at > now() order by g.starts_at limit 1`;
+  let mt: Mtg;
+  try {
+    [mt] = await db<Mtg[]>`
+      insert into lead_meetings (lead_id, host_id, starts_at, ends_at, room_url, notes)
+      values (${lead.id}, ${host.id}, ${start}, ${end}, ${roomFor(host)}, ${notes}) returning id, starts_at, ends_at, room_url`;
+  } catch {
+    return "taken";
+  }
+  if (old) {
+    await db`update lead_meetings set status = 'cancelled' where id = ${old.id}`;
+    await emailCancelled(lead, old, { name: old.host_name, email: old.host_email }, true, null);
+  }
+  if (phone && phone !== lead.phone) await db`update leads set phone = ${phone}, updated_at = now() where id = ${lead.id}`;
+  await db`update leads set status = case when status in ('new', 'contacted') then 'qualified' else status end, updated_at = now() where id = ${lead.id}`;
+  const fresh = { ...lead, phone: phone || lead.phone };
+  const sent = await emailBooked(fresh, mt, host, token);
+  await emailHostBooked(fresh, mt, host, notes);
+  await logLeadEvent(lead.id, "meeting", `${old ? "Rescheduled to" : "Booked"} ${fmtWhen(mt.starts_at)} with ${host.name}${sent ? "; confirmation and video link emailed" : "; confirmation email did not send"}${notes ? `. Note: ${notes}` : ""}`, null);
+  return "booked";
+}
+
+// "/schedule/james" -> that team member; "/schedule" -> anyone available.
+export async function hostBySlug(slug: string) {
+  const hosts = await meetingHosts();
+  return hosts.find((h) => h.name.split(" ")[0].toLowerCase() === slug.toLowerCase()) ?? null;
+}
+export const hostSlug = (name: string) => name.split(" ")[0].toLowerCase();
 
 // ---- Jobs: reminder with the meeting link about an hour before ----
 export async function runMeetingJobs() {

@@ -4,7 +4,8 @@ import { AdminBar, Flash } from "@/components/AdminBar";
 import { fmtDate, readFlash, requireAdmin } from "@/lib/admin";
 import { sql } from "@/lib/db";
 import { leadName, type LeadRow } from "@/lib/leads";
-import { DAYS, fmtWhen, hoursFor, meetingHosts, minToClock } from "@/lib/meetings";
+import { DAYS, fmtWhen, hostSlug, hoursFor, meetingHosts, minToClock } from "@/lib/meetings";
+import { absoluteUrl } from "@/lib/site";
 import { segmentLabel } from "@/lib/segments";
 
 export const metadata: Metadata = { title: "Lead meetings", robots: { index: false, follow: false } };
@@ -62,6 +63,16 @@ export default async function Meetings({ searchParams }: { searchParams: Promise
           <Flash flash={flash} />
           <h1 style={{ fontSize: "1.8rem", marginBottom: 6 }}>Lead meetings</h1>
           <p style={{ marginTop: 0 }}>Keep a lead at Labb and Labb emails the prospect a link to book a {30} minute video call with the team member you choose, or with whoever is available. To send a lead to a CPP member instead, open it and pass it; Labb emails the prospect when the member accepts.</p>
+
+          <div className="hero-card" style={{ marginTop: 20, textAlign: "left" }}>
+            <h2 style={{ fontSize: "1.1rem", margin: "0 0 4px" }}>Scheduling links for your emails</h2>
+            <p className="fine" style={{ textAlign: "left", margin: "0 0 12px" }}>Paste these into any email or signature. Anyone can book from them; they enter their name, email and organization, and the call lands here as a lead.</p>
+            <div className="fields">
+              <div className="field"><label htmlFor="sl-me">Calls with you</label><input id="sl-me" readOnly className="copy-link" value={absoluteUrl(`/schedule/${hostSlug(me.name)}`)} /></div>
+              <div className="field"><label htmlFor="sl-any">Calls with anyone available</label><input id="sl-any" readOnly className="copy-link" value={absoluteUrl("/schedule")} /></div>
+            </div>
+            {!hosts.find((h) => h.id === me.id)?.hours && <p className="form-error" style={{ margin: "12px 0 0" }}>Set your meeting hours below, or your link shows no times.</p>}
+          </div>
 
           <h2 style={{ fontSize: "1.3rem", marginTop: 32 }}>Upcoming calls ({upcoming.length})</h2>
           {!upcoming.length ? <p className="fine" style={{ textAlign: "left" }}>No calls booked yet.</p> : (

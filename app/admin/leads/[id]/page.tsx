@@ -9,6 +9,7 @@ import { detailRows, leadName, type LeadRow } from "@/lib/leads";
 import { leadActivity } from "@/lib/analytics";
 import { runsForLeads, SEQUENCES, sequenceName, STEP_DAYS } from "@/lib/sequences";
 import { fmtWhen, meetingHosts } from "@/lib/meetings";
+import { absoluteUrl } from "@/lib/site";
 import { LEAD_STATUSES, SEGMENT_PATH, SEGMENTS, isSegment, segmentLabel, statusLabel } from "@/lib/segments";
 
 export const metadata: Metadata = { title: "Lead", robots: { index: false, follow: false } };
@@ -173,6 +174,12 @@ export default async function AdminLead({ params }: { params: Promise<{ id: stri
                     <button className="linkish" type="submit" name="test" value="1" formNoValidate style={{ justifySelf: "start" }}>Send me a test of this email first</button>
                   </>)}
                   {lead.accepted_at && <div style={{ marginTop: 10 }}>{post("resend-invite", <button className="linkish" type="submit">Resend booking link</button>)}</div>}
+                  {lead.book_token && (
+                    <div className="field" style={{ marginTop: 10 }}>
+                      <label htmlFor="l-bl" className="fine" style={{ textAlign: "left" }}>Their booking link, to paste into your own email</label>
+                      <input id="l-bl" readOnly className="copy-link" value={absoluteUrl(`/meet/${lead.book_token}`)} />
+                    </div>
+                  )}
                 </div>
               ) : (
                 <div className="hero-card">
