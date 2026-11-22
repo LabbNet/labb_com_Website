@@ -26,6 +26,7 @@ async function allSites() {
     from contact_imports
     where status = 'assigned' and list in ('clinics', 'clinic-locations') and not qt_hidden
       and coalesce(trim(company), '') <> '' and coalesce(trim(address), '') <> '' and zip ~ '^\\d{5}'
+      and company not ilike '%fastest lab%' and coalesce(email, '') not ilike '%@fastestlabs.com'
     group by lower(trim(company)), lower(trim(address)), left(zip, 5)`;
   const z = zips();
   const out = rows
