@@ -6,4 +6,7 @@ export async function register() {
   const { runReadsJobs } = await import("@/lib/readsNotify");
   setTimeout(() => runReadsJobs(), 15_000);
   setInterval(() => runReadsJobs(), 60_000);
+  // Lead meeting reminders (video link about an hour before each call).
+  const { runMeetingJobs } = await import("@/lib/meetings");
+  setInterval(() => runMeetingJobs(), 60_000);
 }

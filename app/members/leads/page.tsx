@@ -86,6 +86,16 @@ export default async function MemberLeads() {
                 </div>
                 <span className={`status s-${l.status}`} style={{ alignSelf: "flex-start" }}>{statusLabel(l.status)}</span>
               </div>
+              {l.type !== "partner-added" && (l.accepted_at ? (
+                <p className="fine" style={{ textAlign: "left", margin: "10px 0 0" }}>You accepted this lead {fmtDate(l.accepted_at)} ET. Labb emailed {l.email} to expect your email.</p>
+              ) : (
+                <form action="/api/members/leads" method="post" className="accept-lead">
+                  <input type="hidden" name="action" value="accept" />
+                  <input type="hidden" name="id" value={l.id} />
+                  <button className="btn btn-primary" type="submit">Accept lead</button>
+                  <span className="fine">Labb will email {l.email} that you&apos;ll be contacting them and to watch for your email from {m.email}.</span>
+                </form>
+              ))}
               <table className="lead-facts" style={{ marginTop: 12 }}>
                 <tbody>
                   {([

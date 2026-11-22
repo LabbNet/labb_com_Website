@@ -1721,3 +1721,24 @@ td.acts { white-space: nowrap; }
 .rd-night { position: absolute; left: 0; right: 0; background: rgba(64,73,81,.07); pointer-events: none; }
 .rd-swap { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 10px; align-items: center; padding: 8px 0; border-top: 1px solid #eef1f1; }
 .rd-inline select { padding: 6px 8px; border: 1px solid #c9d1d3; border-radius: 8px; font: inherit; }
+
+/* Lead acceptance and meetings */
+.accept-lead { display: flex; flex-wrap: wrap; gap: 10px 14px; align-items: center; margin-top: 12px; padding: 12px 14px; background: #fbf1ea; border: 1px solid #f0d6c4; border-radius: 10px; }
+.accept-lead .fine { text-align: left; margin: 0; flex: 1 1 260px; }
+.meet-days { display: grid; gap: 18px; margin-top: 18px; }
+.meet-day h3 { font-size: 1rem; margin: 0 0 8px; }
+.meet-slots { display: flex; flex-wrap: wrap; gap: 8px; }
+.meet-slots label { position: relative; }
+.meet-slots input { position: absolute; opacity: 0; inset: 0; cursor: pointer; }
+.meet-slots span { display: inline-block; padding: 8px 14px; border: 1px solid var(--gray); border-radius: 8px; font-weight: 600; font-size: 0.92rem; cursor: pointer; background: #fff; }
+.meet-slots input:checked + span { background: #404951; border-color: #404951; color: #fff; }
+.meet-slots input:focus-visible + span { outline: 2px solid #CF743C; outline-offset: 2px; }
+.hours-grid { display: grid; gap: 8px; }
+.hours-row { display: grid; grid-template-columns: 130px 1fr 1fr; gap: 10px; align-items: center; }
+.hours-row select { min-height: 40px; border: 1px solid var(--gray); border-radius: 8px; padding: 6px 10px; font: 400 0.92rem Poppins, sans-serif; }
+.meet-table { width: 100%; border-collapse: collapse; font-size: 0.93rem; }
+.meet-table th, .meet-table td { text-align: left; padding: 10px 8px; border-bottom: 1px solid #e6eaea; vertical-align: top; }
+.meet-table th { font-size: 0.8rem; text-transform: uppercase; letter-spacing: .04em; color: #5f6a74; }
+.meet-assign { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.meet-assign select { min-height: 38px; border: 1px solid var(--gray); border-radius: 8px; padding: 4px 8px; font: 400 0.9rem Poppins, sans-serif; }
+@media (max-width: 640px) { .hours-row { grid-template-columns: 1fr 1fr; } .hours-row > :first-child { grid-column: 1 / -1; } }

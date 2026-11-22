@@ -4,6 +4,7 @@ import { sql } from "@/lib/db";
 import { field, go } from "@/lib/http";
 import { esc, sendMail } from "@/lib/mail";
 import { linkToken, tagLinks } from "@/lib/visitors";
+import { emailBookingInvite, emailCancelled, newToken } from "@/lib/meetings";
 import { emailPartner, logLeadEvent, type LeadRow } from "@/lib/leads";
 import { isSegment, isStatus, segmentLabel, statusLabel } from "@/lib/segments";
 import { sequenceName, startSequence, stopSequence } from "@/lib/sequences";
@@ -17,7 +18,8 @@ export async function POST(req: Request) {
   const id = field(fd, "id", 20);
   const action = field(fd, "action", 20);
   if (!/^\d+$/.test(id)) return go(req, "/admin/leads");
-  const back = `/admin/leads/${id}`;
+  const nextField = field(fd, "back", 200);
+  const back = nextField.startsWith("/admin/") ? nextField : `/admin/leads/${id}`;
   const db = sql();
   const [lead] = await db<LeadRow[]>`select * from leads where id = ${id}`;
   if (!lead) return go(req, "/admin/leads");
@@ -53,7 +55,7 @@ export async function POST(req: Request) {
       await flash("Choose an active CPP member.", "error");
       return go(req, back);
     }
-    await db`update leads set owner = 'partner', partner_id = ${partner.id}, passed_at = now(), passed_by = ${admin.id}, updated_at = now() where id = ${id}`;
+    await db`update leads set owner = 'partner', partner_id = ${partner.id}, passed_at = now(), passed_by = ${admin.id}, accepted_at = null, accepted_by = null, meeting_host = null, updated_at = now() where id = ${id}`;
     const label = partner.clinic ? `${partner.clinic} (${partner.name})` : partner.name;
     await logLeadEvent(id, "passed", label, actor);
     const sent = await emailPartner(partner, lead);
@@ -61,7 +63,7 @@ export async function POST(req: Request) {
     await flash(sent ? `Lead passed to ${label} and they were emailed.` : `Lead passed to ${label}. Email isn't set up, so let them know it's in their CPP login.`, sent ? "ok" : "error");
   } else if (action === "return") {
     if (lead.owner === "partner") {
-      await db`update leads set owner = 'labb', partner_id = null, updated_at = now() where id = ${id}`;
+      await db`update leads set owner = 'labb', partner_id = null, accepted_at = null, accepted_by = null, updated_at = now() where id = ${id}`;
       await logLeadEvent(id, "returned", null, actor);
       await flash("Lead passed back to Labb.");
     }
@@ -105,6 +107,47 @@ export async function POST(req: Request) {
     await logLeadEvent(id, "emailed", `To ${lead.email}. Subject: ${subject}\n\n${body}`.slice(0, 4000), actor);
     await db`update leads set updated_at = now() where id = ${id}`;
     await flash(`Email sent to ${lead.email}. Replies go to ${admin.email}.`);
+  } else if (action === "accept-labb" || action === "resend-invite") {
+    // Labb keeps the lead: assign it to a team member (or anyone available) and email the prospect a booking link.
+    if (lead.owner !== "labb") {
+      await flash("This lead is with a CPP member. Pass it back to Labb first.", "error");
+      return go(req, back);
+    }
+    const hostField = action === "accept-labb" ? field(fd, "host", 40) : lead.meeting_host || "any";
+    let host: { id: string; name: string; email: string; hours: number } | null = null;
+    if (hostField !== "any") {
+      [host] = await db<{ id: string; name: string; email: string; hours: number }[]>`
+        select m.id, m.name, m.email, (select count(*)::int from meeting_hours h where h.member_id = m.id) as hours
+        from members m where m.id = ${/^[0-9a-f-]{36}$/i.test(hostField) ? hostField : "00000000-0000-0000-0000-000000000000"} and m.role = 'admin' and m.status <> 'disabled'`;
+      if (!host) {
+        await flash("Choose a Labb team member.", "error");
+        return go(req, back);
+      }
+    }
+    const token = lead.book_token || newToken();
+    await db`update leads set accepted_at = coalesce(accepted_at, now()), accepted_by = coalesce(accepted_by, ${admin.id}), meeting_host = ${host?.id ?? null},
+      book_token = ${token}, status = case when status = 'new' then 'contacted' else status end, updated_at = now() where id = ${id}`;
+    const label = host ? host.name : "any available Labb team member";
+    if (action === "accept-labb") await logLeadEvent(id, "accepted", `Kept at Labb and assigned to ${label}`, actor);
+    const sent = await emailBookingInvite(lead, host, token);
+    await logLeadEvent(id, "prospect_emailed", sent ? `Meeting booking link sent to ${lead.email}` : `Booking link email to ${lead.email} did not send`, actor);
+    const noHours = host ? host.hours === 0 : !(await db`select 1 from meeting_hours limit 1`).length;
+    await flash(
+      !sent ? `Saved, but the email to ${lead.email} didn't send. Check the email settings and use Resend booking link.`
+        : noHours ? `Booking link sent to ${lead.email}, but ${host ? host.name : "no one on the team"} has meeting hours set, so there are no times to pick. Set hours under Sales, Meetings.`
+        : `Booking link sent to ${lead.email}${host ? ` for a call with ${host.name}` : ""}.`,
+      sent && !noHours ? "ok" : "error");
+  } else if (action === "meeting-cancel") {
+    const mid = field(fd, "meeting", 20);
+    const [mt] = await db<{ id: string; starts_at: Date; ends_at: Date; room_url: string; host_name: string; host_email: string }[]>`
+      update lead_meetings g set status = 'cancelled' from members m
+      where g.id = ${/^\d+$/.test(mid) ? mid : "0"} and g.lead_id = ${id} and g.status = 'booked' and m.id = g.host_id
+      returning g.id, g.starts_at, g.ends_at, g.room_url, m.name as host_name, m.email as host_email`;
+    if (mt) {
+      await emailCancelled(lead, mt, { name: mt.host_name, email: mt.host_email }, false, lead.book_token || null);
+      await logLeadEvent(id, "meeting", `Meeting cancelled by Labb; ${lead.email} was emailed${lead.book_token ? " a link to pick a new time" : ""}`, actor);
+      await flash("Meeting cancelled and the prospect was emailed.");
+    }
   } else if (action === "archive" || action === "unarchive") {
     const archived = action === "archive";
     await db`update leads set archived = ${archived}, updated_at = now() where id = ${id}`;

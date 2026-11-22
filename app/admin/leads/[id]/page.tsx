@@ -8,6 +8,7 @@ import { partnerOptions } from "@/lib/leadQuery";
 import { detailRows, leadName, type LeadRow } from "@/lib/leads";
 import { leadActivity } from "@/lib/analytics";
 import { runsForLeads, SEQUENCES, sequenceName, STEP_DAYS } from "@/lib/sequences";
+import { fmtWhen, meetingHosts } from "@/lib/meetings";
 import { LEAD_STATUSES, SEGMENT_PATH, SEGMENTS, isSegment, segmentLabel, statusLabel } from "@/lib/segments";
 
 export const metadata: Metadata = { title: "Lead", robots: { index: false, follow: false } };
@@ -28,6 +29,9 @@ const EVENT_LABEL: Record<string, string> = {
   partner_emailed: "Partner emailed",
   sequence: "Guidebook emails",
   emailed: "Email sent",
+  accepted: "Lead accepted",
+  prospect_emailed: "Prospect emailed",
+  meeting: "Meeting",
 };
 
 export default async function AdminLead({ params }: { params: Promise<{ id: string }> }) {
@@ -45,6 +49,13 @@ export default async function AdminLead({ params }: { params: Promise<{ id: stri
     readFlash(),
     runsForLeads([String(lead.id)]),
   ]);
+  const [hosts, meetings] = await Promise.all([
+    meetingHosts(),
+    db<{ id: string; starts_at: Date; status: string; room_url: string; host_name: string }[]>`
+      select g.id, g.starts_at, g.status, g.room_url, m.name as host_name from lead_meetings g join members m on m.id = g.host_id
+      where g.lead_id = ${id} order by g.starts_at desc`,
+  ]);
+  const hostName = lead.meeting_host ? hosts.find((h) => h.id === lead.meeting_host)?.name : null;
   const [views, [blocked]] = await Promise.all([
     leadActivity(String(lead.id), lead.email),
     db<{ n: number }[]>`select 1 as n from email_suppressions where lower(email) = ${lead.email.toLowerCase()} and audience = 'all' limit 1`,
@@ -138,6 +149,36 @@ export default async function AdminLead({ params }: { params: Promise<{ id: stri
                   <button className="btn btn-outline-dark" type="submit">Update status</button>
                 </>)}
               </div>
+
+              {lead.owner === "labb" ? (
+                <div className="hero-card">
+                  <h3><label htmlFor="l-host">{lead.accepted_at ? "Labb call" : "Keep at Labb and book a call"}</label></h3>
+                  {lead.accepted_at ? (
+                    <p className="fine" style={{ margin: 0, textAlign: "left" }}>Accepted {fmtDate(lead.accepted_at)} ET. Assigned to <strong>{hostName || "any available team member"}</strong>.</p>
+                  ) : (
+                    <p className="fine" style={{ margin: 0, textAlign: "left" }}>Emails {lead.email} that someone from Labb would like to schedule a call to go over all of the programs, with a link to book a video meeting.</p>
+                  )}
+                  {meetings.filter((g) => g.status === "booked" && new Date(g.starts_at) > new Date(Date.now() - 3600_000)).map((g) => (
+                    <div key={g.id} className="accept-lead" style={{ marginTop: 4 }}>
+                      <span className="fine"><strong>Booked:</strong> {fmtWhen(g.starts_at)} with {g.host_name}. <a href={g.room_url} target="_blank" rel="noreferrer">Join video meeting</a></span>
+                      {post("meeting-cancel", <><input type="hidden" name="meeting" value={g.id} /><button className="linkish" type="submit">Cancel</button></>)}
+                    </div>
+                  ))}
+                  {post("accept-labb", <>
+                    <select id="l-host" name="host" defaultValue={lead.meeting_host || (lead.accepted_at ? "any" : me.id)}>
+                      <option value="any">Any available Labb team member</option>
+                      {hosts.map((h) => <option key={h.id} value={h.id}>{h.id === me.id ? `Me (${h.name})` : h.name}{h.hours ? "" : " · no meeting hours set"}</option>)}
+                    </select>
+                    <button className={lead.accepted_at ? "btn btn-outline-dark" : "btn btn-primary"} type="submit">{lead.accepted_at ? "Reassign and resend link" : "Accept lead and email booking link"}</button>
+                  </>)}
+                  {lead.accepted_at && <div style={{ marginTop: 10 }}>{post("resend-invite", <button className="linkish" type="submit">Resend booking link</button>)}</div>}
+                </div>
+              ) : (
+                <div className="hero-card">
+                  <h3>CPP member acceptance</h3>
+                  <p className="fine" style={{ margin: 0, textAlign: "left" }}>{lead.accepted_at ? `Accepted ${fmtDate(lead.accepted_at)} ET. Labb emailed ${lead.email} to watch for the partner's email.` : "Waiting for the CPP member to accept. When they do, Labb emails the prospect to watch for their email."}</p>
+                </div>
+              )}
 
               <div className="hero-card">
                 {lead.owner === "labb" ? post("pass", <>

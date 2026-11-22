@@ -67,6 +67,10 @@ export type LeadRow = {
   partner_name?: string | null;
   partner_clinic?: string | null;
   passed_at: Date | null;
+  accepted_at?: Date | null;
+  accepted_by?: string | null;
+  meeting_host?: string | null;
+  book_token?: string | null;
   status: string;
   archived: boolean;
   notified: boolean;

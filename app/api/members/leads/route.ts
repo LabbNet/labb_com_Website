@@ -7,6 +7,7 @@ import { emailLayout, sendMail } from "@/lib/mail";
 import { absoluteUrl, cppEmail } from "@/lib/site";
 import { MEMBER_LEAD_SEGMENTS, segmentLabel } from "@/lib/segments";
 import { isStatus, statusLabel } from "@/lib/segments";
+import { emailPartnerIntro } from "@/lib/meetings";
 import { CPP_SEQUENCES, sequenceName, startSequence, stopSequence } from "@/lib/sequences";
 
 // A CPP member updates a lead Labb passed to them. Logged in the lead's history with their name.
@@ -19,6 +20,7 @@ export async function POST(req: Request) {
   if (field(fd, "action", 20) === "pass") return passLead(req, m, id, field(fd, "partner", 40));
   if (field(fd, "action", 20) === "add") return addLead(req, m, fd);
   if (field(fd, "action", 20) === "sequence") return memberSequence(req, m, id, field(fd, "sequence", 80));
+  if (field(fd, "action", 20) === "accept") return acceptLead(req, m, id);
   if (field(fd, "action", 20) === "sequence-stop") return memberStop(req, m, id, field(fd, "run", 20));
   const status = field(fd, "status", 20);
   const note = field(fd, "note", 2000);
@@ -56,7 +58,7 @@ async function passLead(req: Request, m: { id: string; name: string; clinic: str
     await setFlash("Choose an active CPP member to pass the lead to.", "error", undefined, "/members");
     return go(req, "/members/leads");
   }
-  await db`update leads set partner_id = ${to.id}, passed_at = now(), passed_by = ${m.id}, updated_at = now() where id = ${id}`;
+  await db`update leads set partner_id = ${to.id}, passed_at = now(), passed_by = ${m.id}, accepted_at = null, accepted_by = null, updated_at = now() where id = ${id}`;
   const from = m.clinic ? `${m.name} (${m.clinic})` : m.name;
   const label = to.clinic ? `${to.clinic} (${to.name})` : to.name;
   await logLeadEvent(id, "passed", `${label}, passed by CPP member ${from}`, { id: m.id, name: from });
@@ -64,6 +66,26 @@ async function passLead(req: Request, m: { id: string; name: string; clinic: str
   await logLeadEvent(id, "partner_emailed", sent ? `Emailed ${to.email}` : `Email not sent to ${to.email}`, { id: m.id, name: from });
   await setFlash(`Passed ${lead.company || lead.email} to ${label}.`, "ok", undefined, "/members");
   return go(req, "/members/leads");
+}
+
+// A CPP member accepts a lead Labb passed to them. Labb emails the prospect once to say this member will be in touch.
+async function acceptLead(req: Request, m: Mem, id: string) {
+  const flash = (msg: string, kind: "ok" | "error" = "ok") => setFlash(msg, kind, undefined, "/members");
+  if (!/^\d+$/.test(id)) return go(req, "/members/leads");
+  const db = sql();
+  const [lead] = await db<LeadRow[]>`
+    update leads set accepted_at = now(), accepted_by = ${m.id}, status = case when status = 'new' then 'contacted' else status end, updated_at = now()
+    where id = ${id} and partner_id = ${m.id} and owner = 'partner' and accepted_at is null returning *`;
+  if (!lead) return go(req, `/members/leads#lead-${id}`);
+  const who = m.clinic ? `${m.name} (${m.clinic})` : m.name;
+  const actor = { id: m.id, name: who };
+  await logLeadEvent(id, "accepted", `Accepted by CPP member ${who}`, actor);
+  const sent = await emailPartnerIntro(lead, m);
+  await logLeadEvent(id, "prospect_emailed", sent ? `Labb told ${lead.email} to expect an email from ${who}` : `Introduction email to ${lead.email} did not send`, actor);
+  await flash(sent
+    ? `Lead accepted. Labb emailed ${lead.email} to expect your email, so reach out now from ${m.email}.`
+    : `Lead accepted, but the introduction email to ${lead.email} didn't send. Reach out to them directly.`, sent ? "ok" : "error");
+  return go(req, `/members/leads#lead-${id}`);
 }
 
 const EMAIL = /^[^\s@]{1,64}@[^\s@]{1,190}\.[a-z]{2,}$/i;
