@@ -27,11 +27,12 @@ const EVENT_LABEL: Record<string, string> = {
   segment: "Segment changed",
   partner_emailed: "Partner emailed",
   sequence: "Guidebook emails",
+  emailed: "Email sent",
 };
 
 export default async function AdminLead({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  await requireAdmin(`/admin/leads/${id}`);
+  const me = await requireAdmin(`/admin/leads/${id}`);
   if (!/^\d+$/.test(id)) notFound();
   const db = sql();
   const [lead] = await db<LeadRow[]>`
@@ -44,7 +45,10 @@ export default async function AdminLead({ params }: { params: Promise<{ id: stri
     readFlash(),
     runsForLeads([String(lead.id)]),
   ]);
-  const views = await leadActivity(String(lead.id), lead.email);
+  const [views, [blocked]] = await Promise.all([
+    leadActivity(String(lead.id), lead.email),
+    db<{ n: number }[]>`select 1 as n from email_suppressions where lower(email) = ${lead.email.toLowerCase()} and audience = 'all' limit 1`,
+  ]);
   const visits = [...new Set(views.map((v) => v.session))];
   const orgSeen = views.find((v) => v.org)?.org;
 
@@ -113,6 +117,18 @@ export default async function AdminLead({ params }: { params: Promise<{ id: stri
             </div>
 
             <div className="lead-actions">
+              <div className="hero-card">
+                {post("email", <>
+                  <h3><label htmlFor="l-subj">Send an email</label></h3>
+                  <p className="fine" style={{ margin: 0, textAlign: "left" }}>To {lead.email}. Sent from {me.name} at Labb, and replies come to {me.email}.</p>
+                  {blocked && <p className="fine" style={{ margin: 0, textAlign: "left", color: "#9a3412" }}>This address is on Do not send. Only send something they asked for.</p>}
+                  <input id="l-subj" name="subject" required maxLength={200} placeholder="Subject" />
+                  <textarea name="body" required maxLength={8000} rows={8} defaultValue={`Hi ${lead.first_name || "there"},\n\n\n\n${me.name}\nLabb\n`} aria-label="Message" />
+                  <button className="btn btn-primary" type="submit">Send email</button>
+                  <p className="fine" style={{ margin: 0, textAlign: "left" }}>The full message is saved to this lead&apos;s history.</p>
+                </>)}
+              </div>
+
               <div className="hero-card">
                 {post("status", <>
                   <h3><label htmlFor="l-status">Status</label></h3>
@@ -222,7 +238,9 @@ export default async function AdminLead({ params }: { params: Promise<{ id: stri
           <ul className="history">
             {events.map((e) => (
               <li key={e.id}>
-                <strong>{EVENT_LABEL[e.event] || e.event}</strong>{e.detail ? `: ${e.detail}` : ""}
+                {e.event === "emailed" && e.detail ? (
+                  <details><summary><strong>Email sent</strong>: {e.detail.split("\n")[0]}</summary><div style={{ whiteSpace: "pre-wrap", margin: "8px 0" }}>{e.detail.split("\n").slice(2).join("\n")}</div></details>
+                ) : <><strong>{EVENT_LABEL[e.event] || e.event}</strong>{e.detail ? `: ${e.detail}` : ""}</>}
                 <span className="when">{fmtDate(e.created_at)} ET · {e.actor_name || "System"}</span>
               </li>
             ))}

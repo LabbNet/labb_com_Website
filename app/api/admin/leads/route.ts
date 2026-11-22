@@ -2,6 +2,8 @@ import { currentMember, sameOrigin } from "@/lib/auth";
 import { setFlash } from "@/lib/admin";
 import { sql } from "@/lib/db";
 import { field, go } from "@/lib/http";
+import { esc, sendMail } from "@/lib/mail";
+import { linkToken, tagLinks } from "@/lib/visitors";
 import { emailPartner, logLeadEvent, type LeadRow } from "@/lib/leads";
 import { isSegment, isStatus, segmentLabel, statusLabel } from "@/lib/segments";
 import { sequenceName, startSequence, stopSequence } from "@/lib/sequences";
@@ -79,6 +81,30 @@ export async function POST(req: Request) {
       await logLeadEvent(id, "sequence", `${sequenceName(r.sequence)} sequence stopped`, actor);
       await flash(`${sequenceName(r.sequence)} sequence stopped.`);
     }
+  } else if (action === "email") {
+    // One-to-one email from a Labb admin. Sent from the Labb address with the admin as reply-to,
+    // and logged in full on the lead history.
+    const subject = field(fd, "subject", 200).replace(/[\r\n]+/g, " ").trim();
+    const body = String(fd.get("body") ?? "").slice(0, 8000).replace(/\r\n/g, "\n").trim();
+    if (!subject || !body) {
+      await flash("Add a subject and a message.", "error");
+      return go(req, back);
+    }
+    const linkify = (t: string) => esc(t).replace(/(https?:\/\/[^\s<]+[^\s<.,;:!?)])/g, '<a href="$1" style="color:#CF743C">$1</a>');
+    const paras = body.split(/\n{2,}/).map((p) => `<p style="margin:0 0 14px;line-height:1.55">${linkify(p).replace(/\n/g, "<br>")}</p>`).join("");
+    const html = tagLinks(`<div style="font-family:Arial,Helvetica,sans-serif;color:#404951;max-width:600px;font-size:15px">${paras}
+  <p style="font-size:12px;color:#5f6a74;border-top:1px solid #dfe5e5;padding-top:12px;margin-top:28px">Ramsey Diagnostics Corporation d/b/a Labb, 2115 Granby Street, Norfolk, VA 23517, info@labb.com</p></div>`, linkToken(lead.email));
+    const text = `${body}\n\n--\nRamsey Diagnostics Corporation d/b/a Labb, 2115 Granby Street, Norfolk, VA 23517, info@labb.com`;
+    const fromAddr = (process.env.MAIL_FROM || process.env.LEAD_FROM_EMAIL || "Labb <info@mail.labb.com>").match(/<([^>]+)>/)?.[1] || "info@mail.labb.com";
+    const name = admin.name.replace(/[<>"\r\n]/g, "").trim() || "Labb";
+    const sent = await sendMail(lead.email, subject, html, text, { from: `${name} at Labb <${fromAddr}>`, replyTo: admin.email });
+    if (!sent) {
+      await flash("The email didn't send. Check the email settings, then try again. Your message was not saved.", "error");
+      return go(req, back);
+    }
+    await logLeadEvent(id, "emailed", `To ${lead.email}. Subject: ${subject}\n\n${body}`.slice(0, 4000), actor);
+    await db`update leads set updated_at = now() where id = ${id}`;
+    await flash(`Email sent to ${lead.email}. Replies go to ${admin.email}.`);
   } else if (action === "archive" || action === "unarchive") {
     const archived = action === "archive";
     await db`update leads set archived = ${archived}, updated_at = now() where id = ${id}`;
