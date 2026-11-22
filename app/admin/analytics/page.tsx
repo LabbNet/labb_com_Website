@@ -3,7 +3,7 @@ import Link from "next/link";
 import { AdminBar } from "@/components/AdminBar";
 import { AnalyticsChart } from "@/components/AnalyticsChart";
 import { requireAdmin } from "@/lib/admin";
-import { companies, identifiedShare, knownVisitors, breakdown, daily, entryPages, FORM_LABELS, formsByPage, formsByType, formTotals, kpis, live, liveCount, RANGES, signedIn, topPages, totalRows, type Kpis, type RangeKey } from "@/lib/analytics";
+import { customerSessionCount, TRAFFIC, type Traffic, companies, identifiedShare, knownVisitors, breakdown, daily, entryPages, FORM_LABELS, formsByPage, formsByType, formTotals, kpis, live, liveCount, RANGES, signedIn, topPages, totalRows, type Kpis, type RangeKey } from "@/lib/analytics";
 
 export const metadata: Metadata = { title: "Analytics", robots: { index: false, follow: false } };
 export const dynamic = "force-dynamic";
@@ -51,11 +51,13 @@ function Bars({ title, rows, unit = "visitors", empty }: { title: string; rows: 
   );
 }
 
-export default async function Analytics({ searchParams }: { searchParams: Promise<{ range?: string; staff?: string }> }) {
+export default async function Analytics({ searchParams }: { searchParams: Promise<{ range?: string; staff?: string; traffic?: string }> }) {
   await requireAdmin("/admin/analytics");
   const sp = await searchParams;
   const range = (sp.range && sp.range in RANGES ? sp.range : "30") as RangeKey;
-  const f = { days: Number(range), staff: sp.staff === "1" };
+  const traffic = (sp.traffic && sp.traffic in TRAFFIC ? sp.traffic : "prospects") as Traffic;
+  const f = { days: Number(range), staff: sp.staff === "1", traffic };
+  const cust = await customerSessionCount({ ...f, traffic: "all" });
   const [fNow, fPrev, fTypes, fPages] = await Promise.all([formTotals(f), formTotals(f, f.days), formsByType(f), formsByPage(f)]);
   const [orgs, known, share] = await Promise.all([companies(f), knownVisitors(f), identifiedShare(f)]);
   const lookupOn = Boolean(process.env.IPINFO_TOKEN);
@@ -63,7 +65,7 @@ export default async function Analytics({ searchParams }: { searchParams: Promis
     kpis(f), kpis(f, f.days), daily(f), topPages(f), entryPages(f), breakdown(f, "referrer"), breakdown(f, "device"),
     breakdown(f, "browser"), breakdown(f, "os"), breakdown(f, "utm_campaign"), signedIn(f), live(), totalRows(), liveCount(),
   ]);
-  const q = (r: string, s = f.staff) => `/admin/analytics?range=${r}${s ? "&staff=1" : ""}`;
+  const q = (r: string, s = f.staff, t: Traffic = traffic) => `/admin/analytics?range=${r}${s ? "&staff=1" : ""}${t !== "prospects" ? `&traffic=${t}` : ""}`;
   const tiles: { label: string; value: string; key: keyof Kpis; invert?: boolean }[] = [
     { label: "Visitors", value: num(k.visitors), key: "visitors" },
     { label: "Page views", value: num(k.views), key: "views" },
@@ -84,8 +86,18 @@ export default async function Analytics({ searchParams }: { searchParams: Promis
                 <Link key={r} href={q(r)} aria-current={r === range ? "true" : undefined}>{RANGES[r]}</Link>
               ))}
             </nav>
+            <nav className="an-range" aria-label="Traffic">
+              {(Object.keys(TRAFFIC) as Traffic[]).map((t) => (
+                <Link key={t} href={q(range, f.staff, t)} aria-current={t === traffic ? "true" : undefined}>{TRAFFIC[t]}</Link>
+              ))}
+            </nav>
             <Link className="an-toggle" href={q(range, !f.staff)}>{f.staff ? "✓ Including" : "Excluding"} Labb admins</Link>
           </div>
+          <p className="fine" style={{ textAlign: "left", margin: "-6px 0 16px" }}>
+            {traffic === "prospects" && <>Showing prospects. {num(cust.n)} customer {cust.n === 1 ? "visit" : "visits"} left out ({num(cust.clicks)} clicked Client login or CPP member login; the rest signed in or used the member or course areas). </>}
+            {traffic === "customers" && <>Showing only visits where someone clicked a login, signed in, or used the member or course areas. </>}
+            {traffic === "all" && <>Showing all traffic, including existing customers heading to a login. </>}
+          </p>
 
           {total.n === 0 && (
             <div className="an-card an-empty">

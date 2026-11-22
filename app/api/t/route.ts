@@ -34,6 +34,15 @@ export async function POST(req: Request) {
   void dispatchDue().catch((e) => console.error("[social] dispatch", e));
   const db = sql();
 
+  // A click on Client login or CPP member login marks the visit as an existing customer's.
+  if (body.t === "l") {
+    const kind = body.k === "client" ? "client-login" : body.k === "cpp" ? "cpp-login" : null;
+    const session = clip(body.s, 40);
+    if (kind && session && /^[a-z0-9]+$/i.test(session)) {
+      await sql()`insert into session_flags (session, visitor, kind) values (${session}, ${clip(body.v, 40)}, ${kind}) on conflict do nothing`;
+    }
+    return new Response(null, { status: 204 });
+  }
   if (body.t === "d") {
     const id = Number(body.id);
     const ms = Math.min(Math.max(Math.round(Number(body.ms) || 0), 0), 30 * 60_000);

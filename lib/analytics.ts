@@ -6,7 +6,9 @@ export const RANGES = { "7": "Last 7 days", "30": "Last 30 days", "90": "Last 90
 export type RangeKey = keyof typeof RANGES;
 const TZ = "America/New_York";
 
-type F = { days: number; staff: boolean };
+export const TRAFFIC = { prospects: "Prospects", customers: "Customers (logins)", all: "All traffic" } as const;
+export type Traffic = keyof typeof TRAFFIC;
+type F = { days: number; staff: boolean; traffic?: Traffic };
 
 function where(f: F, offsetDays = 0) {
   const db = sql();
@@ -14,7 +16,10 @@ function where(f: F, offsetDays = 0) {
   const to = db`now() - make_interval(days => ${offsetDays})`;
   // Leave out Labb admins' own browsing unless asked.
   const staff = f.staff ? db`true` : db`coalesce(role, '') <> 'admin'`;
-  return db`ts >= ${from} and ts < ${to} and ${staff} and left(path, 3) <> '/__'`; // (a LIKE with \_ here lost its escape in the template string and hid most pages)
+  // Prospects leave out visits where someone clicked a login or used the member or course areas.
+  const t = f.traffic ?? "all";
+  const who = t === "all" ? db`true` : t === "customers" ? db`session in (select session from customer_sessions)` : db`session not in (select session from customer_sessions)`;
+  return db`ts >= ${from} and ts < ${to} and ${staff} and ${who} and left(path, 3) <> '/__'`; // (a LIKE with \_ here lost its escape in the template string and hid most pages)
 }
 
 export type Kpis = { views: number; visitors: number; sessions: number; avg_ms: number | null; bounce: number | null; members: number; returning: number };
@@ -195,4 +200,12 @@ export async function leadActivity(leadId: string, email: string) {
     where p.visitor in (select visitor from visitor_links where lead_id = ${leadId} or lower(email) = ${email.toLowerCase()})
     order by p.ts desc limit 300`;
   return views;
+}
+
+export async function customerSessionCount(f: F) {
+  const [r] = await sql()<{ n: number; clicks: number }[]>`
+    select count(distinct session)::int as n,
+      count(distinct session) filter (where session in (select session from session_flags))::int as clicks
+    from page_views where ${where({ ...f, traffic: "customers" })}`;
+  return r;
 }

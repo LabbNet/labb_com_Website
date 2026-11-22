@@ -30,7 +30,7 @@ export default function Page() {
               </p>
             </div>
             <p style={{ marginTop: 20 }}>
-              Existing clients: <a href={site.clientLogin} rel="nofollow">sign in to your account</a>.
+              Existing clients: <a href={site.clientLogin} rel="nofollow" data-login="client">sign in to your account</a>.
             </p>
           </div>
           <div className="hero-card">

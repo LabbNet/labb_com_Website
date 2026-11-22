@@ -57,11 +57,22 @@ export function Tracker() {
         keepalive: true,
       }).then((r) => (r.ok && r.status === 200 ? r.json() : null)).then((j) => { if (j?.id) state.id = j.id; }).catch(() => {});
     }, 300);
+    // Login clicks: mark this visit as an existing customer's so Analytics can separate it from prospects.
+    const onClick = (e: MouseEvent) => {
+      const a = (e.target as Element | null)?.closest?.("a[data-login]");
+      if (!a) return;
+      const body = JSON.stringify({ t: "l", k: a.getAttribute("data-login"), s, v });
+      if (!navigator.sendBeacon?.("/api/t", new Blob([body], { type: "application/json" }))) {
+        fetch("/api/t", { method: "POST", body, keepalive: true, headers: { "Content-Type": "application/json" } }).catch(() => {});
+      }
+    };
+    document.addEventListener("click", onClick, true);
     const onHide = () => { if (document.visibilityState === "hidden") send(); };
     document.addEventListener("visibilitychange", onHide);
     window.addEventListener("pagehide", send);
     return () => {
       clearTimeout(timer);
+      document.removeEventListener("click", onClick, true);
       document.removeEventListener("visibilitychange", onHide);
       window.removeEventListener("pagehide", send);
       send();
