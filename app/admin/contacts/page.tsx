@@ -9,6 +9,7 @@ export const metadata: Metadata = { title: "Contacts", robots: { index: false, f
 export const dynamic = "force-dynamic";
 
 const PER = 40;
+const num = (x: number) => x.toLocaleString("en-US");
 type C = { id: string; email: string | null; address?: string | null; first_name: string | null; last_name: string | null; company: string | null; city: string | null; state: string | null; phone: string | null; source: string; list: string | null; status: string; assigned_at: Date | null };
 
 // Opt-ins imported from HubSpot and Labb Station wait here until an admin puts them on a list.
@@ -114,11 +115,34 @@ export default async function Contacts({ searchParams }: { searchParams: Promise
             <p className="fine" style={{ margin: "10px 0 0" }}><strong>Clinic locations (no marketing)</strong> never receive newsletters. Use it for clinics that haven&apos;t opted in and for lab sites such as Quest and LabCorp; rows there may have no email if they include Company and Address. Only upload people who opted in to Labb email. Every upload is checked against existing contacts by email, so nobody is added twice; contacts already sorted onto a list keep their list.</p>
           </details>
 
-          <nav className="price-tabs" aria-label="Contact lists">
-            {[["pending", "Pending"], ...LISTS.map((l) => [l, LIST_LABELS[l]]), ["ignored", "Not added"]].map(([k, l]) => (
-              <Link key={k} href={`/admin/contacts?view=${k}`} className={view === k ? "on" : ""} aria-current={view === k ? "page" : undefined}>{l} <span className="fine">{n(k)}</span></Link>
-            ))}
-          </nav>
+          {(() => {
+            // Two levels: the group first, then the lists inside it.
+            const groups: { key: string; label: string; tabs: [string, string][] }[] = [
+              { key: "sort", label: "To sort", tabs: [["pending", "Pending"], ["ignored", "Not added"]] },
+              { key: "lists", label: "Newsletter lists", tabs: (["employers", "clinics", "treatment", "corrections"] as const).map((l) => [l, LIST_LABELS[l]] as [string, string]) },
+              { key: "locations", label: "No marketing", tabs: [["clinic-locations", "Clinic locations"]] },
+            ];
+            const cur = groups.find((g) => g.tabs.some(([k]) => k === view)) ?? groups[0];
+            return (
+              <div className="ct-nav">
+                <nav className="ct-groups-nav" aria-label="Contact groups">
+                  {groups.map((g) => (
+                    <Link key={g.key} href={`/admin/contacts?view=${g.tabs[0][0]}`} aria-current={g === cur ? "true" : undefined}>
+                      {g.label} <span className="ct-count">{num(g.tabs.reduce((t, [k]) => t + n(k), 0))}</span>
+                    </Link>
+                  ))}
+                </nav>
+                <nav className="ct-lists-nav" aria-label={`${cur.label} lists`}>
+                  {cur.tabs.map(([k, l]) => (
+                    <Link key={k} href={`/admin/contacts?view=${k}`} aria-current={view === k ? "page" : undefined}>
+                      {l} <span className="ct-count">{num(n(k))}</span>
+                    </Link>
+                  ))}
+                </nav>
+                {cur.key === "locations" && <p className="fine" style={{ margin: "8px 0 0", textAlign: "left" }}>Clinics that never receive newsletters, including lab sites such as Quest and LabCorp.</p>}
+              </div>
+            );
+          })()}
 
           <form className="ct-filter" action="/admin/contacts">
             <input type="hidden" name="view" value={view} />
