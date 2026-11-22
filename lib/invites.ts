@@ -9,6 +9,21 @@ import { cppEmail } from "@/lib/site";
 export async function sendInvite(m: { id: string; email: string; name: string; username: string; role?: string }, courseTitle?: string) {
   const token = await createToken(m.id, "invite");
   const link = absoluteUrl(`/account/setup?token=${token}`);
+  if (m.role === "reader") {
+    const sent = await sendMail(
+      m.email,
+      "Your Labb reads schedule account",
+      emailLayout(
+        "Your reads schedule account is ready",
+        `<p>Hi ${esc(m.name.split(" ")[0])},</p>
+         <p>You've been added to the Labb reads schedule. Sign in to schedule your on-call shifts, see who is on call and see the hours you'll be paid for.</p>
+         <p>Your username is <strong>${esc(m.username)}</strong>. Use the button below to choose your password. The link works once and expires in 7 days.</p>`,
+        { href: link, label: "Set up my account" },
+      ),
+      `You've been added to the Labb reads schedule.\nYour username is ${m.username}.\nSet your password here (expires in 7 days): ${link}`,
+    );
+    return { link, sent };
+  }
   if (m.role === "learner") {
     const sent = await sendMail(
       m.email,

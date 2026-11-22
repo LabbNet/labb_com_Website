@@ -15,6 +15,13 @@ export async function proxy(req: NextRequest) {
     url.search = "";
     return NextResponse.redirect(url);
   }
+  // Read admins only get the reads schedule.
+  if (access?.mid && access.role === "reader" && (membersOnly || needsAdmin || pathname.startsWith("/learn"))) {
+    const url = req.nextUrl.clone();
+    url.pathname = "/reads";
+    url.search = "";
+    return NextResponse.redirect(url);
+  }
   if (!access?.mid || (needsAdmin && access.role !== "admin")) {
     const url = req.nextUrl.clone();
     url.pathname = access?.mid && needsAdmin ? "/members" : "/login";
@@ -35,4 +42,4 @@ export async function proxy(req: NextRequest) {
   return res;
 }
 
-export const config = { matcher: ["/members", "/members/:path*", "/admin", "/admin/:path*", "/learn", "/learn/:path*", "/api/members/:path*"] };
+export const config = { matcher: ["/members", "/members/:path*", "/admin", "/admin/:path*", "/learn", "/learn/:path*", "/api/members/:path*", "/reads", "/reads/:path*"] };

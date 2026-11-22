@@ -50,6 +50,7 @@ export function AdminBar({ title, current }: { title: string; current: string })
             <strong>{title}</strong>
           </div>
           <div className="ab-util">
+            <Link href="/reads">Reads schedule</Link>
             <Link href="/members">Member area</Link>
             <form action="/api/auth/logout" method="post"><button type="submit" className="linkish">Sign out</button></form>
           </div>

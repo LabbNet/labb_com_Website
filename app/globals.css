@@ -1680,3 +1680,41 @@ td.acts { white-space: nowrap; }
 .crm-table th, .crm-table td { padding: 10px 10px; }
 .crm-table td:nth-child(3) { min-width: 90px; }
 @media (min-width: 961px) { .crm-grid > div:first-child .bg-table-wrap { overflow-x: auto; } }
+
+/* Reads schedule */
+.rd-oncall { display: flex; align-items: center; gap: 10px; padding: 12px 16px; background: #eef7f2; border-radius: 10px; margin-bottom: 16px; text-align: left; }
+.rd-dot { width: 10px; height: 10px; border-radius: 50%; background: #3f8f6b; box-shadow: 0 0 0 4px rgba(63,143,107,.2); flex: none; }
+.rd-weeknav { display: flex; flex-wrap: wrap; gap: 18px; align-items: center; margin-bottom: 12px; }
+.rd-week { display: grid; grid-template-columns: 38px repeat(7, minmax(0, 1fr)); border: 1px solid #dfe5e5; border-radius: 10px; overflow: hidden; background: #fff; }
+.rd-hours { font-size: .7rem; color: #8a959c; text-align: right; }
+.rd-hours > div:not(.rd-dayhead) { padding-right: 4px; border-top: 1px solid #f0f3f3; box-sizing: border-box; }
+.rd-dayhead { height: 34px; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: .85rem; border-bottom: 1px solid #dfe5e5; background: #f7f9f9; }
+.rd-day { border-left: 1px solid #eef1f1; }
+.rd-day.today .rd-dayhead { background: var(--dark); color: #fff; }
+.rd-col { position: relative; background-image: repeating-linear-gradient(to bottom, #f0f3f3 0, #f0f3f3 1px, transparent 1px, transparent 22px); }
+.rd-shift { position: absolute; left: 3px; right: 3px; border: 2px solid; border-radius: 6px; padding: 2px 5px; font-size: .72rem; line-height: 1.2; overflow: hidden; display: grid; align-content: start; }
+.rd-shift.pending { border-style: dashed; }
+.rd-grid { display: grid; grid-template-columns: 340px minmax(0, 1fr); gap: 24px; align-items: start; margin-top: 24px; }
+@media (max-width: 900px) { .rd-grid { grid-template-columns: 1fr; } .rd-week { overflow-x: auto; grid-template-columns: 38px repeat(7, 120px); } }
+.rd-card { text-align: left; padding: 20px; }
+.rd-card h2, .rd-card-list h2 { font-size: 1.1rem; margin: 0 0 12px; text-align: left; }
+.rd-form .field { margin-bottom: 12px; }
+.rd-form input, .rd-form select { width: 100%; }
+.rd-times { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.rd-list { list-style: none; padding: 0; margin: 0; display: grid; gap: 10px; }
+.rd-list .hero-card { padding: 12px 16px; text-align: left; }
+.rd-li-head { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+.rd-swatch { width: 12px; height: 12px; border-radius: 3px; }
+.rd-change { margin: 6px 0 0; text-align: left; color: #a3542a; }
+.rd-edit summary { cursor: pointer; margin-top: 6px; font-size: .9rem; }
+.rd-inline { display: flex; flex-wrap: wrap; gap: 10px; align-items: flex-end; margin: 10px 0; }
+.rd-inline label { display: grid; gap: 2px; font-size: .85rem; font-weight: 600; }
+.rd-inline input { width: auto; padding: 6px 8px; border: 1px solid #c9d1d3; border-radius: 8px; }
+.rd-range { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin-bottom: 20px; }
+.rd-range a { padding: 6px 14px; border-radius: 999px; background: #eef1f1; color: var(--dark); text-decoration: none; font-weight: 600; }
+.rd-range a[aria-current] { background: var(--dark); color: #fff; }
+.rd-range label { display: flex; gap: 6px; align-items: center; font-weight: 600; }
+.rd-range input, .rd-range select { padding: 6px 8px; border: 1px solid #c9d1d3; border-radius: 8px; font: inherit; }
+.rd-team-actions { display: grid; gap: 6px; }
+.rd-team-actions form { display: flex; gap: 8px; align-items: center; }
+.rd-card .fine { text-align: left; }

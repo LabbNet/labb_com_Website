@@ -13,6 +13,7 @@ export default async function MembersLayout({ children }: { children: React.Reac
   const m = await currentMember();
   if (!m) redirect("/login?next=/members");
   if (m.role === "learner") redirect("/learn");
+  if (m.role === "reader") redirect("/reads");
   return (
     <>
       <section className="member-bar admin-bar">
