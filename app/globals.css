@@ -1718,3 +1718,6 @@ td.acts { white-space: nowrap; }
 .rd-team-actions { display: grid; gap: 6px; }
 .rd-team-actions form { display: flex; gap: 8px; align-items: center; }
 .rd-card .fine { text-align: left; }
+.rd-night { position: absolute; left: 0; right: 0; background: rgba(64,73,81,.07); pointer-events: none; }
+.rd-swap { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 10px; align-items: center; padding: 8px 0; border-top: 1px solid #eef1f1; }
+.rd-inline select { padding: 6px 8px; border: 1px solid #c9d1d3; border-radius: 8px; font: inherit; }

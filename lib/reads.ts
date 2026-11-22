@@ -34,12 +34,12 @@ export async function requireReads(next: string) {
 
 export type Shift = {
   id: string; member_id: string; name: string; starts_at: Date; ends_at: Date; status: string; action: string;
-  replaces_id: string | null; note: string | null; requested_by_name: string | null; created_at: Date;
+  replaces_id: string | null; note: string | null; requested_by_name: string | null; created_at: Date; auto_night?: boolean;
 };
 
 export async function shiftsBetween(from: Date, to: Date) {
   return sql()<Shift[]>`
-    select s.id, s.member_id, m.name, s.starts_at, s.ends_at, s.status, s.action, s.replaces_id, s.note, rb.name as requested_by_name, s.created_at
+    select s.id, s.member_id, m.name, s.starts_at, s.ends_at, s.status, s.action, s.replaces_id, s.note, rb.name as requested_by_name, s.created_at, s.auto_night
     from read_shifts s join members m on m.id = s.member_id left join members rb on rb.id = s.requested_by
     where s.status in ('approved', 'requested') and s.starts_at < ${to} and s.ends_at > ${from}
     order by s.starts_at, m.name`;
@@ -120,3 +120,10 @@ export function mondayOf(date: string) {
 export const fmtTime = (d: Date) => new Date(d).toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", timeZone: TZ });
 export const fmtDay = (date: string) => new Date(`${date}T12:00:00Z`).toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric", timeZone: "UTC" });
 export const hrs = (n: number) => (Math.round(n * 100) / 100).toLocaleString("en-US", { minimumFractionDigits: 0, maximumFractionDigits: 2 });
+
+export async function openSwaps(memberId: string) {
+  return sql()<{ id: string; shift_id: string; from_id: string; to_id: string; from_name: string; to_name: string; note: string | null; starts_at: Date; ends_at: Date }[]>`
+    select w.id, w.shift_id, w.from_id, w.to_id, f.name as from_name, t.name as to_name, w.note, s.starts_at, s.ends_at
+    from read_swaps w join members f on f.id = w.from_id join members t on t.id = w.to_id join read_shifts s on s.id = w.shift_id
+    where w.status = 'offered' and s.status = 'approved' and (w.to_id = ${memberId} or w.from_id = ${memberId}) order by s.starts_at`;
+}

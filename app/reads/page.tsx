@@ -2,7 +2,7 @@ import Link from "next/link";
 import { Flash } from "@/components/AdminBar";
 import { readFlash } from "@/lib/admin";
 import { easternToDate } from "@/lib/imageSize";
-import { addDays, etParts, fmtDay, fmtTime, hrs, mondayOf, onCallNow, readTeam, requireReads, shiftsBetween, todayET } from "@/lib/reads";
+import { addDays, etParts, fmtDay, fmtTime, hrs, mondayOf, onCallNow, openSwaps, readTeam, requireReads, shiftsBetween, todayET } from "@/lib/reads";
 
 const HOUR = 22; // pixels per hour in the week grid
 const COLORS = ["#CF743C", "#4a78b5", "#3f8f6b", "#8a5fb0", "#c2453b", "#b7892a", "#2f8a9a", "#6b6f2a"];
@@ -16,12 +16,15 @@ export default async function ReadsSchedule({ searchParams }: { searchParams: Pr
   const days = Array.from({ length: 7 }, (_, i) => addDays(start, i));
   const from = easternToDate(`${start}T00:00`)!;
   const to = easternToDate(`${addDays(start, 7)}T00:00`)!;
-  const [shifts, now, team, flash] = await Promise.all([shiftsBetween(from, to), onCallNow(), a.approver ? readTeam() : Promise.resolve([]), readFlash()]);
+  const [shifts, now, teamAll, swaps, flash] = await Promise.all([shiftsBetween(from, to), onCallNow(), readTeam(), openSwaps(a.m.id), readFlash()]);
+  const team = teamAll.filter((t) => t.status !== "disabled");
   const people = [...new Set(shifts.map((s) => s.member_id))];
   const color = (id: string) => COLORS[people.indexOf(id) % COLORS.length];
   const back = `/reads?week=${start}`;
   // Pending changes to an approved shift are listed with it, not drawn as a second shift.
   const drawn = shifts.filter((s) => !(s.status === "requested" && s.replaces_id));
+  const listed = drawn.filter((s) => !s.auto_night);
+  const nights = drawn.filter((s) => s.auto_night);
   const changes = shifts.filter((s) => s.status === "requested" && s.replaces_id);
 
   // Pieces of each shift inside each day column (a shift past midnight continues into the next day).
@@ -34,9 +37,21 @@ export default async function ReadsSchedule({ searchParams }: { searchParams: Pr
       .map((s) => {
         const top = (Math.max(new Date(s.starts_at).getTime(), dStart) - dStart) / 3600_000;
         const bottom = (Math.min(new Date(s.ends_at).getTime(), dEnd) - dStart) / 3600_000;
-        return { s, top: (top / span) * 24, height: Math.max(((bottom - top) / span) * 24, 0.5) };
-      });
+        return { s, top: (top / span) * 24, height: Math.max(((bottom - top) / span) * 24, 0.5), lane: 0, lanes: 1 };
+      })
+      .sort((x, y) => x.top - y.top);
   });
+  // Side-by-side lanes when shifts overlap, so no one is hidden behind someone else.
+  for (const day of pieces) {
+    const ends: number[] = [];
+    for (const p of day) {
+      let lane = ends.findIndex((e) => e <= p.top + 0.001);
+      if (lane === -1) { lane = ends.length; ends.push(0); }
+      ends[lane] = p.top + p.height;
+      p.lane = lane;
+    }
+    for (const p of day) p.lanes = day.filter((q) => q.top < p.top + p.height && p.top < q.top + q.height).reduce((m, q) => Math.max(m, q.lane + 1), p.lane + 1);
+  }
   const mine = (memberId: string) => a.approver || memberId === a.m.id;
   const timeIn = (d: Date) => etParts(new Date(d)).time;
 
@@ -65,9 +80,11 @@ export default async function ReadsSchedule({ searchParams }: { searchParams: Pr
             <div key={d} className={`rd-day${d === today ? " today" : ""}`} role="row">
               <div className="rd-dayhead" role="columnheader">{fmtDay(d)}</div>
               <div className="rd-col" style={{ height: HOUR * 24 }}>
-                {pieces[i].map(({ s, top, height }) => (
+                <div className="rd-night" style={{ top: 0, height: HOUR * 7 }} aria-hidden="true" />
+                <div className="rd-night" style={{ top: HOUR * 21, height: HOUR * 3 }} aria-hidden="true" />
+                {pieces[i].map(({ s, top, height, lane, lanes }) => (
                   <div key={`${s.id}-${d}`} className={`rd-shift${s.status === "requested" ? " pending" : ""}`} role="cell"
-                    style={{ top: top * HOUR, height: height * HOUR - 2, background: s.status === "requested" ? "#fff" : color(s.member_id), borderColor: color(s.member_id), color: s.status === "requested" ? color(s.member_id) : "#fff" }}
+                    style={{ top: top * HOUR, height: height * HOUR - 2, left: `calc(${(lane / lanes) * 100}% + 2px)`, width: `calc(${100 / lanes}% - 4px)`, right: "auto", background: s.status === "requested" ? "#fff" : color(s.member_id), borderColor: color(s.member_id), color: s.status === "requested" ? color(s.member_id) : "#fff" }}
                     title={`${s.name}: ${fmtTime(s.starts_at)} to ${fmtTime(s.ends_at)}${s.status === "requested" ? " (pending approval)" : ""}`}>
                     <strong>{s.name.split(" ")[0]}</strong>
                     {height * HOUR > 30 && <span>{fmtTime(s.starts_at)}–{fmtTime(s.ends_at)}</span>}
@@ -77,7 +94,29 @@ export default async function ReadsSchedule({ searchParams }: { searchParams: Pr
             </div>
           ))}
         </div>
-        <p className="fine" style={{ textAlign: "left" }}>Solid blocks are approved. Outlined blocks are waiting for approval. Times are Eastern.</p>
+        <p className="fine" style={{ textAlign: "left" }}>Solid blocks are approved. Outlined blocks are waiting for approval. Shaded hours, 9 PM to 7 AM, are night hours covered by Angela unless she assigns them. Times are Eastern.</p>
+
+        {swaps.length > 0 && (
+          <div id="swaps" className="hero-card rd-card" style={{ marginTop: 20 }}>
+            <h2>Shift swaps</h2>
+            <ul className="rd-list">
+              {swaps.map((w) => (
+                <li key={w.id} className="rd-swap">
+                  <span>{w.to_id === a.m.id ? <><strong>{w.from_name}</strong> offered you</> : <>You offered <strong>{w.to_name}</strong></>} {fmtDay(etParts(new Date(w.starts_at)).date)}, {fmtTime(w.starts_at)} to {fmtTime(w.ends_at)}{w.note ? ` · ${w.note}` : ""}</span>
+                  <form action="/api/reads" method="post" className="ct-assign">
+                    <input type="hidden" name="id" value={w.id} />
+                    <input type="hidden" name="back" value={back} />
+                    {w.to_id === a.m.id ? <>
+                      <button className="btn btn-primary btn-sm" type="submit" name="action" value="swap-accept">Accept</button>
+                      <button className="linkish" type="submit" name="action" value="swap-decline">Decline</button>
+                    </> : <button className="linkish" type="submit" name="action" value="swap-cancel">Cancel offer</button>}
+                  </form>
+                </li>
+              ))}
+            </ul>
+            <p className="fine" style={{ margin: "8px 0 0" }}>A swap takes effect as soon as the other read admin accepts. Angela is notified.</p>
+          </div>
+        )}
 
         <div className="rd-grid">
           <div className="hero-card rd-card">
@@ -92,26 +131,27 @@ export default async function ReadsSchedule({ searchParams }: { searchParams: Pr
               )}
               <div className="field"><label htmlFor="rd-d">Date</label><input id="rd-d" type="date" name="date" required defaultValue={today} /></div>
               <div className="rd-times">
-                <div className="field"><label htmlFor="rd-s">Start</label><input id="rd-s" type="time" name="start" required defaultValue="08:00" /></div>
-                <div className="field"><label htmlFor="rd-e">End</label><input id="rd-e" type="time" name="end" required defaultValue="17:00" /></div>
+                <div className="field"><label htmlFor="rd-s">Start</label><input id="rd-s" type="time" name="start" required defaultValue="08:00" {...(a.approver ? {} : { min: "07:00", max: "21:00" })} /></div>
+                <div className="field"><label htmlFor="rd-e">End</label><input id="rd-e" type="time" name="end" required defaultValue="17:00" {...(a.approver ? {} : { min: "07:00", max: "21:00" })} /></div>
               </div>
               <div className="field"><label htmlFor="rd-n">Note (optional)</label><input id="rd-n" name="note" maxLength={300} /></div>
               <button className="btn btn-primary" type="submit">{a.approver ? "Schedule" : "Request shift"}</button>
-              <p className="fine" style={{ margin: 0 }}>An end time earlier than the start runs past midnight. {a.approver ? "Your shifts and changes take effect right away." : "Angela approves each request."}</p>
+              <p className="fine" style={{ margin: 0 }}>{a.approver ? "An end time earlier than the start runs past midnight. Your shifts and changes take effect right away." : "Choose times between 7 AM and 9 PM; night hours are Angela's. Angela approves each request, and you'll get an email when she does."}</p>
             </form>
           </div>
 
           <div className="rd-card-list">
             <h2>Shifts this week</h2>
-            {!drawn.length && <p className="hero-card">Nothing scheduled this week.</p>}
+            {!listed.length && <p className="hero-card">No day shifts scheduled this week.</p>}
             <ul className="rd-list">
-              {drawn.map((s) => {
+              {[...listed, ...(a.approver ? nights : [])].map((s) => {
                 const ch = changes.filter((c) => c.replaces_id === s.id);
                 const st = etParts(new Date(s.starts_at));
                 const hours = (new Date(s.ends_at).getTime() - new Date(s.starts_at).getTime()) / 3600_000;
                 return (
                   <li key={s.id} className="hero-card">
                     <div className="rd-li-head">
+                      {s.auto_night && <span className="status">Night hours</span>}
                       <span className="rd-swatch" style={{ background: color(s.member_id) }} aria-hidden="true" />
                       <strong>{s.name}</strong>
                       <span>{fmtDay(st.date)}, {fmtTime(s.starts_at)} to {fmtTime(s.ends_at)}</span>
@@ -134,7 +174,12 @@ export default async function ReadsSchedule({ searchParams }: { searchParams: Pr
                           <label>Date <input type="date" name="date" required defaultValue={st.date} /></label>
                           <label>Start <input type="time" name="start" required defaultValue={timeIn(s.starts_at)} /></label>
                           <label>End <input type="time" name="end" required defaultValue={timeIn(s.ends_at)} /></label>
-                          <label>Note <input name="note" maxLength={300} placeholder="Why, for example a shift swap" /></label>
+                          {a.approver && (
+                            <label>Read admin
+                              <select name="member" defaultValue={s.member_id}>{team.map((t) => <option key={t.id} value={t.id}>{t.name}</option>)}</select>
+                            </label>
+                          )}
+                          <label>Note <input name="note" maxLength={300} placeholder="Why the change" /></label>
                           <button className="btn btn-outline-dark btn-sm" type="submit">{a.approver || s.status === "requested" ? "Save" : "Request change"}</button>
                         </form>
                         <form action="/api/reads" method="post">
@@ -143,6 +188,21 @@ export default async function ReadsSchedule({ searchParams }: { searchParams: Pr
                           <input type="hidden" name="back" value={back} />
                           <button className="linkish" type="submit">{a.approver || s.status === "requested" ? "Remove shift" : "Request removal"}</button>
                         </form>
+                        {s.status === "approved" && (a.approver || !s.auto_night) && (
+                          <form action="/api/reads" method="post" className="rd-form rd-inline">
+                            <input type="hidden" name="action" value="swap-offer" />
+                            <input type="hidden" name="id" value={s.id} />
+                            <input type="hidden" name="back" value={back} />
+                            <label>Give this shift to
+                              <select name="to" required defaultValue="">
+                                <option value="" disabled>Choose a read admin</option>
+                                {team.filter((t) => t.id !== s.member_id).map((t) => <option key={t.id} value={t.id}>{t.name}</option>)}
+                              </select>
+                            </label>
+                            <label>Note <input name="note" maxLength={300} /></label>
+                            <button className="btn btn-outline-dark btn-sm" type="submit">Offer swap</button>
+                          </form>
+                        )}
                       </details>
                     )}
                   </li>
