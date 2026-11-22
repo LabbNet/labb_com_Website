@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import { sql } from "@/lib/db";
 import type { LeadRow } from "@/lib/leads";
-import { DAYS, etDate, fmtClock, fmtDayLabel, fmtWhen, openSlots, readTestToken, SLOT_MIN, testLead } from "@/lib/meetings";
+import { SlotPicker } from "@/components/SlotPicker";
+import { fmtWhen, openSlots, readTestToken, SLOT_MIN, testLead } from "@/lib/meetings";
 
 export const metadata: Metadata = { title: "Schedule a call with Labb", robots: { index: false, follow: false } };
 export const dynamic = "force-dynamic";
@@ -42,12 +43,6 @@ export default async function Meet({ params, searchParams }: { params: Promise<{
     select g.id, g.starts_at, g.room_url, m.name as host_name from lead_meetings g join members m on m.id = g.host_id
     where g.lead_id = ${lead.id} and g.status = 'booked' and g.ends_at > now() order by g.starts_at limit 1`;
   const slots = await openSlots(lead.meeting_host || null);
-  const days = new Map<string, Date[]>();
-  for (const s of slots) {
-    const d = etDate(s.start);
-    if (!days.has(d)) days.set(d, []);
-    days.get(d)!.push(s.start);
-  }
   const who = lead.host_name ? `${lead.host_name} from Labb` : "a member of the Labb team";
 
   return (
@@ -72,7 +67,7 @@ export default async function Meet({ params, searchParams }: { params: Promise<{
             </form>
           </div>
         ) : (
-          <p style={{ marginTop: 0 }}>Hi {lead.first_name || "there"}. Pick a time for a {SLOT_MIN} minute video call with {who} to go over all of Labb&apos;s programs and find the right fit for {lead.company || "your organization"}. All times are Eastern (ET).</p>
+          <p style={{ marginTop: 0 }}>Hi {lead.first_name || "there"}. Pick a time for a {SLOT_MIN} minute video call with {who} to go over all of Labb&apos;s programs and find the right fit for {lead.company || "your organization"}.</p>
         )}
 
         {!slots.length ? (
@@ -84,26 +79,12 @@ export default async function Meet({ params, searchParams }: { params: Promise<{
             <input type="hidden" name="token" value={token} />
             <input type="hidden" name="action" value="book" />
             {booked && <h2 style={{ fontSize: "1.2rem", margin: "0 0 4px" }}>Reschedule</h2>}
-            <div className="meet-days">
-              {[...days.entries()].map(([d, times]) => (
-                <fieldset key={d} className="meet-day" style={{ border: 0, padding: 0, margin: 0 }}>
-                  <legend><h3>{fmtDayLabel(d)}</h3></legend>
-                  <div className="meet-slots">
-                    {times.map((t) => (
-                      <label key={t.toISOString()}>
-                        <input type="radio" name="start" value={t.toISOString()} required aria-label={`${DAYS[new Date(`${d}T12:00:00Z`).getUTCDay()]} ${fmtClock(t)} ET`} />
-                        <span>{fmtClock(t)}</span>
-                      </label>
-                    ))}
-                  </div>
-                </fieldset>
-              ))}
-            </div>
-            <div className="fields" style={{ marginTop: 24 }}>
-              <div className="field"><label htmlFor="mt-ph">Best phone number (optional)</label><input id="mt-ph" name="phone" type="tel" maxLength={40} defaultValue={lead.phone || ""} autoComplete="tel" /></div>
-              <div className="field full"><label htmlFor="mt-nt">Anything we should know before the call? (optional)</label><textarea id="mt-nt" name="notes" maxLength={1000} /></div>
-            </div>
-            <button className="btn btn-primary" type="submit" style={{ marginTop: 18 }}>{booked ? "Reschedule my call" : "Book my call"}</button>
+            <SlotPicker slots={slots.map((x) => x.start.toISOString())} submitLabel={booked ? "Reschedule my call" : "Book my call"}>
+              <div className="fields sp-fields">
+                <div className="field"><label htmlFor="mt-ph">Best phone number (optional)</label><input id="mt-ph" name="phone" type="tel" maxLength={40} defaultValue={lead.phone || ""} autoComplete="tel" /></div>
+                <div className="field"><label htmlFor="mt-nt">Anything we should know? (optional)</label><input id="mt-nt" name="notes" maxLength={1000} placeholder="Locations, number of employees, current program" /></div>
+              </div>
+            </SlotPicker>
             <p className="fine" style={{ textAlign: "left", marginTop: 10 }}>You&apos;ll get a confirmation email with your video meeting link and a calendar invite.</p>
           </form>
         )}

@@ -55,7 +55,6 @@ const testing: Item[] = [
 const cppBenefits = [
   "New business: Labb-funded email marketing that sends employer leads (construction, manufacturing, logistics) to your clinic",
   "Access to LabbHR, Labb's full business platform",
-  "Lower card processing rates when you run payments through Labb",
   "Bundled testing: Labb covers lab confirmation costs on bundled accounts, up to a 5% positive rate",
   "Optional marketing co-op programs and business development support",
   "Weekly member meetings to share pricing, wins and best practices",
