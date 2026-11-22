@@ -39,7 +39,7 @@ function people() {
     select lower(m.email), m.email, m.name, m.clinic, m.phone, m.city, upper(m.state),
       case when m.role = 'admin' then 'admin' when m.cpp_status = 'prospect' then 'prospect' else 'member' end,
       m.cpp_status, m.created_at
-    from members m`;
+    from members m where m.role <> 'reader'`;
 }
 
 export type PersonRow = {

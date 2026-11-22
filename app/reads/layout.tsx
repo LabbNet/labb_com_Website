@@ -14,7 +14,7 @@ export default async function ReadsLayout({ children }: { children: React.ReactN
     { href: "/reads", label: "Schedule" },
     { href: "/reads/hours", label: a.superRead ? "Hours" : "My hours" },
     ...(a.approver || a.superRead ? [{ href: "/reads/approvals", label: waiting ? `Approvals (${waiting})` : "Approvals" }] : []),
-    ...(a.approver || a.admin ? [{ href: "/reads/team", label: "Team" }] : []),
+    ...(a.approver || a.superadmin ? [{ href: "/reads/team", label: "Team" }] : []),
   ];
   return (
     <>
@@ -24,7 +24,7 @@ export default async function ReadsLayout({ children }: { children: React.ReactN
             <div>
               <span className="eyebrow">Reads schedule</span>
               <strong>{a.m.name}</strong>
-              <span className="muted"> · {a.approver ? "Super read admin, approver" : a.superRead ? "Super read admin" : a.reader ? "Read admin" : "Labb admin"}</span>
+              <span className="muted"> · {a.superadmin ? "Superadmin" : a.approver ? "Super read admin, approver" : a.superRead ? "Super read admin" : "Read admin"}</span>
             </div>
             <div className="ab-util">
               {a.m.role === "admin" && <Link href="/admin/crm">Labb admin</Link>}

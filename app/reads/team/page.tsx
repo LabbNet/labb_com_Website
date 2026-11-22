@@ -8,7 +8,7 @@ const day = (d: Date | null) => (d ? new Date(d).toLocaleDateString("en-US", { m
 // The read team: add read admins, make someone a super read admin, send setup links.
 export default async function ReadsTeam() {
   const a = await requireReads("/reads/team");
-  if (!a.approver && !a.admin) redirect("/reads");
+  if (!a.approver && !a.superadmin) redirect("/reads");
   const [team, flash] = await Promise.all([readTeam(), readFlash()]);
   return (
     <section className="section" style={{ paddingTop: 28 }}>
@@ -64,7 +64,7 @@ export default async function ReadsTeam() {
               <select id="tm-r" name="read_role" defaultValue="reader"><option value="reader">Read admin</option><option value="super">Super read admin</option></select>
             </div>
             <button className="btn btn-primary" type="submit">Add and email setup link</button>
-            <p className="fine" style={{ margin: 0 }}>New people get a reads-only account: they see the schedule and hours, nothing else. Someone who already has a Labb account keeps it and gains read access.</p>
+            <p className="fine" style={{ margin: 0 }}>New people get a reads-only account: they see the schedule and hours, nothing else. Giving read access to someone who already has a Labb account is done by James.</p>
           </form>
         </div>
       </div>

@@ -21,7 +21,7 @@ export function Tracker() {
   const cur = useRef<{ id: number | null; start: number; s: string } | null>(null);
 
   useEffect(() => {
-    if (!path || /^\/(admin|api)(\/|$)/.test(path) || navigator.webdriver) return;
+    if (!path || /^\/(admin|api|reads)(\/|$)/.test(path) || navigator.webdriver) return;
     const v = store(typeof localStorage !== "undefined" ? localStorage : undefined, "labb_v");
     const s = store(typeof sessionStorage !== "undefined" ? sessionStorage : undefined, "labb_s");
     const q = new URLSearchParams(location.search);

@@ -19,7 +19,7 @@ function where(f: F, offsetDays = 0) {
   // Prospects leave out visits where someone clicked a login or used the member or course areas.
   const t = f.traffic ?? "all";
   const who = t === "all" ? db`true` : t === "customers" ? db`session in (select session from customer_sessions)` : db`session not in (select session from customer_sessions)`;
-  return db`ts >= ${from} and ts < ${to} and ${staff} and ${who} and left(path, 3) <> '/__'`; // (a LIKE with \_ here lost its escape in the template string and hid most pages)
+  return db`ts >= ${from} and ts < ${to} and ${staff} and ${who} and left(path, 3) <> '/__' and left(path, 6) <> '/reads' and coalesce(role, '') <> 'reader'`; // (a LIKE with \_ here lost its escape in the template string and hid most pages)
 }
 
 export type Kpis = { views: number; visitors: number; sessions: number; avg_ms: number | null; bounce: number | null; members: number; returning: number };

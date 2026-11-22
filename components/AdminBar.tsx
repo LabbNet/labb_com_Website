@@ -1,4 +1,6 @@
 import Link from "next/link";
+import { currentMember } from "@/lib/auth";
+import { sql } from "@/lib/db";
 
 // Admin navigation: five sections. The current section's pages show as tabs underneath.
 const SECTIONS = [
@@ -39,7 +41,10 @@ const SECTIONS = [
   { label: "Settings", links: [{ href: "/admin/settings", label: "Settings" }] },
 ];
 
-export function AdminBar({ title, current }: { title: string; current: string }) {
+export async function AdminBar({ title, current }: { title: string; current: string }) {
+  // The reads schedule link shows only for the superadmin and admins given read access; Access only for the superadmin.
+  const m = await currentMember();
+  const [x] = m ? await sql()<{ superadmin: boolean; reads: boolean }[]>`select superadmin, (read_role is not null or read_approver) as reads from members where id = ${m.id}` : [];
   const section = SECTIONS.find((s) => s.links.some((l) => l.href === current));
   return (
     <section className="member-bar admin-bar">
@@ -50,7 +55,8 @@ export function AdminBar({ title, current }: { title: string; current: string })
             <strong>{title}</strong>
           </div>
           <div className="ab-util">
-            <Link href="/reads">Reads schedule</Link>
+            {x?.superadmin && <Link href="/admin/access">Access</Link>}
+            {(x?.superadmin || x?.reads) && <Link href="/reads">Reads schedule</Link>}
             <Link href="/members">Member area</Link>
             <form action="/api/auth/logout" method="post"><button type="submit" className="linkish">Sign out</button></form>
           </div>

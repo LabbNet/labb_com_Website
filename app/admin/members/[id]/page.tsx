@@ -49,7 +49,7 @@ export default async function AdminMember({ params }: { params: Promise<{ id: st
     select id, name, email, username, clinic, phone, city, state, role, status, created_at, last_login_at,
       to_char(cpp_start_date, 'YYYY-MM-DD') as cpp_start_date, cpp_status, cpp_status_changed_at, legal_name
     from members where id = ${id}`;
-  if (!m) notFound();
+  if (!m || m.role === "reader") notFound(); // the read team is managed in Access (superadmin) and Reads
   const [contracts, events, flash, template, requests] = await Promise.all([
     db<{ id: string; filename: string; size_bytes: number; note: string | null; uploaded_at: Date; by_name: string | null }[]>`
       select c.id, c.filename, c.size_bytes, c.note, c.uploaded_at, u.name as by_name

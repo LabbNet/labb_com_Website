@@ -12,7 +12,7 @@ import { emailMember, NIGHT_END, NIGHT_START, notifyApprover, shiftText } from "
 export async function POST(req: Request) {
   const a = await readAccess();
   if (!a) return go(req, "/login?next=/reads");
-  if (!a.reader && !a.admin) return go(req, "/members");
+  if (!a.reader && !a.superadmin) return go(req, a.m.role === "admin" ? "/admin/crm" : "/members");
   if (!(await sameOrigin())) return go(req, "/reads");
   const fd = await req.formData();
   const action = field(fd, "action", 30);
@@ -168,13 +168,18 @@ export async function POST(req: Request) {
       if (action === "swap-decline" && s) await emailMember(w.from_id, "Your reads swap was declined", [`${w.to_name} declined ${shiftText(s.starts_at, s.ends_at)}. It's still yours.`]);
       await flash(action === "swap-decline" ? "Swap declined." : "Swap offer canceled.");
     }
-  } else if (action === "team-add" && (a.approver || a.admin)) {
+  } else if (action === "team-add" && (a.approver || a.superadmin)) {
     const name = field(fd, "name", 120), email = field(fd, "email", 200).toLowerCase();
     const role = field(fd, "read_role", 10) === "super" ? "super" : "reader";
     if (!name || !/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)) { await flash("Enter a name and an email address.", "error"); return go(req, back); }
     const [existing] = await db<{ id: string; name: string; email: string; username: string; role: string; status: string }[]>`
       select id, name, email, username, role, status from members where lower(email) = ${email}`;
     if (existing) {
+      // Giving read access to someone with another Labb account (dual access) is for the superadmin only.
+      if (!a.superadmin && existing.role !== "reader") {
+        await flash(`${existing.email} already has a Labb account. Only James can give it read access.`, "error");
+        return go(req, back);
+      }
       await db`update members set read_role = ${role} where id = ${existing.id}`;
       await flash(`${existing.name} added to the read team with their existing account.`);
     } else {
@@ -187,7 +192,7 @@ export async function POST(req: Request) {
       const r = await sendInvite(m);
       await flash(r.sent ? `${name} added. Their setup link was emailed.` : `${name} added, but the email didn't send. Share this setup link: ${r.link}`, r.sent ? "ok" : "error");
     }
-  } else if (action === "team-invite" && (a.approver || a.admin)) {
+  } else if (action === "team-invite" && (a.approver || a.superadmin)) {
     const id = field(fd, "id", 40);
     const [m] = await db<{ id: string; name: string; email: string; username: string; role: string }[]>`
       select id, name, email, username, role from members where id::text = ${id} and status = 'invited' and (read_role is not null or read_approver)`;
@@ -195,11 +200,13 @@ export async function POST(req: Request) {
       const r = await sendInvite(m);
       await flash(r.sent ? `Setup link emailed to ${m.email}.` : `The email didn't send. Share this setup link: ${r.link}`, r.sent ? "ok" : "error");
     }
-  } else if (action === "team-role" && (a.approver || a.admin)) {
+  } else if (action === "team-role" && (a.approver || a.superadmin)) {
     const id = field(fd, "id", 40);
     const role = field(fd, "read_role", 10);
     const v = role === "super" ? "super" : role === "reader" ? "reader" : null;
     // The approver keeps access; removing a reads-only account disables it.
+    const [t] = await db<{ role: string }[]>`select role from members where id::text = ${id}`;
+    if (!t || (t.role !== "reader" && !a.superadmin)) { await flash("Only James can change read access for someone with a Labb admin account.", "error"); return go(req, back); }
     await db`update members set read_role = ${v} where id::text = ${id} and not read_approver`;
     if (!v) await db`update members set status = 'disabled', session_version = session_version + 1 where id::text = ${id} and role = 'reader'`;
     await flash(v ? "Read access updated." : "Removed from the read team.");

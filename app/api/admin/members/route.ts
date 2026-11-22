@@ -68,7 +68,7 @@ export async function POST(req: Request) {
   }
 
   const id = field(fd, "id", 40);
-  const [m] = await db<{ id: string; email: string; name: string; username: string; status: string }[]>`select id, email, name, username, status from members where id = ${id}`;
+  const [m] = await db<{ id: string; email: string; name: string; username: string; status: string }[]>`select id, email, name, username, status from members where id = ${id} and role <> 'reader'`;
   if (!m) return go(req, "/admin/members");
 
   if (action === "resend") {

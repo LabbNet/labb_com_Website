@@ -11,16 +11,18 @@ import { dbConfigured, sql } from "@/lib/db";
 
 export const TZ = "America/New_York";
 
-export type ReadAccess = { m: Member; reader: boolean; superRead: boolean; approver: boolean; admin: boolean };
+export type ReadAccess = { m: Member; reader: boolean; superRead: boolean; approver: boolean; admin: boolean; superadmin: boolean };
 
 export async function readAccess(): Promise<ReadAccess | null> {
   const m = await currentMember();
   if (!m) return null;
-  const [r] = await sql()<{ read_role: string | null; read_approver: boolean }[]>`select read_role, read_approver from members where id = ${m.id}`;
+  const [r] = await sql()<{ read_role: string | null; read_approver: boolean; superadmin: boolean }[]>`select read_role, read_approver, superadmin from members where id = ${m.id}`;
+  const superadmin = Boolean(r?.superadmin) && m.role === "admin";
   const approver = Boolean(r?.read_approver);
-  const superRead = r?.read_role === "super" || approver;
+  const superRead = r?.read_role === "super" || approver || superadmin;
   const reader = Boolean(r?.read_role) || approver;
-  return { m, reader, superRead, approver, admin: m.role === "admin" };
+  // "admin" here means the Labb admin portal is open to this person too (dual access or the superadmin).
+  return { m, reader, superRead, approver, admin: m.role === "admin", superadmin };
 }
 
 // Page guard: anyone on the read team, or a Labb admin.
@@ -28,7 +30,8 @@ export async function requireReads(next: string) {
   if (!dbConfigured) redirect("/login?error=unavailable");
   const a = await readAccess();
   if (!a) redirect(`/login?next=${encodeURIComponent(next)}`);
-  if (!a.reader && !a.admin) redirect(a.m.role === "learner" ? "/learn" : "/members");
+  // Labb admins don't see the reads schedule unless the superadmin gave them read access.
+  if (!a.reader && !a.superadmin) redirect(a.m.role === "admin" ? "/admin/crm" : a.m.role === "learner" ? "/learn" : "/members");
   return a;
 }
 
