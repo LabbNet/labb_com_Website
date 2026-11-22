@@ -46,11 +46,12 @@ export async function sendInvite(m: { id: string; email: string; name: string; u
       "Your Labb member account is ready",
       `<p>Hi ${esc(m.name.split(" ")[0])},</p>
        <p>Welcome to the Labb Channel Partner Program. Your member account gives you the Clinic Owners Guidebook, industry guidebooks, data sheets and member resources.</p>
+       <p>New to Labb? <a href="${absoluteUrl("/welcome")}">See everything Labb offers your clinic</a> on one page.</p>
        <p>Your username is <strong>${esc(m.username)}</strong>. Use the button below to choose your password. The link works once and expires in 7 days.</p>
        <p>Questions? Reply to this email or write to <a href="mailto:${cppEmail}">${cppEmail}</a>.</p>`,
       { href: link, label: "Set up my account" },
     ),
-    `Welcome to the Labb Channel Partner Program.\nYour username is ${m.username}.\nSet your password here (expires in 7 days): ${link}\nQuestions? Email ${cppEmail}.`,
+    `Welcome to the Labb Channel Partner Program.\nEverything Labb offers your clinic: ${absoluteUrl("/welcome")}\nYour username is ${m.username}.\nSet your password here (expires in 7 days): ${link}\nQuestions? Email ${cppEmail}.`,
     { replyTo: cppEmail },
   );
   return { link, sent };
