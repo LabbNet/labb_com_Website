@@ -1,5 +1,5 @@
 import "server-only";
-import { randomBytes } from "node:crypto";
+import { createHmac, randomBytes, timingSafeEqual } from "node:crypto";
 import { sql } from "@/lib/db";
 import { emailLayout, esc, sendMail } from "@/lib/mail";
 import { absoluteUrl } from "@/lib/site";
@@ -98,6 +98,29 @@ export async function openSlots(hostId: string | null): Promise<{ start: Date; h
   return [...by.values()].sort((a, b) => a.start.getTime() - b.start.getTime());
 }
 
+// ---- Test links: an admin previews the prospect emails and booking page with their own address. ----
+// "test-<base64url(adminId.host)>.<sig>". Booking in test mode emails only the admin and saves nothing.
+const testSig = (p: string) => createHmac("sha256", process.env.SESSION_SECRET || "dev").update(`meet-test:${p}`).digest("base64url").slice(0, 22);
+export function testToken(adminId: string, host: string) {
+  const p = Buffer.from(`${adminId}.${host}`).toString("base64url");
+  return `test-${p}.${testSig(p)}`;
+}
+export function readTestToken(t: string): { adminId: string; host: string | null } | null {
+  const m = t.match(/^test-([A-Za-z0-9_-]{10,200})\.([A-Za-z0-9_-]{22})$/);
+  if (!m) return null;
+  const want = Buffer.from(testSig(m[1])), got = Buffer.from(m[2]);
+  if (want.length !== got.length || !timingSafeEqual(want, got)) return null;
+  const [adminId, host] = Buffer.from(m[1], "base64url").toString("utf8").split(".");
+  return adminId ? { adminId, host: host && host !== "any" ? host : null } : null;
+}
+// A stand-in lead built from the admin's own account, for test emails.
+export async function testLead(adminId: string): Promise<(LeadRow & { meeting_host: string | null }) | null> {
+  const [a] = await sql()<{ id: string; name: string; email: string }[]>`select id, name, email from members where id = ${adminId} and role = 'admin' and status <> 'disabled'`;
+  if (!a) return null;
+  const [firstName, ...rest] = a.name.split(" ");
+  return { id: "0", type: "meeting-test", segment: "other", email: a.email, first_name: firstName, last_name: rest.join(" ") || null, company: "Labb (test)", phone: null, owner: "labb", status: "new", archived: false, meeting_host: null } as unknown as LeadRow & { meeting_host: string | null };
+}
+
 export const newToken = () => randomBytes(18).toString("base64url");
 export const roomFor = (host: { meeting_url: string | null }) =>
   host.meeting_url || `https://meet.jit.si/Labb-${randomBytes(9).toString("base64url").replace(/[-_]/g, "x")}`;
@@ -138,8 +161,9 @@ export async function emailPartnerIntro(lead: LeadRow, partner: { name: string; 
 }
 
 // Labb kept the lead: invite the prospect to book a call.
-export async function emailBookingInvite(lead: LeadRow, host: { name: string; email: string } | null, token: string) {
+export async function emailBookingInvite(lead: LeadRow, host: { name: string; email: string } | null, token: string, test = false) {
   const link = absoluteUrl(`/meet/${token}`);
+  const welcome = absoluteUrl("/welcome");
   const who = host ? `${esc(host.name.split(" ")[0])} from our team` : "Someone from our team";
   const html = emailLayout(
     "Let's schedule a call",
@@ -147,14 +171,14 @@ export async function emailBookingInvite(lead: LeadRow, host: { name: string; em
      <p>Thank you for your interest in Labb. ${who} would like to schedule a short video call with you to go over all of Labb's programs and find the right fit for your organization.</p>
      <p>Choose a time that works for you. It takes less than a minute, and you'll get a video meeting link as soon as you book.</p>`,
     { href: link, label: "Choose a meeting time" },
-  );
-  const text = `Hi ${lead.first_name || "there"},\n\nThank you for your interest in Labb. ${host ? `${host.name.split(" ")[0]} from our team` : "Someone from our team"} would like to schedule a short video call with you to go over all of Labb's programs and find the right fit for your organization.\n\nChoose a time that works for you: ${link}\n\nYou'll get a video meeting link as soon as you book.\n\nThe Labb team\n\n${footer}`;
-  return sendMail(lead.email, "Schedule a call with Labb", tagLinks(html, linkToken(lead.email)), text, { replyTo: host?.email || "info@labb.com" });
+  ).replace(/(<p style="font-size:12px;color:#5f6a74;border-top)/, `<p>Before we talk, take a look at everything Labb offers: <a href="${welcome}" style="color:#CF743C;font-weight:bold">labb.com/welcome</a></p>\n  $1`);
+  const text = `Hi ${lead.first_name || "there"},\n\nThank you for your interest in Labb. ${host ? `${host.name.split(" ")[0]} from our team` : "Someone from our team"} would like to schedule a short video call with you to go over all of Labb's programs and find the right fit for your organization.\n\nChoose a time that works for you: ${link}\n\nYou'll get a video meeting link as soon as you book.\n\nBefore we talk, take a look at everything Labb offers: ${welcome}\n\nThe Labb team\n\n${footer}`;
+  return sendMail(lead.email, `${test ? "[Test] " : ""}Schedule a call with Labb`, tagLinks(html, linkToken(lead.email)), text, { replyTo: host?.email || "info@labb.com" });
 }
 
 type Mtg = { id: string; starts_at: Date; ends_at: Date; room_url: string };
 
-export async function emailBooked(lead: LeadRow, m: Mtg, host: { name: string; email: string }, token: string) {
+export async function emailBooked(lead: LeadRow, m: Mtg, host: { name: string; email: string }, token: string, test = false) {
   const when = fmtWhen(m.starts_at);
   const manage = absoluteUrl(`/meet/${token}`);
   const invite = ics(m, "Call with Labb", `Video meeting: ${m.room_url}\nWith ${host.name}, Labb.\nNeed to change the time? ${manage}`, { name: `${host.name}, Labb`, email: host.email }, lead.email);
@@ -168,7 +192,7 @@ export async function emailBooked(lead: LeadRow, m: Mtg, host: { name: string; e
     { href: m.room_url, label: "Join the video meeting" },
   );
   const text = `Hi ${lead.first_name || "there"},\n\nYou're booked for a ${SLOT_MIN} minute video call with ${host.name} from Labb.\n\n${when}\n\nJoin the video meeting: ${m.room_url}\n\nNeed a different time? ${manage}\n\nThe Labb team\n\n${footer}`;
-  return sendMail(lead.email, `Confirmed: your call with Labb, ${when}`, html, text, {
+  return sendMail(lead.email, `${test ? "[Test] " : ""}Confirmed: your call with Labb, ${when}`, html, text, {
     replyTo: host.email, attachments: [{ filename: "labb-meeting.ics", content: invite, type: "text/calendar; method=REQUEST" }],
   });
 }

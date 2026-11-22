@@ -170,6 +170,7 @@ export default async function AdminLead({ params }: { params: Promise<{ id: stri
                       {hosts.map((h) => <option key={h.id} value={h.id}>{h.id === me.id ? `Me (${h.name})` : h.name}{h.hours ? "" : " · no meeting hours set"}</option>)}
                     </select>
                     <button className={lead.accepted_at ? "btn btn-outline-dark" : "btn btn-primary"} type="submit">{lead.accepted_at ? "Reassign and resend link" : "Accept lead and email booking link"}</button>
+                    <button className="linkish" type="submit" name="test" value="1" formNoValidate style={{ justifySelf: "start" }}>Send me a test of this email first</button>
                   </>)}
                   {lead.accepted_at && <div style={{ marginTop: 10 }}>{post("resend-invite", <button className="linkish" type="submit">Resend booking link</button>)}</div>}
                 </div>

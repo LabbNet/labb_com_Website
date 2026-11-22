@@ -50,6 +50,7 @@ export default async function Meetings({ searchParams }: { searchParams: Promise
         {hosts.map((h) => <option key={h.id} value={h.id}>{h.id === me.id ? "Me" : h.name}</option>)}
       </select>
       <button className="btn btn-primary" type="submit" style={{ minHeight: 38, padding: "6px 14px" }}>Keep and send booking link</button>
+      <button className="linkish" type="submit" name="test" value="1">Test it on me</button>
     </form>
   );
 

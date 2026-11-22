@@ -2,16 +2,28 @@ import { sameOrigin } from "@/lib/auth";
 import { sql } from "@/lib/db";
 import { field, go } from "@/lib/http";
 import { logLeadEvent, type LeadRow } from "@/lib/leads";
-import { emailBooked, emailCancelled, emailHostBooked, fmtWhen, openSlots, roomFor, SLOT_MIN } from "@/lib/meetings";
+import { emailBooked, emailCancelled, emailHostBooked, fmtWhen, openSlots, readTestToken, roomFor, SLOT_MIN, testLead } from "@/lib/meetings";
 
 // A prospect books, reschedules or cancels a Labb call from their private /meet/<token> page.
 export async function POST(req: Request) {
   const fd = await req.formData();
-  const token = field(fd, "token", 60);
-  if (!/^[A-Za-z0-9_-]{20,40}$/.test(token)) return go(req, "/");
+  const token = field(fd, "token", 300);
+  const test = readTestToken(token);
+  if (!test && !/^[A-Za-z0-9_-]{20,40}$/.test(token)) return go(req, "/");
   const page = `/meet/${token}`;
   if (!(await sameOrigin())) return go(req, page);
   const db = sql();
+  if (test) {
+    // Test booking: email the admin the real confirmation with a real video room. Nothing is saved.
+    if (field(fd, "action", 10) !== "book") return go(req, page);
+    const start = new Date(field(fd, "start", 40));
+    const slot = (await openSlots(test.host)).find((x) => x.start.getTime() === start.getTime());
+    if (!slot) return go(req, `${page}?m=taken`);
+    const me = await testLead(test.adminId);
+    const [host] = await db<{ name: string; email: string; meeting_url: string | null }[]>`select name, email, meeting_url from members where id = ${slot.hostId}`;
+    if (me && host) await emailBooked(me, { id: `test-${Date.now()}`, starts_at: slot.start, ends_at: new Date(slot.start.getTime() + SLOT_MIN * 60000), room_url: roomFor(host) }, host, token, true);
+    return go(req, `${page}?m=testbooked`);
+  }
   const [lead] = await db<LeadRow[]>`select * from leads where book_token = ${token} and not archived and owner = 'labb'`;
   if (!lead) return go(req, page);
   const action = field(fd, "action", 10);

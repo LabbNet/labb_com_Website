@@ -4,7 +4,7 @@ import { sql } from "@/lib/db";
 import { field, go } from "@/lib/http";
 import { esc, sendMail } from "@/lib/mail";
 import { linkToken, tagLinks } from "@/lib/visitors";
-import { emailBookingInvite, emailCancelled, newToken } from "@/lib/meetings";
+import { emailBookingInvite, emailCancelled, newToken, testLead, testToken } from "@/lib/meetings";
 import { emailPartner, logLeadEvent, type LeadRow } from "@/lib/leads";
 import { isSegment, isStatus, segmentLabel, statusLabel } from "@/lib/segments";
 import { sequenceName, startSequence, stopSequence } from "@/lib/sequences";
@@ -107,6 +107,14 @@ export async function POST(req: Request) {
     await logLeadEvent(id, "emailed", `To ${lead.email}. Subject: ${subject}\n\n${body}`.slice(0, 4000), actor);
     await db`update leads set updated_at = now() where id = ${id}`;
     await flash(`Email sent to ${lead.email}. Replies go to ${admin.email}.`);
+  } else if (action === "accept-labb" && field(fd, "test", 2) === "1") {
+    // Send the admin the exact booking invite, with a working test booking link. Nothing on the lead changes.
+    const hostField = field(fd, "host", 40) || "any";
+    const [host] = hostField === "any" ? [null] : await db<{ name: string; email: string }[]>`
+      select name, email from members where id = ${/^[0-9a-f-]{36}$/i.test(hostField) ? hostField : "00000000-0000-0000-0000-000000000000"} and role = 'admin'`;
+    const me = await testLead(admin.id);
+    const sent = me ? await emailBookingInvite(me, host ?? null, testToken(admin.id, host ? hostField : "any"), true) : false;
+    await flash(sent ? `Test invite sent to ${admin.email}. Nothing was sent to ${lead.email}. Book a time from the test to get the confirmation and video link.` : "The test email didn't send. Check the email settings.", sent ? "ok" : "error");
   } else if (action === "accept-labb" || action === "resend-invite") {
     // Labb keeps the lead: assign it to a team member (or anyone available) and email the prospect a booking link.
     if (lead.owner !== "labb") {

@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { sql } from "@/lib/db";
 import type { LeadRow } from "@/lib/leads";
-import { DAYS, etDate, fmtClock, fmtDayLabel, fmtWhen, openSlots, SLOT_MIN } from "@/lib/meetings";
+import { DAYS, etDate, fmtClock, fmtDayLabel, fmtWhen, openSlots, readTestToken, SLOT_MIN, testLead } from "@/lib/meetings";
 
 export const metadata: Metadata = { title: "Schedule a call with Labb", robots: { index: false, follow: false } };
 export const dynamic = "force-dynamic";
@@ -11,6 +11,7 @@ const MSG: Record<string, string> = {
   cancelled: "Your call is cancelled. Pick a new time below whenever you're ready.",
   taken: "Sorry, that time was just taken. Please choose another.",
   pick: "Choose a time first.",
+  testbooked: "Test booked. The confirmation with the video meeting link went to your email. Nothing was saved.",
 };
 
 // Private booking page from the "Schedule a call with Labb" email. The token in the URL is the only key.
@@ -18,11 +19,17 @@ export default async function Meet({ params, searchParams }: { params: Promise<{
   const { token } = await params;
   const { m } = await searchParams;
   const db = sql();
-  const [lead] = /^[A-Za-z0-9_-]{20,40}$/.test(token)
-    ? await db<(LeadRow & { host_name: string | null })[]>`
-        select l.*, h.name as host_name from leads l left join members h on h.id = l.meeting_host
-        where l.book_token = ${token} and not l.archived and l.owner = 'labb'`
-    : [];
+  const test = readTestToken(token);
+  let lead: (LeadRow & { host_name: string | null }) | undefined;
+  if (test) {
+    const t = await testLead(test.adminId);
+    const [h] = test.host ? await db<{ name: string }[]>`select name from members where id = ${test.host}` : [];
+    if (t) lead = { ...t, meeting_host: test.host, host_name: h?.name ?? null };
+  } else if (/^[A-Za-z0-9_-]{20,40}$/.test(token)) {
+    [lead] = await db<(LeadRow & { host_name: string | null })[]>`
+      select l.*, h.name as host_name from leads l left join members h on h.id = l.meeting_host
+      where l.book_token = ${token} and not l.archived and l.owner = 'labb'`;
+  }
   if (!lead) {
     return (
       <section className="section"><div className="wrap" style={{ maxWidth: 640 }}>
@@ -31,7 +38,7 @@ export default async function Meet({ params, searchParams }: { params: Promise<{
       </div></section>
     );
   }
-  const [booked] = await db<{ id: string; starts_at: Date; room_url: string; host_name: string }[]>`
+  const [booked] = test ? [] : await db<{ id: string; starts_at: Date; room_url: string; host_name: string }[]>`
     select g.id, g.starts_at, g.room_url, m.name as host_name from lead_meetings g join members m on m.id = g.host_id
     where g.lead_id = ${lead.id} and g.status = 'booked' and g.ends_at > now() order by g.starts_at limit 1`;
   const slots = await openSlots(lead.meeting_host || null);
@@ -46,6 +53,7 @@ export default async function Meet({ params, searchParams }: { params: Promise<{
   return (
     <section className="section" style={{ paddingTop: 40 }}>
       <div className="wrap" style={{ maxWidth: 820 }}>
+        {test && <p className="form-ok" role="status">Test page. This is exactly what a prospect sees. Booking a time here emails the confirmation and video meeting link to you only. Nothing is saved and no one else is emailed.</p>}
         <span className="eyebrow">Labb</span>
         <h1 style={{ fontSize: "2rem", margin: "6px 0 10px" }}>{booked ? "Your call is booked" : "Schedule your call with Labb"}</h1>
         {m && MSG[m] && <p className={m === "taken" || m === "pick" ? "form-error" : "form-ok"} role="status">{MSG[m]}</p>}
