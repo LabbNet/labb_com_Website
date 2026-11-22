@@ -127,7 +127,7 @@ export default async function Analytics({ searchParams }: { searchParams: Promis
               <h3>Who&apos;s visiting</h3>
               <span className="fine">{RANGES[range]}. {share.sessions ? `${Math.round((share.with_org / share.sessions) * 100)}% of visits matched to a company, ${Math.round((share.known / share.sessions) * 100)}% to a known person.` : ""}</span>
             </div>
-            <div className="an-grid-2">
+            <div className="an-grid-half">
               <div className="an-card">
                 <h3>Companies</h3>
                 {!lookupOn && <p className="fine">Company lookup is off. Add an IPINFO_TOKEN in Render to name the companies behind visits.</p>}

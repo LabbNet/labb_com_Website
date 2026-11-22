@@ -1609,3 +1609,5 @@ td.acts { white-space: nowrap; }
 .lead-visits details { padding: 14px 18px; text-align: left; }
 .lead-visits summary { cursor: pointer; }
 .lead-visits ol { margin: 10px 0 0; padding-left: 22px; display: grid; gap: 4px; }
+.an-grid-half { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 16px; }
+@media (max-width: 900px) { .an-grid-half { grid-template-columns: 1fr; } }
