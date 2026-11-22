@@ -71,7 +71,7 @@ export function Footer() {
         <div className="wrap">
           <span>© {year} {site.legalName}</span>
           <span>
-            <Link href="/privacy">Privacy</Link> · <Link href="/terms">Terms</Link> · <Link href="/terms/labbhr">LabbHR Terms of Service</Link> · <Link href="/privacy#s7-your-rights">Do not sell or share my personal information</Link>
+            <Link href="/privacy">Privacy</Link> · <Link href="/terms">Terms</Link> · <Link href="/terms/labbhr">LabbHR Terms of Service</Link> · <Link href="/privacy#s7-your-rights">Do not sell or share my personal information</Link> · <Link href="/admin-login" rel="nofollow">Admin login</Link>
           </span>
         </div>
       </div>

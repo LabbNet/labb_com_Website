@@ -9,7 +9,9 @@ export async function POST(req: Request) {
   const login = field(fd, "username", 160).toLowerCase();
   const password = String(fd.get("password") ?? "").slice(0, 200);
   const next = field(fd, "next", 300) || "/members";
-  const back = `/login?next=${encodeURIComponent(next)}`;
+  // The team sign-in (footer "Admin login") sends errors back to itself.
+  const team = field(fd, "from", 10) === "team";
+  const back = team ? "/admin-login?x=1" : `/login?next=${encodeURIComponent(next)}`;
 
   const ip = clientIp(req.headers);
   const key = `${ip}|${login}`;
@@ -31,5 +33,7 @@ export async function POST(req: Request) {
   await sql()`update members set last_login_at = now() where id = ${m.id}`;
   await logEvent(m.id, "login");
   await startSession(m);
+  // Team sign-in: Labb admins go to the admin portal, read admins to their area, anyone else to their usual home.
+  if (team) return go(req, m.role === "admin" ? "/admin/crm" : m.role === "reader" ? "/reads" : m.role === "learner" ? "/learn" : "/members");
   return go(req, m.role === "learner" && (next === "/members" || next.startsWith("/members/")) ? "/learn" : next);
 }
