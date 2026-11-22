@@ -91,7 +91,7 @@ export default async function Contacts({ searchParams }: { searchParams: Promise
         <div className="wrap">
           <Flash flash={flash} />
           <div className="leads-head">
-            <p className="lede" style={{ margin: 0, maxWidth: 760 }}>Opt-in contacts from HubSpot and the Labb Station platform. Uploads land in Pending; put each company on the right newsletter list. Unsubscribes always apply.</p>
+            <p className="lede" style={{ margin: 0, maxWidth: 760 }}>Opt-in contacts from HubSpot and the Labb Station platform. Uploads land in Pending, or straight on a list you choose; put each company on the right newsletter list. Unsubscribes always apply.</p>
           </div>
 
           <details className="hero-card" open={!n("pending") && !LISTS.some((l) => n(l))} style={{ marginBottom: 24 }}>
@@ -103,9 +103,16 @@ export default async function Contacts({ searchParams }: { searchParams: Promise
                 <label htmlFor="ct-s">Source</label>
                 <select id="ct-s" name="source" defaultValue="hubspot">{SOURCES.map((s) => <option key={s.value} value={s.value}>{s.label}</option>)}</select>
               </div>
-              <button className="btn btn-primary" type="submit">Upload to Pending</button>
+              <div className="field">
+                <label htmlFor="ct-to">Put new contacts on</label>
+                <select id="ct-to" name="to" defaultValue="">
+                  <option value="">Pending (sort them here)</option>
+                  {LISTS.map((l) => <option key={l} value={l}>{LIST_LABELS[l]}</option>)}
+                </select>
+              </div>
+              <button className="btn btn-primary" type="submit">Upload</button>
             </form>
-            <p className="fine" style={{ margin: "10px 0 0" }}>Only upload people who opted in to Labb email. Contacts already on file keep their list.</p>
+            <p className="fine" style={{ margin: "10px 0 0" }}>Only upload people who opted in to Labb email. Every upload is checked against existing contacts by email, so nobody is added twice; contacts already sorted onto a list keep their list.</p>
           </details>
 
           <nav className="price-tabs" aria-label="Contact lists">

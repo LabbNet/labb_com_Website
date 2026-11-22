@@ -60,7 +60,7 @@ const norm = (h: string) => h.toLowerCase().replace(/[^a-z0-9/ ]/g, "").trim();
 
 const EMAIL = /^[^\s@,;]{1,64}@[^\s@,;]{1,190}\.[a-z]{2,}$/i;
 
-export async function importContacts(text: string, source: string, batch: string) {
+export async function importContacts(text: string, source: string, batch: string, list: ListAudience | null = null, adminId: string | null = null) {
   const rows = parseCsv(text);
   if (rows.length < 2) return { error: "The file has no rows." };
   const head = rows[0].map(norm);
@@ -84,10 +84,15 @@ export async function importContacts(text: string, source: string, batch: string
       address2: get("address2"), city: get("city"), state: get("state"), zip: get("zip"), phone: get("phone") });
   }
   const db = sql();
+  // Cross-reference before writing: contacts already on file are never duplicated, and website leads are counted.
+  const emails = good.map((g) => g.email as string);
+  const known = await db<{ email: string; status: string; list: string | null }[]>`
+    select lower(email) as email, status, list from contact_imports where lower(email) = any(${emails})`;
+  const leadHits = await db<{ email: string }[]>`select distinct lower(email) as email from leads where lower(email) = any(${emails})`;
   let added = 0;
   for (let i = 0; i < good.length; i += 500) {
     const chunk = good.slice(i, i + 500).map((g) => ({ ...g, source, batch })) as Record<string, string | null>[];
-    // New addresses go to pending. Known addresses only get blank fields filled in; their list stays as is.
+    // New addresses go to the chosen list (or Pending). Known addresses only get blank fields filled in.
     const res = await db<{ inserted: boolean }[]>`
       insert into contact_imports ${db(chunk, "email", "first_name", "last_name", "company", "address", "address2", "city", "state", "zip", "phone", "source", "batch")}
       on conflict (lower(email)) do update set
@@ -99,5 +104,16 @@ export async function importContacts(text: string, source: string, batch: string
       returning (xmax = 0) as inserted`;
     added += res.filter((x) => x.inserted).length;
   }
-  return { added, updated: good.length - added, invalid, dupes, total: rows.length - 1 };
+  // Put new contacts, and known ones still waiting in Pending, on the chosen list. Contacts someone already
+  // sorted onto a list, or set aside, keep that decision.
+  let listed = 0;
+  if (list) {
+    const r = await db`update contact_imports set status = 'assigned', list = ${list}, assigned_by = ${adminId}, assigned_at = now(), updated_at = now()
+      where lower(email) = any(${emails}) and status = 'pending'`;
+    listed = r.count;
+  }
+  const already = known.filter((k) => k.status !== "pending").length;
+  const otherList = list ? known.filter((k) => k.status === "assigned" && k.list !== list).length : 0;
+  const ignored = known.filter((k) => k.status === "ignored").length;
+  return { added, updated: good.length - added, invalid, dupes, total: rows.length - 1, listed, already, otherList, ignored, leads: leadHits.length };
 }

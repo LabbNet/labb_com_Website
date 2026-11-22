@@ -27,9 +27,22 @@ export async function POST(req: Request) {
       return go(req, "/admin/contacts");
     }
     const src = isSource(source) ? source : "other";
-    const r = await importContacts(await file.text(), src, `${file.name.slice(0, 120)} (${new Date().toISOString().slice(0, 10)})`);
+    const to = field(fd, "to", 20);
+    const target = isList(to) ? to : null;
+    const r = await importContacts(await file.text(), src, `${file.name.slice(0, 120)} (${new Date().toISOString().slice(0, 10)})`, target, admin.id);
     if ("error" in r) await flash(r.error ?? "Import failed.", "error");
-    else await flash(`${sourceLabel(src)} import: ${r.added} new contacts added to Pending${r.updated ? `, ${r.updated} already on file` : ""}${r.invalid ? `, ${r.invalid} rows skipped without a valid email` : ""}${r.dupes ? `, ${r.dupes} duplicates in the file` : ""}.`);
+    else {
+      const parts = [
+        `${r.added} new ${r.added === 1 ? "contact" : "contacts"} ${target ? `added to ${LIST_LABELS[target]}` : "added to Pending"}`,
+        r.updated ? `${r.updated} already on file, not duplicated${target && r.listed > r.added ? ` (${r.listed - r.added} of them moved from Pending to ${LIST_LABELS[target]})` : ""}` : "",
+        r.otherList ? `${r.otherList} already on another list, left as is` : "",
+        r.ignored ? `${r.ignored} previously set aside, left as is` : "",
+        r.leads ? `${r.leads} also match website leads (they won't get duplicate emails)` : "",
+        r.invalid ? `${r.invalid} rows skipped without a valid email` : "",
+        r.dupes ? `${r.dupes} duplicates in the file` : "",
+      ].filter(Boolean);
+      await flash(`${sourceLabel(src)} import: ${parts.join("; ")}.`);
+    }
     return go(req, "/admin/contacts");
   }
 
