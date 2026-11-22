@@ -10,7 +10,7 @@ export const dynamic = "force-dynamic";
 
 const PER = 40;
 const num = (x: number) => x.toLocaleString("en-US");
-type C = { blocked?: boolean; id: string; email: string | null; address?: string | null; first_name: string | null; last_name: string | null; company: string | null; city: string | null; state: string | null; phone: string | null; source: string; list: string | null; status: string; assigned_at: Date | null };
+type C = { qt_hidden?: boolean; blocked?: boolean; id: string; email: string | null; address?: string | null; first_name: string | null; last_name: string | null; company: string | null; city: string | null; state: string | null; phone: string | null; source: string; list: string | null; status: string; assigned_at: Date | null };
 
 // Opt-ins imported from HubSpot and Labb Station wait here until an admin puts them on a list.
 export default async function Contacts({ searchParams }: { searchParams: Promise<{ view?: string; q?: string; state?: string; p?: string }> }) {
@@ -160,6 +160,7 @@ export default async function Contacts({ searchParams }: { searchParams: Promise
                 </nav>
                 {cur.key === "block" && <p className="fine" style={{ margin: "8px 0 0", textAlign: "left" }}>Addresses that get no Labb marketing email at all: no newsletters, CPP mailings or guidebook series. Includes people who unsubscribed.</p>}
                 {cur.key === "locations" && <p className="fine" style={{ margin: "8px 0 0", textAlign: "left" }}>Clinics that never receive newsletters, including lab sites such as Quest and LabCorp.</p>}
+                {(view === "clinics" || view === "clinic-locations") && <p className="fine" style={{ margin: "8px 0 0", textAlign: "left" }}>Locations here with a company name and street address appear in the Quick Test collection site finder, by name and address only. Use Hide from Quick Test for any that shouldn&apos;t.</p>}
               </div>
             );
           })()}
@@ -259,7 +260,7 @@ export default async function Contacts({ searchParams }: { searchParams: Promise
                       {rows.map((c) => (
                         <tr key={c.id}>
                           <td><input type="checkbox" name="id" value={c.id} aria-label={`Select ${c.email}`} /></td>
-                          <th scope="row">{name(c) || c.email}{c.blocked && <span className="status s-lost" style={{ marginLeft: 6 }}>Do not send</span>}<span className="bg-note" style={{ color: "var(--muted)" }}>{c.email || [c.address, c.phone].filter(Boolean).join(" · ") || "No email"}</span></th>
+                          <th scope="row">{name(c) || c.email}{c.blocked && <span className="status s-lost" style={{ marginLeft: 6 }}>Do not send</span>}{c.qt_hidden && <span className="status" style={{ marginLeft: 6 }}>Hidden from Quick Test</span>}<span className="bg-note" style={{ color: "var(--muted)" }}>{c.email || [c.address, c.phone].filter(Boolean).join(" · ") || "No email"}</span></th>
                           <td>{c.company}</td>
                           <td>{[c.city, c.state].filter(Boolean).join(", ")}</td>
                           <td>{sourceLabel(c.source)}</td>
@@ -277,6 +278,10 @@ export default async function Contacts({ searchParams }: { searchParams: Promise
                   <button className="btn btn-outline-dark btn-sm" type="submit" name="action" value="assign">Move</button>
                   <button className="linkish" type="submit" name="action" value="pending">Back to Pending</button>
                   <button className="linkish" type="submit" name="action" value="do-not-send">Do not send</button>
+                  {(view === "clinics" || view === "clinic-locations") && <>
+                    <button className="linkish" type="submit" name="action" value="qt-hide">Hide from Quick Test</button>
+                    <button className="linkish" type="submit" name="action" value="qt-show">Show in Quick Test</button>
+                  </>}
                 </div>
               )}
             </form>

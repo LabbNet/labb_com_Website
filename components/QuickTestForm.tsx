@@ -27,6 +27,32 @@ export function QuickTestForm({ checkout, pricing }: { checkout: boolean; pricin
   const [error, setError] = useState("");
   const [sending, setSending] = useState(false);
   const [custom, setCustom] = useState<string[]>([]);
+  // Collection site finder (at a clinic): sites near the buyer's ZIP from Labb's clinic network.
+  type Site = { id: string; name: string; address: string; city: string | null; state: string | null; zip: string; miles: number };
+  const [sites, setSites] = useState<Site[] | null>(null);
+  const [siteMsg, setSiteMsg] = useState("");
+  const [siteId, setSiteId] = useState("");
+  async function findSites() {
+    const zip = (f.clinicZip || "").trim();
+    if (!/^\d{5}$/.test(zip)) { setErrors((e) => ({ ...e, clinicZip: "Enter a 5 digit ZIP code." })); return; }
+    setSiteMsg("Searching...");
+    setSites(null);
+    setSiteId("");
+    set("clinicName", "");
+    try {
+      const r = await fetch(`/api/quick-test/sites?zip=${zip}`);
+      const j = await r.json();
+      if (!r.ok) { setSiteMsg(j.error || "Search failed. Try again."); return; }
+      setSites(j.sites);
+      setSiteMsg(j.sites.length ? "" : "No collection sites on file within 75 miles. Continue and we'll find one near you.");
+    } catch {
+      setSiteMsg("Search failed. Try again.");
+    }
+  }
+  const pickSite = (s: Site | null) => {
+    setSiteId(s ? s.id : "any");
+    set("clinicName", s ? `${s.name}, ${s.address}, ${s.city || ""}${s.state ? `, ${s.state}` : ""} ${s.zip}`.replace(/\s+/g, " ").trim() : "");
+  };
   const home = f.fulfillment === "At home";
   // Same price either way; at a clinic the fee is a collection fee, at home it is proctoring.
   const feeName = home || !f.fulfillment ? "Proctoring" : "Collection fee";
@@ -227,10 +253,39 @@ export function QuickTestForm({ checkout, pricing }: { checkout: boolean; pricin
             </>
           ) : (
             <>
-              <h3 className="form-group full">Find a clinic near</h3>
-              {input("clinicZip", "Your ZIP code", { auto: "postal-code", inputMode: "numeric" })}
-              {input("clinicName", "Preferred clinic, if you have one", { optional: true })}
-              <p className="fine full" style={{ margin: 0 }}>We send your rapid test to a clinic near this ZIP and email you where to go.</p>
+              <h3 className="form-group full">Find a collection site</h3>
+              <div className="field full qt-site-search">
+                <label htmlFor="q-clinicZip">Your ZIP code</label>
+                <div className="qt-site-row">
+                  <input id="q-clinicZip" inputMode="numeric" autoComplete="postal-code" maxLength={5} value={f.clinicZip || ""}
+                    onChange={(e) => set("clinicZip", e.target.value.replace(/\D/g, ""))}
+                    onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); findSites(); } }}
+                    aria-invalid={Boolean(errors.clinicZip)} aria-describedby={errors.clinicZip ? "q-clinicZip-err" : undefined} />
+                  <button type="button" className="btn btn-outline-dark" onClick={findSites}>Find sites</button>
+                </div>
+                {errors.clinicZip && <span className="err" id="q-clinicZip-err">{errors.clinicZip}</span>}
+              </div>
+              {siteMsg && <p className="fine full" role="status" style={{ margin: 0 }}>{siteMsg}</p>}
+              {sites && sites.length > 0 && (
+                <fieldset className="full qt-sites">
+                  <legend>Choose where you&apos;d like to test</legend>
+                  {sites.map((s) => (
+                    <label key={s.id} className={`qt-site${siteId === s.id ? " on" : ""}`}>
+                      <input type="radio" name="qt-site" checked={siteId === s.id} onChange={() => pickSite(s)} />
+                      <span>
+                        <strong>{s.name}</strong>
+                        <span className="fine">{s.address}, {s.city}{s.state ? `, ${s.state}` : ""} {s.zip}</span>
+                      </span>
+                      <span className="qt-miles">{s.miles < 1 ? "<1" : Math.round(s.miles)} mi</span>
+                    </label>
+                  ))}
+                  <label className={`qt-site${siteId === "any" ? " on" : ""}`}>
+                    <input type="radio" name="qt-site" checked={siteId === "any"} onChange={() => pickSite(null)} />
+                    <span><strong>Any site near me</strong><span className="fine">Labb picks the closest available site.</span></span>
+                  </label>
+                </fieldset>
+              )}
+              <p className="fine full" style={{ margin: 0 }}>We confirm your test with the site before your kit ships and email you where to go. If your choice can&apos;t take the test, we&apos;ll suggest the nearest site that can.</p>
             </>
           )}
           <div className="field full">
@@ -255,7 +310,7 @@ export function QuickTestForm({ checkout, pricing }: { checkout: boolean; pricin
                 ["Report to", f.reportTo],
                 ["Name", `${f.firstName} ${f.lastName}`],
                 ["Email", f.email],
-                [home ? "Ship to" : "Clinic near", home ? `${f.address1}${f.address2 ? `, ${f.address2}` : ""}, ${f.city}, ${f.state} ${f.zip}` : `ZIP ${f.clinicZip}${f.clinicName ? ` (${f.clinicName})` : ""}`],
+                [home ? "Ship to" : "Collection site", home ? `${f.address1}${f.address2 ? `, ${f.address2}` : ""}, ${f.city}, ${f.state} ${f.zip}` : f.clinicName ? f.clinicName : `Any site near ZIP ${f.clinicZip}`],
                 [q.kit ? `Test kit (${q.kit.code})` : "Test kit, from", money(q.fees.screen)],
                 [`${f.shipping} shipping`, money(q.fees.shipping)],
                 [feeName, money(q.fees.proctoring)],

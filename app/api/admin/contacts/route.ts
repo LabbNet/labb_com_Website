@@ -90,6 +90,10 @@ export async function POST(req: Request) {
     const emails = fd.getAll("email").map(String).map((e) => e.toLowerCase()).filter((e) => e.includes("@")).slice(0, 2000);
     const r = emails.length ? await db`delete from email_suppressions where audience = 'all' and added_by is not null and email = any(${emails})` : { count: 0 };
     await flash(`${r.count} ${r.count === 1 ? "address" : "addresses"} removed from Do not send.`);
+  } else if (action === "qt-hide" || action === "qt-show") {
+    // Hide or show these locations in the Quick Test collection site finder.
+    if (ids.length) await db`update contact_imports set qt_hidden = ${action === "qt-hide"}, updated_at = now() where id = any(${ids})`;
+    await flash(`${ids.length} ${ids.length === 1 ? "contact" : "contacts"} ${action === "qt-hide" ? "hidden from" : "shown in"} the Quick Test site finder.`);
   } else if (action === "pending") {
     if (ids.length) await db`update contact_imports set status = 'pending', list = null, assigned_by = null, assigned_at = null, updated_at = now() where id = any(${ids})`;
     await flash(`${ids.length} moved back to Pending.`);
