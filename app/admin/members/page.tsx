@@ -24,11 +24,11 @@ export default async function AdminMembers({ searchParams }: { searchParams: Pro
       to_char(cpp_start_date, 'Mon FMDD, YYYY') as cpp_start,
       (select count(*)::int from member_contracts c where c.member_id = members.id) as contracts
     from members
-    where role <> 'reader' and (${q} = '' or lower(name) like ${like} or lower(email) like ${like} or lower(username) like ${like} or lower(coalesce(clinic, '')) like ${like})
+    where role not in ('reader', 'admin') and (${q} = '' or lower(name) like ${like} or lower(email) like ${like} or lower(username) like ${like} or lower(coalesce(clinic, '')) like ${like})
       and (${show} = 'all' or (${show} = 'current' and status <> 'disabled') or status = ${show})
       and (${cpp} = 'all' or (role = 'member' and cpp_status = ${cpp}))
     order by status = 'disabled', cpp_status <> 'prospect', status <> 'invited', lower(name)`;
-  const counts = await sql()<{ status: string; n: number }[]>`select status, count(*)::int as n from members where role <> 'reader' and not (status = 'invited' and cpp_status = 'prospect') group by status`;
+  const counts = await sql()<{ status: string; n: number }[]>`select status, count(*)::int as n from members where role not in ('reader', 'admin') and not (status = 'invited' and cpp_status = 'prospect') group by status`;
   const c = Object.fromEntries(counts.map((r) => [r.status, r.n]));
   const cppCounts = await sql()<{ cpp_status: string; n: number }[]>`select cpp_status, count(*)::int as n from members where role = 'member' group by cpp_status`;
   const cc = Object.fromEntries(cppCounts.map((r) => [r.cpp_status, r.n]));
@@ -96,13 +96,6 @@ export default async function AdminMembers({ searchParams }: { searchParams: Pro
                     <label htmlFor="a-start">CPP start date</label>
                     <input id="a-start" name="cpp_start" type="date" />
                   </div>
-                  <div className="field">
-                    <label htmlFor="a-role">Access</label>
-                    <select id="a-role" name="role" defaultValue="member">
-                      <option value="member">CPP member</option>
-                      <option value="admin">Labb admin (can manage members)</option>
-                    </select>
-                  </div>
                 </div>
                 <button className="btn btn-primary" style={{ marginTop: 18 }} type="submit">Create account and send invite</button>
               </form>
@@ -154,7 +147,7 @@ export default async function AdminMembers({ searchParams }: { searchParams: Pro
                           {m.status === "active" && act(m.id, "reset", "Reset link")}
                           {m.status !== "disabled" && m.id !== admin.id && act(m.id, "disable", "Disable", true)}
                           {m.status === "disabled" && act(m.id, "enable", "Re-enable")}
-                          {m.id !== admin.id && m.status !== "disabled" && (m.role === "admin" ? act(m.id, "demote", "Remove admin", true) : act(m.id, "promote", "Make admin"))}
+                          
                         </td>
                       </tr>
                     ))}

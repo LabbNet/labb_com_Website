@@ -22,7 +22,7 @@ export async function POST(req: Request) {
     const name = field(fd, "name", 120);
     const email = field(fd, "email", 160).toLowerCase();
     const clinic = field(fd, "clinic", 160) || null;
-    const role = fd.get("role") === "admin" ? "admin" : "member";
+    const role = "member"; // Labb admins are added in Settings -> Admin users (superadmin)
     const cppStart = /^\d{4}-\d{2}-\d{2}$/.test(field(fd, "cpp_start", 10)) ? field(fd, "cpp_start", 10) : null;
     if (!name || !EMAIL_RE.test(email)) {
       await flash(`Enter a name and a valid email address (received "${email || "blank"}").`, undefined, "error");
@@ -68,7 +68,7 @@ export async function POST(req: Request) {
   }
 
   const id = field(fd, "id", 40);
-  const [m] = await db<{ id: string; email: string; name: string; username: string; status: string }[]>`select id, email, name, username, status from members where id = ${id} and role <> 'reader'`;
+  const [m] = await db<{ id: string; email: string; name: string; username: string; status: string }[]>`select id, email, name, username, status from members where id = ${id} and role not in ('reader', 'admin')`;
   if (!m) return go(req, "/admin/members");
 
   if (action === "resend") {
@@ -96,14 +96,8 @@ export async function POST(req: Request) {
       await flash(`${m.name} is disabled and signed out everywhere.`);
     }
   } else if (action === "promote" || action === "demote") {
-    if (m.id === admin.id) {
-      await flash("You can't change your own admin access.", undefined, "error");
-    } else {
-      const role = action === "promote" ? "admin" : "member";
-      await db`update members set role = ${role}, session_version = session_version + 1, updated_at = now() where id = ${m.id}`;
-      await logEvent(m.id, role === "admin" ? "made_admin" : "admin_removed", undefined, admin.id);
-      await flash(role === "admin" ? `${m.name} is now a Labb admin.` : `${m.name} is no longer an admin.`);
-    }
+    // Admin access is managed in Settings -> Admin users, by the superadmin.
+    await flash("Admin access is managed in Settings, Admin users.", undefined, "error");
   } else if (action === "enable") {
     const [row] = await db<{ password_hash: string | null }[]>`select password_hash from members where id = ${m.id}`;
     const status = row.password_hash ? "active" : "invited";

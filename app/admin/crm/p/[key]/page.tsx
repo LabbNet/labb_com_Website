@@ -145,7 +145,7 @@ export default async function Record({ params }: { params: Promise<{ key: string
                 <h2>On file</h2>
                 <ul className="crm-files">
                   {p.members.map((x) => (
-                    <li key={x.id}><Link href={`/admin/members/${x.id}`}>{x.role === "admin" ? "Labb admin account" : x.cpp_status === "prospect" ? "CPP prospect" : "CPP member account"}</Link><span className="fine">{x.status}{x.role !== "admin" ? ` · CPP ${x.cpp_status}` : ""}{x.last_login_at ? ` · last sign-in ${day(x.last_login_at)}` : ""}</span></li>
+                    <li key={x.id}>{x.role === "admin" ? <span>Labb admin account</span> : <Link href={`/admin/members/${x.id}`}>{x.cpp_status === "prospect" ? "CPP prospect" : "CPP member account"}</Link>}<span className="fine">{x.status}{x.role !== "admin" ? ` · CPP ${x.cpp_status}` : ""}{x.last_login_at ? ` · last sign-in ${day(x.last_login_at)}` : ""}</span></li>
                   ))}
                   {p.leads.map((x) => (
                     <li key={x.id}><Link href={`/admin/leads/${x.id}`}>Lead: {x.type.replace(/-/g, " ")}</Link><span className="fine">{day(x.created_at)} · {x.status}{x.owner === "partner" ? " · with a CPP partner" : ""}{x.archived ? " · archived" : ""}</span></li>

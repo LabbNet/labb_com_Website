@@ -38,14 +38,16 @@ const SECTIONS = [
       { href: "/admin/learners", label: "Learners" },
     ],
   },
-  { label: "Settings", links: [{ href: "/admin/settings", label: "Settings" }] },
+  { label: "Settings", links: [{ href: "/admin/settings", label: "Settings" }, { href: "/admin/access", label: "Admin users" }] },
 ];
 
 export async function AdminBar({ title, current }: { title: string; current: string }) {
   // The reads schedule link shows only for the superadmin and admins given read access; Access only for the superadmin.
   const m = await currentMember();
   const [x] = m ? await sql()<{ superadmin: boolean; reads: boolean }[]>`select superadmin, (read_role is not null or read_approver) as reads from members where id = ${m.id}` : [];
-  const section = SECTIONS.find((s) => s.links.some((l) => l.href === current));
+  const found = SECTIONS.find((s) => s.links.some((l) => l.href === current));
+  // Admin users is the superadmin's page only.
+  const section = found && { ...found, links: found.links.filter((l) => l.href !== "/admin/access" || x?.superadmin) };
   return (
     <section className="member-bar admin-bar">
       <div className="wrap">
@@ -55,7 +57,6 @@ export async function AdminBar({ title, current }: { title: string; current: str
             <strong>{title}</strong>
           </div>
           <div className="ab-util">
-            {x?.superadmin && <Link href="/admin/access">Access</Link>}
             {(x?.superadmin || x?.reads) && <Link href="/reads">Reads schedule</Link>}
             <Link href="/members">Member area</Link>
             <form action="/api/auth/logout" method="post"><button type="submit" className="linkish">Sign out</button></form>

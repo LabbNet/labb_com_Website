@@ -4,7 +4,7 @@ import { AdminBar, Flash } from "@/components/AdminBar";
 import { readFlash, requireAdmin } from "@/lib/admin";
 import { sql } from "@/lib/db";
 
-export const metadata: Metadata = { title: "Access", robots: { index: false, follow: false } };
+export const metadata: Metadata = { title: "Admin users", robots: { index: false, follow: false } };
 export const dynamic = "force-dynamic";
 
 type Row = { id: string; name: string; email: string; role: string; status: string; read_role: string | null; read_approver: boolean; superadmin: boolean; last_login_at: Date | null };
@@ -25,13 +25,23 @@ export default async function Access() {
 
   return (
     <>
-      <AdminBar title="Access" current="/admin/access" />
+      <AdminBar title="Admin users" current="/admin/access" />
       <section className="section" style={{ paddingTop: 32 }}>
         <div className="wrap">
           <Flash flash={flash} />
           <p className="lede" style={{ maxWidth: 820, textAlign: "left" }}>
-            You are the only superadmin. Labb admins see only the admin portal; read admins see only the reads schedule. Give someone both here (dual access).
+            Add and manage Labb admins here. CPP members are managed separately in CPP, Members. You are the only superadmin and the only one who sees this page. Labb admins see only the admin portal; read admins see only the reads schedule; give someone both here (dual access).
           </p>
+          <details className="hero-card" style={{ marginBottom: 20, textAlign: "left", maxWidth: 640 }}>
+            <summary className="btn btn-primary">+ Add a Labb admin</summary>
+            <form action="/api/admin/access" method="post" className="rd-form" style={{ marginTop: 14 }}>
+              <input type="hidden" name="action" value="add" />
+              <div className="field"><label htmlFor="ad-n">Name</label><input id="ad-n" name="name" required maxLength={120} /></div>
+              <div className="field"><label htmlFor="ad-e">Email</label><input id="ad-e" name="email" type="email" required /></div>
+              <button className="btn btn-primary" type="submit">Create admin and send invite</button>
+              <p className="fine" style={{ margin: 0 }}>They get a setup link by email (expires in 7 days) and see only the admin portal.</p>
+            </form>
+          </details>
           <div className="bg-table-wrap">
             <table className="bg-table">
               <thead><tr><th scope="col">Person</th><th scope="col">Labb admin portal</th><th scope="col">Reads schedule</th><th scope="col">Last sign-in</th><th scope="col"></th></tr></thead>
@@ -57,7 +67,16 @@ export default async function Access() {
                           </form>
                         </td>
                         <td>{day(r.last_login_at)}</td>
-                        <td><button className="btn btn-outline-dark btn-sm" type="submit" form={`f-${r.id}`}>Save</button></td>
+                        <td className="rd-team-actions">
+                          <button className="btn btn-outline-dark btn-sm" type="submit" form={`f-${r.id}`}>Save</button>
+                          {r.status !== "disabled" && (
+                            <form action="/api/admin/access" method="post">
+                              <input type="hidden" name="id" value={r.id} />
+                              <input type="hidden" name="action" value={r.status === "invited" ? "resend" : "reset"} />
+                              <button className="linkish" type="submit">{r.status === "invited" ? "Resend setup link" : "Password reset link"}</button>
+                            </form>
+                          )}
+                        </td>
                       </>
                     )}
                   </tr>
@@ -66,7 +85,7 @@ export default async function Access() {
             </table>
           </div>
           <p className="fine" style={{ textAlign: "left", marginTop: 12 }}>
-            Turning off both disables the account. CPP member and learner accounts aren&apos;t listed. Read admins are added in Reads → Team.
+            Turning off both disables the account. CPP member and learner accounts aren&apos;t listed here.
           </p>
         </div>
       </section>
