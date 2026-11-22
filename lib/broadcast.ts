@@ -47,7 +47,7 @@ export async function recipients(audience: Audience): Promise<{ email: string; n
     return db<{ email: string; name: string | null }[]>`
       select distinct on (lower(m.email)) lower(m.email) as email, m.name from members m
       where m.role = 'member' and m.status = 'active' and m.cpp_status = 'active' and m.email like '%@%'
-        and not exists (select 1 from email_suppressions s where s.email = lower(m.email) and s.audience = 'cpp')
+        and not exists (select 1 from email_suppressions s where s.email = lower(m.email) and s.audience in ('cpp', 'all'))
       order by lower(m.email)`;
   }
   // Newsletter lists: people who opted in on a form, by the kind of organization they told us they are.
@@ -65,7 +65,7 @@ export async function recipients(audience: Audience): Promise<{ email: string; n
       select lower(c.email), nullif(trim(coalesce(c.first_name, '') || ' ' || coalesce(c.last_name, '')), ''), c.created_at
       from contact_imports c where c.status = 'assigned' and (c.list = ${audience} or (${segs === null} and c.list <> 'clinic-locations')) and c.email like '%@%'
     ) x
-    where not exists (select 1 from email_suppressions s where s.email = x.email and s.audience in (${audience}, 'newsletter'))
+    where not exists (select 1 from email_suppressions s where s.email = x.email and s.audience in (${audience}, 'newsletter', 'all'))
     order by email, created_at desc`;
 }
 

@@ -49,8 +49,8 @@ export async function startSequence(seq: string, lead: LeadLite, by: Starter, as
   if (asPartner && !def.cpp) return { ok: false as const, error: "That sequence isn't available to CPP members." };
   const db = sql();
   const email = lead.email.toLowerCase();
-  const [sup] = await db`select 1 from email_suppressions where email = ${email} and audience = 'sequences'`;
-  if (sup) return { ok: false as const, error: `${email} unsubscribed from guidebook emails.` };
+  const [sup] = await db`select 1 from email_suppressions where email = ${email} and audience in ('sequences', 'all')`;
+  if (sup) return { ok: false as const, error: `${email} is on the do-not-send list or unsubscribed from guidebook emails.` };
   const [dup] = await db`select 1 from sequence_runs where lower(email) = ${email} and sequence = ${seq} and status = 'active'`;
   if (dup) return { ok: false as const, error: `The ${def.name} sequence is already running for ${email}.` };
   const name = [lead.first_name, lead.last_name].filter(Boolean).join(" ") || null;
@@ -157,7 +157,7 @@ async function sendOne(sendId: string) {
     if (!left) await db`update sequence_runs set status = 'completed', updated_at = now() where id = ${s.run_id} and status = 'active'`;
   };
   if (!run || run.status !== "active") return done("canceled");
-  const [sup] = await db`select 1 from email_suppressions where email = ${run.email} and audience = 'sequences'`;
+  const [sup] = await db`select 1 from email_suppressions where email = ${run.email} and audience in ('sequences', 'all')`;
   if (sup) {
     await db`update sequence_runs set status = 'unsubscribed', updated_at = now() where id = ${run.id}`;
     await db`update sequence_sends set status = 'canceled' where run_id = ${run.id} and status in ('queued', 'sending')`;

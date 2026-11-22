@@ -10,13 +10,13 @@ export const dynamic = "force-dynamic";
 
 const PER = 40;
 const num = (x: number) => x.toLocaleString("en-US");
-type C = { id: string; email: string | null; address?: string | null; first_name: string | null; last_name: string | null; company: string | null; city: string | null; state: string | null; phone: string | null; source: string; list: string | null; status: string; assigned_at: Date | null };
+type C = { blocked?: boolean; id: string; email: string | null; address?: string | null; first_name: string | null; last_name: string | null; company: string | null; city: string | null; state: string | null; phone: string | null; source: string; list: string | null; status: string; assigned_at: Date | null };
 
 // Opt-ins imported from HubSpot and Labb Station wait here until an admin puts them on a list.
 export default async function Contacts({ searchParams }: { searchParams: Promise<{ view?: string; q?: string; state?: string; p?: string }> }) {
   await requireAdmin("/admin/contacts");
   const sp = await searchParams;
-  const view = sp.view && ["pending", "ignored", ...LISTS].includes(sp.view) ? sp.view : "pending";
+  const view = sp.view && ["pending", "ignored", "donotsend", ...LISTS].includes(sp.view) ? sp.view : "pending";
   const q = (sp.q || "").trim().slice(0, 100).toLowerCase();
   const st = (sp.state || "").trim().slice(0, 20).toUpperCase();
   const page = Math.max(1, Number(sp.p) || 1);
@@ -30,7 +30,8 @@ export default async function Contacts({ searchParams }: { searchParams: Promise
   const here = qs({ p: page > 1 ? page : undefined });
 
   const [counts, states, flash] = await Promise.all([
-    db<{ k: string; n: number }[]>`select case when status = 'assigned' then list else status end as k, count(*)::int as n from contact_imports group by 1`,
+    db<{ k: string; n: number }[]>`select case when status = 'assigned' then list else status end as k, count(*)::int as n from contact_imports group by 1
+      union all select 'donotsend', count(distinct email)::int from email_suppressions where audience in ('all', 'newsletter')`,
     db<{ state: string }[]>`select distinct upper(trim(state)) as state from contact_imports where coalesce(trim(state), '') <> '' order by 1`,
     readFlash(),
   ]);
@@ -51,17 +52,28 @@ export default async function Contacts({ searchParams }: { searchParams: Promise
     total = g[0]?.total ?? 0;
     const keys = g.map((x) => x.key);
     const cs = keys.length
-      ? await db<(C & { key: string })[]>`select *, lower(trim(coalesce(company, ''))) as key from contact_imports
+      ? await db<(C & { key: string })[]>`select *, lower(trim(coalesce(company, ''))) as key, exists (select 1 from email_suppressions s where s.email = lower(contact_imports.email) and s.audience in ('all', 'newsletter', coalesce(contact_imports.list, ''))) as blocked from contact_imports
           where status = 'pending' and lower(trim(coalesce(company, ''))) = any(${keys}) and ${filter} order by lower(coalesce(email, ''))`
       : [];
     groups = g.map((x) => ({ ...x, contacts: cs.filter((c) => c.key === x.key) }));
-  } else {
+  } else if (view !== "donotsend") {
     const r = await db<(C & { total: number })[]>`
-      select *, count(*) over ()::int as total from contact_imports
+      select *, count(*) over ()::int as total, exists (select 1 from email_suppressions s where s.email = lower(contact_imports.email) and s.audience in ('all', 'newsletter', coalesce(contact_imports.list, ''))) as blocked from contact_imports
       where ${view === "ignored" ? db`status = 'ignored'` : db`status = 'assigned' and list = ${view}`} and ${filter}
       order by lower(coalesce(company, '')), lower(coalesce(email, '')) limit 100 offset ${(page - 1) * 100}`;
     rows = r;
     total = r[0]?.total ?? 0;
+  }
+  // Do not send: admin blocks and unsubscribes, with the contact's name where we have it.
+  let blocks: { email: string; audience: string; created_at: Date; by: string | null; added_by: string | null; name: string | null; company: string | null; total: number }[] = [];
+  if (view === "donotsend") {
+    blocks = await db<typeof blocks>`
+      select s.email, string_agg(distinct s.audience, ', ') as audience, max(s.created_at) as created_at, max(m.name) as by, max(s.added_by::text) as added_by,
+        max(nullif(trim(coalesce(c.first_name, '') || ' ' || coalesce(c.last_name, '')), '')) as name, max(c.company) as company, count(*) over ()::int as total
+      from email_suppressions s left join members m on m.id = s.added_by left join contact_imports c on lower(c.email) = s.email
+      where s.audience in ('all', 'newsletter') and (${q} = '' or s.email like ${like} or lower(coalesce(c.company, '')) like ${like})
+      group by s.email order by max(s.created_at) desc limit 100 offset ${(page - 1) * 100}`;
+    total = blocks[0]?.total ?? 0;
   }
   const pages = Math.max(1, Math.ceil(total / (view === "pending" ? PER : 100)));
   const name = (c: C) => [c.first_name, c.last_name].filter(Boolean).join(" ") || (c.email ? "" : c.company || "");
@@ -80,6 +92,12 @@ export default async function Contacts({ searchParams }: { searchParams: Promise
         <input type="hidden" name="action" value="ignore" />
         {hidden}
         <button className="linkish" type="submit">Don&apos;t add</button>
+      </form>
+      <form action="/api/admin/contacts" method="post">
+        <input type="hidden" name="back" value={here} />
+        <input type="hidden" name="action" value="do-not-send" />
+        {hidden}
+        <button className="linkish" type="submit">Do not send</button>
       </form>
     </div>
   );
@@ -121,6 +139,7 @@ export default async function Contacts({ searchParams }: { searchParams: Promise
               { key: "sort", label: "To sort", tabs: [["pending", "Pending"], ["ignored", "Not added"]] },
               { key: "lists", label: "Newsletter lists", tabs: (["employers", "clinics", "treatment", "corrections"] as const).map((l) => [l, LIST_LABELS[l]] as [string, string]) },
               { key: "locations", label: "No marketing", tabs: [["clinic-locations", "Clinic locations"]] },
+              { key: "block", label: "Do not send", tabs: [["donotsend", "Do not send"]] },
             ];
             const cur = groups.find((g) => g.tabs.some(([k]) => k === view)) ?? groups[0];
             return (
@@ -139,6 +158,7 @@ export default async function Contacts({ searchParams }: { searchParams: Promise
                     </Link>
                   ))}
                 </nav>
+                {cur.key === "block" && <p className="fine" style={{ margin: "8px 0 0", textAlign: "left" }}>Addresses that get no Labb marketing email at all: no newsletters, CPP mailings or guidebook series. Includes people who unsubscribed.</p>}
                 {cur.key === "locations" && <p className="fine" style={{ margin: "8px 0 0", textAlign: "left" }}>Clinics that never receive newsletters, including lab sites such as Quest and LabCorp.</p>}
               </div>
             );
@@ -171,7 +191,7 @@ export default async function Contacts({ searchParams }: { searchParams: Promise
                       <ul>
                         {g.contacts.map((c) => (
                           <li key={c.id}>
-                            <label><input type="checkbox" name="id" value={c.id} defaultChecked={!!g.key} /> <strong>{name(c) || c.email}</strong> <span className="fine">{c.email}{c.phone ? ` · ${c.phone}` : ""} · {sourceLabel(c.source)}</span></label>
+                            <label><input type="checkbox" name="id" value={c.id} defaultChecked={!!g.key} /> <strong>{name(c) || c.email}</strong>{c.blocked && <span className="status s-lost" style={{ marginLeft: 6 }}>Do not send</span>} <span className="fine">{c.email}{c.phone ? ` · ${c.phone}` : ""} · {sourceLabel(c.source)}</span></label>
                           </li>
                         ))}
                       </ul>
@@ -180,6 +200,7 @@ export default async function Contacts({ searchParams }: { searchParams: Promise
                         <select name="list" defaultValue="" aria-label="List"><option value="" disabled>Choose a list</option>{LISTS.map((l) => <option key={l} value={l}>{LIST_LABELS[l]}</option>)}</select>
                         <button className="btn btn-outline-dark btn-sm" type="submit" name="action" value="assign">Add</button>
                         <button className="linkish" type="submit" name="action" value="ignore">Don&apos;t add</button>
+                        <button className="linkish" type="submit" name="action" value="do-not-send">Do not send</button>
                       </div>
                     </form>
                   </details>
@@ -188,7 +209,46 @@ export default async function Contacts({ searchParams }: { searchParams: Promise
             </div>
           )}
 
-          {view !== "pending" && (
+          {view === "donotsend" && (
+            <>
+              <form action="/api/admin/contacts" method="post" className="ct-assign" style={{ marginBottom: 14 }}>
+                <input type="hidden" name="back" value={here} />
+                <input type="hidden" name="action" value="do-not-send" />
+                <label htmlFor="dns-e" className="fine">Block any address:</label>
+                <input id="dns-e" name="email" type="email" required placeholder="name@company.com" style={{ padding: "8px 10px", border: "1px solid #c9d1d3", borderRadius: 8 }} />
+                <button className="btn btn-outline-dark btn-sm" type="submit">Add to Do not send</button>
+              </form>
+              <form action="/api/admin/contacts" method="post">
+                <input type="hidden" name="back" value={here} />
+                {!blocks.length ? <p className="hero-card">No addresses blocked.</p> : (
+                  <div className="bg-table-wrap">
+                    <table className="bg-table">
+                      <thead><tr><th scope="col"></th><th scope="col">Address</th><th scope="col">Company</th><th scope="col">Why</th><th scope="col">Since</th></tr></thead>
+                      <tbody>
+                        {blocks.map((b) => (
+                          <tr key={b.email}>
+                            <td>{b.added_by ? <input type="checkbox" name="email" value={b.email} aria-label={`Select ${b.email}`} /> : null}</td>
+                            <th scope="row">{b.name || b.email}{b.name && <span className="bg-note" style={{ color: "var(--muted)" }}>{b.email}</span>}</th>
+                            <td>{b.company}</td>
+                            <td>{b.added_by ? `Added by ${b.by || "an admin"}` : "Unsubscribed"}</td>
+                            <td>{fmtDate(b.created_at).split(",").slice(0, 2).join(",")}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+                {blocks.some((b) => b.added_by) && (
+                  <div className="ct-assign" style={{ marginTop: 14 }}>
+                    <button className="linkish" type="submit" name="action" value="allow">Allow email again for checked</button>
+                    <span className="fine">People who unsubscribed themselves can&apos;t be re-added.</span>
+                  </div>
+                )}
+              </form>
+            </>
+          )}
+
+          {view !== "pending" && view !== "donotsend" && (
             <form action="/api/admin/contacts" method="post">
               <input type="hidden" name="back" value={here} />
               {!rows.length ? <p className="hero-card">No contacts here.</p> : (
@@ -199,7 +259,7 @@ export default async function Contacts({ searchParams }: { searchParams: Promise
                       {rows.map((c) => (
                         <tr key={c.id}>
                           <td><input type="checkbox" name="id" value={c.id} aria-label={`Select ${c.email}`} /></td>
-                          <th scope="row">{name(c) || c.email}<span className="bg-note" style={{ color: "var(--muted)" }}>{c.email || [c.address, c.phone].filter(Boolean).join(" · ") || "No email"}</span></th>
+                          <th scope="row">{name(c) || c.email}{c.blocked && <span className="status s-lost" style={{ marginLeft: 6 }}>Do not send</span>}<span className="bg-note" style={{ color: "var(--muted)" }}>{c.email || [c.address, c.phone].filter(Boolean).join(" · ") || "No email"}</span></th>
                           <td>{c.company}</td>
                           <td>{[c.city, c.state].filter(Boolean).join(", ")}</td>
                           <td>{sourceLabel(c.source)}</td>
@@ -216,6 +276,7 @@ export default async function Contacts({ searchParams }: { searchParams: Promise
                   <select name="list" defaultValue="" aria-label="Move to list"><option value="" disabled>Move to list</option>{LISTS.map((l) => <option key={l} value={l}>{LIST_LABELS[l]}</option>)}</select>
                   <button className="btn btn-outline-dark btn-sm" type="submit" name="action" value="assign">Move</button>
                   <button className="linkish" type="submit" name="action" value="pending">Back to Pending</button>
+                  <button className="linkish" type="submit" name="action" value="do-not-send">Do not send</button>
                 </div>
               )}
             </form>
