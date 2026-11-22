@@ -94,6 +94,7 @@ export default async function AdminLead({ params }: { params: Promise<{ id: stri
           <p style={{ marginTop: 0 }}><Link href="/admin/leads">← All leads</Link></p>
           <Flash flash={flash} />
           <h1 style={{ fontSize: "1.8rem", marginBottom: 6 }}>{leadName(lead)}</h1>
+          <p className="fine" style={{ textAlign: "left", margin: "0 0 10px" }}><Link href={`/admin/crm/p/${encodeURIComponent(lead.email.toLowerCase())}`}>Open CRM record</Link> for notes, tasks and everything else on file for this person.</p>
           <p style={{ marginTop: 0 }}>
             <span className={`status s-${lead.status}`}>{statusLabel(lead.status)}</span>{" "}
             <span className="tag plain">{lead.owner === "partner" ? `Passed to ${lead.partner_clinic || lead.partner_name}` : "Labb owned"}</span>{" "}

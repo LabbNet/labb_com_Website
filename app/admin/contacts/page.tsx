@@ -192,7 +192,7 @@ export default async function Contacts({ searchParams }: { searchParams: Promise
                       <ul>
                         {g.contacts.map((c) => (
                           <li key={c.id}>
-                            <label><input type="checkbox" name="id" value={c.id} defaultChecked={!!g.key} /> <strong>{name(c) || c.email}</strong>{c.blocked && <span className="status s-lost" style={{ marginLeft: 6 }}>Do not send</span>} <span className="fine">{c.email}{c.phone ? ` · ${c.phone}` : ""} · {sourceLabel(c.source)}</span></label>
+                            <label><input type="checkbox" name="id" value={c.id} defaultChecked={!!g.key} /> <strong>{name(c) || c.email}</strong> <Link className="fine" href={`/admin/crm/p/${encodeURIComponent(c.email ? c.email.toLowerCase() : `loc:${c.id}`)}`}>CRM</Link>{c.blocked && <span className="status s-lost" style={{ marginLeft: 6 }}>Do not send</span>} <span className="fine">{c.email}{c.phone ? ` · ${c.phone}` : ""} · {sourceLabel(c.source)}</span></label>
                           </li>
                         ))}
                       </ul>
@@ -260,7 +260,7 @@ export default async function Contacts({ searchParams }: { searchParams: Promise
                       {rows.map((c) => (
                         <tr key={c.id}>
                           <td><input type="checkbox" name="id" value={c.id} aria-label={`Select ${c.email}`} /></td>
-                          <th scope="row">{name(c) || c.email}{c.blocked && <span className="status s-lost" style={{ marginLeft: 6 }}>Do not send</span>}{c.qt_hidden && <span className="status" style={{ marginLeft: 6 }}>Hidden from Quick Test</span>}<span className="bg-note" style={{ color: "var(--muted)" }}>{c.email || [c.address, c.phone].filter(Boolean).join(" · ") || "No email"}</span></th>
+                          <th scope="row"><Link href={`/admin/crm/p/${encodeURIComponent(c.email ? c.email.toLowerCase() : `loc:${c.id}`)}`}>{name(c) || c.email}</Link>{c.blocked && <span className="status s-lost" style={{ marginLeft: 6 }}>Do not send</span>}{c.qt_hidden && <span className="status" style={{ marginLeft: 6 }}>Hidden from Quick Test</span>}<span className="bg-note" style={{ color: "var(--muted)" }}>{c.email || [c.address, c.phone].filter(Boolean).join(" · ") || "No email"}</span></th>
                           <td>{c.company}</td>
                           <td>{[c.city, c.state].filter(Boolean).join(", ")}</td>
                           <td>{sourceLabel(c.source)}</td>

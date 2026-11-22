@@ -6,6 +6,7 @@ const SECTIONS = [
   {
     label: "Sales",
     links: [
+      { href: "/admin/crm", label: "CRM" },
       { href: "/admin/leads", label: "Leads" },
       { href: "/admin/quotes", label: "Quotes" },
     ],

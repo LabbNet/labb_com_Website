@@ -85,7 +85,7 @@ export default async function AdminMember({ params }: { params: Promise<{ id: st
             <div>
               <h1 style={{ margin: "0 0 6px" }}>{m.clinic || m.name}</h1>
               <p className="muted" style={{ margin: 0 }}>
-                {m.clinic ? `${m.name} · ` : ""}{m.email} · {m.username}
+                {m.clinic ? `${m.name} · ` : ""}{m.email} · {m.username} · <Link href={`/admin/crm/p/${encodeURIComponent(m.email.toLowerCase())}`}>CRM record</Link>
                 {m.phone ? ` · ${m.phone}` : ""}{m.city ? ` · ${m.city}${m.state ? `, ${m.state}` : ""}` : ""}
               </p>
             </div>
