@@ -11,8 +11,7 @@ import { emailMember, NIGHT_END, NIGHT_START, notifyApprover, shiftText } from "
 // Reads schedule actions. Read admins request; the approver's own changes take effect right away.
 export async function POST(req: Request) {
   const a = await readAccess();
-  if (!a) return go(req, "/login?next=/reads");
-  if (!a.reader && !a.superadmin) return go(req, a.m.role === "admin" ? "/admin/crm" : "/members");
+  if (!a || (!a.reader && !a.superadmin)) return new Response("Not found", { status: 404 });
   if (!(await sameOrigin())) return go(req, "/reads");
   const fd = await req.formData();
   const action = field(fd, "action", 30);

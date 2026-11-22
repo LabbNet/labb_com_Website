@@ -1,5 +1,5 @@
 import "server-only";
-import { redirect } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { currentMember, type Member } from "@/lib/auth";
 import { dbConfigured, sql } from "@/lib/db";
 
@@ -29,9 +29,9 @@ export async function readAccess(): Promise<ReadAccess | null> {
 export async function requireReads(next: string) {
   if (!dbConfigured) redirect("/login?error=unavailable");
   const a = await readAccess();
-  if (!a) redirect(`/login?next=${encodeURIComponent(next)}`);
-  // Labb admins don't see the reads schedule unless the superadmin gave them read access.
-  if (!a.reader && !a.superadmin) redirect(a.m.role === "admin" ? "/admin/crm" : a.m.role === "learner" ? "/learn" : "/members");
+  void next;
+  // Confidential: anyone without read access (Labb admins included, unless the superadmin granted it) sees "not found".
+  if (!a || (!a.reader && !a.superadmin)) notFound();
   return a;
 }
 

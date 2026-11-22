@@ -3,7 +3,7 @@ import { readAccess, hoursBetween } from "@/lib/reads";
 // CSV of paid hours per read admin per day, for payroll. Super read admins only.
 export async function GET(req: Request) {
   const a = await readAccess();
-  if (!a || !a.superRead) return new Response("Not allowed", { status: 403 });
+  if (!a || !a.superRead || (!a.reader && !a.superadmin)) return new Response("Not found", { status: 404 });
   const u = new URL(req.url).searchParams;
   const ok = (d: string | null) => (d && /^\d{4}-\d{2}-\d{2}$/.test(d) ? d : null);
   const from = ok(u.get("from")), to = ok(u.get("to"));

@@ -15,6 +15,13 @@ export async function proxy(req: NextRequest) {
     url.search = "";
     return NextResponse.redirect(url);
   }
+  // Confidential area: anyone not signed in gets a plain "not found", so the address reveals nothing.
+  if (pathname.startsWith("/reads") && !access?.mid) {
+    const url = req.nextUrl.clone();
+    url.pathname = "/_not-found";
+    url.search = "";
+    return NextResponse.rewrite(url, { status: 404 });
+  }
   // Read admins only get the reads schedule.
   if (access?.mid && access.role === "reader" && (membersOnly || needsAdmin || pathname.startsWith("/learn"))) {
     const url = req.nextUrl.clone();
