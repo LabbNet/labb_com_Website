@@ -60,7 +60,11 @@ async function lookup(ip: string): Promise<Org | null> {
   const token = process.env.IPINFO_TOKEN;
   if (!token || ip === "unknown" || /^(10\.|127\.|192\.168\.|172\.(1[6-9]|2\d|3[01])\.|::1|fc|fd)/.test(ip)) return null;
   const res = await fetch(`https://ipinfo.io/${encodeURIComponent(ip)}/json?token=${token}`, { signal: AbortSignal.timeout(3000) });
-  if (!res.ok) return null;
+  if (!res.ok) {
+    // A bad or out-of-quota token shows here (401, 403, 429).
+    console.error(`[visitors] IPinfo lookup returned ${res.status}`);
+    return null;
+  }
   const j = (await res.json()) as { org?: string; city?: string; region?: string; country?: string; company?: { name?: string; domain?: string; type?: string }; asn?: { name?: string; domain?: string; type?: string } };
   const c = j.company?.name ? j.company : j.asn?.name ? j.asn : null;
   const name = c?.name || (j.org ? j.org.replace(/^AS\d+\s+/, "") : null);
