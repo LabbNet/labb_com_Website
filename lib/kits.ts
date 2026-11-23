@@ -79,7 +79,7 @@ export const kits: Kit[] = [
         label: "Confirm",
         pdf: "/docs/procedure-cards/oraflo-orf-31c-procedure-card-confirm.pdf",
         preview: "/kits/orf-31c/oraflo-orf-31c-procedure-card-confirm.webp",
-        alt: "OraFlo ORF:31C procedure card, side 2: confirm with Quantisal. Collect, tube and cap, label and seal, send to lab",
+        alt: "OraFlo ORF:31C procedure card, side 2: confirm with Quantisal. Collect, vial and cap, seal the vial, send to lab",
       },
     ],
     goodFor: ["Post-accident", "Random", "Pre-employment", "Sites without restrooms"],
