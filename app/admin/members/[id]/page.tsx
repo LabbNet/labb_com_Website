@@ -227,7 +227,7 @@ export default async function AdminMember({ params }: { params: Promise<{ id: st
                 <p className="form-sub" style={{ margin: 0 }}>
                   {m.shelf_life_tracker
                     ? <><strong>On.</strong> This member sees the Shelf-Life Tracker tab in their member area, with verified expiration dates for extended rapid test lots.</>
-                    : <><strong>Off.</strong> Turn it on to add the Shelf-Life Tracker tab to this member&apos;s area. Lot data comes from the POCT tracker.</>}
+                    : <><strong>Off.</strong> This member can&apos;t see the Shelf-Life Tracker. It is on for CPP members by default; turn it back on to restore the tab.</>}
                 </p>
               </div>
               <form action="/api/admin/members/cpp" method="post">
