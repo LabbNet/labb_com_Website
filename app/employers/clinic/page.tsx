@@ -12,6 +12,7 @@ export const metadata: Metadata = {
 export default function UseAClinic() {
   return (
     <SegmentPage
+      heroArt={false}
       slug="employers/clinic"
       crumb="Use a clinic"
       eyebrow="Employers: use a clinic"

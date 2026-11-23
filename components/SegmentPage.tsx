@@ -21,6 +21,7 @@ export function SegmentPage(p: {
   secondary?: { href: string; label: string };
   image?: { src: string; alt: string; w: number; h: number; bare?: boolean };
   heroAside?: React.ReactNode;
+  heroArt?: boolean;
   problem: { eyebrow?: string; title: string; body: React.ReactNode };
   pains?: string[];
   answer: { eyebrow: string; title: string; cards: Card[]; link?: { href: string; label: string } };
@@ -34,7 +35,7 @@ export function SegmentPage(p: {
   const kits = (p.kits?.slugs || []).map(getKit).filter((k): k is NonNullable<ReturnType<typeof getKit>> => Boolean(k));
   return (
     <>
-      <PageHero eyebrow={p.eyebrow} title={p.title} lede={p.lede} primary={p.primary} secondary={p.secondary} image={p.image} aside={p.heroAside} />
+      <PageHero eyebrow={p.eyebrow} title={p.title} lede={p.lede} primary={p.primary} secondary={p.secondary} image={p.image} aside={p.heroAside} art={p.heroArt ?? true} />
       <Breadcrumbs items={[{ name: p.crumb, href: `/${p.slug}` }]} />
 
       {p.paths && (
