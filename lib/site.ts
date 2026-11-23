@@ -45,6 +45,14 @@ export const nav = [
     ],
   },
   {
+    label: "Software",
+    base: ["/find-your-platform", "/compare", "/platforms", "/labb-station", "/labbhr"],
+    children: [
+      { href: "/find-your-platform", label: "Find your platform" },
+      { href: "/compare", label: "Labb Station vs LabbHR" },
+    ],
+  },
+  {
     label: "Test kits",
     href: "/test-kits",
     base: ["/test-kits"],
@@ -69,7 +77,7 @@ export const nav = [
       { href: "/login?next=/members", label: "Login" },
     ],
   },
-  { href: "/quick-test", label: "Quick Test" },
+  // Quick Test is off the main menu for now; the page still works at /quick-test.
 ] as const;
 
 export function absoluteUrl(path = "/") {
