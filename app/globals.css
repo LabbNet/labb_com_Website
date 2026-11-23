@@ -1937,3 +1937,4 @@ td.acts { white-space: nowrap; }
 .sl-legend { list-style: none; padding: 0; margin: 12px 0 0; display: grid; gap: 10px; color: var(--muted); }
 .sl-legend .status { min-width: 140px; text-align: center; margin-right: 10px; }
 .sl-table a { color: var(--orange); font-weight: 600; }
+.sl-request .contract-list .status { margin-left: 6px; vertical-align: 1px; }

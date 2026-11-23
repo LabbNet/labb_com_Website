@@ -1,7 +1,11 @@
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import { currentMember } from "@/lib/auth";
-import { certificateUrl, fmtDay, fmtExtension, loadShelfLife, STATUS_CLASS } from "@/lib/shelfLife";
+import { Flash } from "@/components/AdminBar";
+import { fmtDate, readFlash } from "@/lib/admin";
+import { sql } from "@/lib/db";
+import { publishedKits } from "@/lib/kits";
+import { certificateUrl, fmtDay, fmtExtension, loadShelfLife, SLR_CLASS, SLR_COLUMNS, slrStatusLabel, STATUS_CLASS, type SlrRow } from "@/lib/shelfLife";
 
 export const metadata: Metadata = { title: "Shelf-Life Tracker", robots: { index: false, follow: false } };
 export const dynamic = "force-dynamic";
@@ -20,7 +24,11 @@ export default async function ShelfLife({ searchParams }: { searchParams: Promis
   if (!m.shelf_life_tracker && m.role !== "admin") notFound();
 
   const q = String((await searchParams).q || "").trim().slice(0, 80);
-  const { lots, config, error } = await loadShelfLife();
+  const [{ lots, config, error }, requests, flash] = await Promise.all([
+    loadShelfLife(),
+    sql().unsafe(`select ${SLR_COLUMNS} from shelf_life_requests where member_id = $1 order by created_at desc limit 25`, [m.id]) as unknown as Promise<SlrRow[]>,
+    readFlash(),
+  ]);
   const needle = q.toLowerCase();
   const shown = needle
     ? lots.filter((l) => l.lotNumber.toLowerCase().includes(needle) || l.poctName.toLowerCase().includes(needle))
@@ -31,6 +39,7 @@ export default async function ShelfLife({ searchParams }: { searchParams: Promis
   return (
     <section className="section" style={{ paddingTop: 40 }}>
       <div className="wrap">
+        <Flash flash={flash} />
         <h1 style={{ fontSize: "clamp(2rem, 4vw, 2.8rem)", marginTop: 12 }}>Shelf-Life Tracker</h1>
         <p className="lede" style={{ maxWidth: 760 }}>
           Check whether a lot of Labb rapid tests is still good to use. Look up the lot number on the box to see its verified expiration date.
@@ -64,6 +73,7 @@ export default async function ShelfLife({ searchParams }: { searchParams: Promis
             <button className="btn btn-primary" type="submit">Look up</button>
             {q && <a href="/members/shelf-life" className="linkish">Clear</a>}
           </form>
+          <a href="#request" className="btn btn-outline-dark">Request a lot extension</a>
           {!error && lots.length > 0 && (
             <div className="sl-counts" aria-label="Lot summary">
               <span><strong>{lots.length}</strong> lots</span>
@@ -123,7 +133,7 @@ export default async function ShelfLife({ searchParams }: { searchParams: Promis
                 {!shown.length && (
                   <tr>
                     <td colSpan={8} className="muted" style={{ textAlign: "center", padding: 28 }}>
-                      {q ? <>No lot matches &ldquo;{q}&rdquo;. Check the lot number on the box. If the lot isn&apos;t listed, it has not been extended and the printed date applies.</>
+                      {q ? <>No lot matches &ldquo;{q}&rdquo;. Check the lot number on the box. If the lot isn&apos;t listed, it has not been extended and the printed date applies. <a href="#request">Request an extension</a>.</>
                          : <>No lots have been extended yet. Until a lot is listed here, the expiration printed on the box applies.</>}
                     </td>
                   </tr>
@@ -132,6 +142,50 @@ export default async function ShelfLife({ searchParams }: { searchParams: Promis
             </table>
           </div>
         )}
+
+        <div className="split sl-request" id="request" style={{ alignItems: "start", gridTemplateColumns: "1.2fr 1fr", marginTop: 28 }}>
+          <form className="hero-card" action="/api/members/shelf-life" method="post">
+            <h2 className="form-title">Request a lot extension</h2>
+            <p className="form-sub">
+              Have a lot that is close to its expiration? Ask Labb to run quality control on it. If the control passes, the lot is extended {config.extensionDaysPerControl} days
+              and shows up in the table above with a certificate. Send the request at least two weeks before the expiration date.
+            </p>
+            <div className="fields">
+              <div className="field">
+                <label htmlFor="r-kit">Test<span className="req">*</span></label>
+                <select id="r-kit" name="kit" required defaultValue="">
+                  <option value="" disabled>Choose a test</option>
+                  {publishedKits.map((k) => <option key={k.code} value={k.code}>{k.code}</option>)}
+                  <option value="other">Other</option>
+                </select>
+              </div>
+              <div className="field"><label htmlFor="r-other">If other, which test</label><input id="r-other" name="kit_other" maxLength={80} /></div>
+              <div className="field"><label htmlFor="r-lot">Lot number<span className="req">*</span></label><input id="r-lot" name="lot_number" required maxLength={60} placeholder="As printed on the box" /></div>
+              <div className="field"><label htmlFor="r-exp">Expiration printed on the box<span className="req">*</span></label><input id="r-exp" name="printed_exp" type="date" required /></div>
+              <div className="field"><label htmlFor="r-qty">Quantity on hand</label><input id="r-qty" name="quantity" maxLength={80} placeholder="For example: 4 boxes of 25" /></div>
+              <div className="field"><label htmlFor="r-need">Needed by</label><input id="r-need" name="need_by" type="date" /></div>
+              <div className="field full"><label htmlFor="r-notes">Notes</label><textarea id="r-notes" name="notes" maxLength={1500} placeholder="Anything Labb should know about this lot or how it has been stored" /></div>
+            </div>
+            <button className="btn btn-primary" style={{ marginTop: 16 }} type="submit">Send request</button>
+          </form>
+
+          <div className="hero-card">
+            <h2 className="form-title">Your requests</h2>
+            <ul className="contract-list">
+              {requests.map((r) => (
+                <li key={r.id}>
+                  <div>
+                    <strong>{r.kit} · lot <span className="sl-mono">{r.lot_number}</span></strong>{" "}
+                    <span className={`status ${SLR_CLASS[r.status] || "s-disabled"}`}>{slrStatusLabel(r.status)}</span>
+                    <span className="sub">#{r.id} · Sent {fmtDate(r.created_at)} · Printed expiration {fmtDay(r.printed_exp)}</span>
+                    {r.admin_note && <span className="sub">Labb: {r.admin_note}</span>}
+                  </div>
+                </li>
+              ))}
+              {!requests.length && <li className="muted">No requests yet.</li>}
+            </ul>
+          </div>
+        </div>
 
         <div className="card" style={{ marginTop: 28 }}>
           <h3>What each status means</h3>
