@@ -18,7 +18,7 @@ export default function CollectionSites() {
       title="Every rapid result, documented and defensible."
       lede="Objective reads, a court-ready record and unlimited panel options for every client you serve."
       primary={{ href: "#contact", label: "Request a consultation" }}
-      secondary={{ href: "/labb-station", label: "About Labb Station" }}
+      secondary={{ href: "/find-your-platform", label: "Find your platform" }}
       problem={{
         title: "A rapid result with no proof is a liability",
         body: (

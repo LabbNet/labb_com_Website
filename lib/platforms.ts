@@ -80,6 +80,10 @@ export const stationVsHr: { group: string; rows: { feature: string; station: Cel
     ],
   },
   {
+    group: "Save on lab testing",
+    rows: [{ feature: "Discounted lab testing rates", station: false, hr: true }],
+  },
+  {
     group: "Connect",
     rows: [
       { feature: "Expanded connectivity and more technology", station: false, hr: true },
@@ -127,3 +131,48 @@ export const labbpo = {
     "Optional multi-factor sign in for officers",
   ],
 };
+
+// /find-your-platform: the clinic feature checklist. "hr" features need LabbHR; "station" features are in both.
+export type FinderFeature = { id: string; label: string; help?: string; tier: "station" | "hr" };
+export const finderGroups: { group: string; blurb: string; items: FinderFeature[] }[] = [
+  {
+    group: "Run every test",
+    blurb: "Included in Labb Station and LabbHR.",
+    items: [
+      { id: "reader", label: "Objective rapid test reader", help: "Read every rapid drug test on a phone or tablet, the same way every time.", tier: "station" },
+      { id: "documentation", label: "Every collection documented", help: "ID, steps and the test image kept on file for every donor.", tier: "station" },
+      { id: "guided", label: "Guided collection steps", help: "Scan the ID, collect, capture the kit and get the result, step by step.", tier: "station" },
+      { id: "flex", label: "Flex Testing", help: "Custom rapid and lab panels from one kit.", tier: "station" },
+      { id: "send-to-lab", label: "Lab ordering and one-button send to lab", tier: "station" },
+      { id: "eccf", label: "Electronic chain of custody (eCCF)", help: "For rapid and non-regulated lab tests.", tier: "station" },
+      { id: "own-device", label: "Use our own phones and tablets", tier: "station" },
+    ],
+  },
+  {
+    group: "Save on lab testing",
+    blurb: "Included with LabbHR.",
+    items: [
+      { id: "lab-discounts", label: "Discounted lab testing rates", help: "LabbHR clinics get Labb's discounted pricing on lab tests.", tier: "hr" },
+    ],
+  },
+  {
+    group: "Grow the business",
+    blurb: "Included with LabbHR.",
+    items: [
+      { id: "sales", label: "Sales tools", help: "Find, track and close new employer clients and programs.", tier: "hr" },
+      { id: "marketing", label: "Marketing campaigns", help: "Reach employers and partners with campaigns built for drug testing businesses.", tier: "hr" },
+      { id: "contracting", label: "Contracting", help: "Send, sign and manage client agreements in the platform.", tier: "hr" },
+      { id: "accounting", label: "Billing and accounting", help: "Bill clients and track what's owed without a separate system.", tier: "hr" },
+      { id: "background", label: "Background checks", help: "Offer background screening from the same platform.", tier: "hr" },
+    ],
+  },
+  {
+    group: "Connect and scale",
+    blurb: "Included with LabbHR.",
+    items: [
+      { id: "multi-site", label: "Manage multiple locations or national accounts", help: "Coordinate testing across sites and partners in one place.", tier: "hr" },
+      { id: "connectivity", label: "Expanded connectivity and integrations", tier: "hr" },
+      { id: "one", label: "Access to the One by Labb ecosystem", help: "Work with the TPAs, sites and employers in the Labb network.", tier: "hr" },
+    ],
+  },
+];

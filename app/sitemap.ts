@@ -35,6 +35,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     page("/drug-testing-businesses", 0.8),
     page("/one", 0.7),
     page("/compare", 0.7),
+    page("/find-your-platform", 0.8),
     page("/get-a-quote", 0.9),
     page("/quick-test", 0.9),
     page("/oral-fluid-drug-testing", 0.9),

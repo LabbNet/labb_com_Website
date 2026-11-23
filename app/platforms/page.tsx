@@ -61,7 +61,7 @@ export default function Platforms() {
               <Link href="/one">One by Labb</Link>, the ecosystem that connects the drug testing industry. Corrections departments run LabbPO,
               with Labb Station results flowing straight into each offender&apos;s record.
             </p>
-            <div className="btn-row"><Link href="/compare" className="btn btn-outline-dark">Compare Labb Station and LabbHR</Link></div>
+            <div className="btn-row"><Link href="/find-your-platform" className="btn btn-primary">Find the right platform for your clinic</Link><Link href="/compare" className="btn btn-outline-dark">Compare Labb Station and LabbHR</Link></div>
           </div>
           <div>
             <h2 style={{ fontSize: "1.3rem" }}>Questions</h2>
