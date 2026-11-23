@@ -16,6 +16,7 @@ export function SeriesPage(p: {
   return (
     <>
       <PageHero
+        art={p.slug === "urine-etest"}
         eyebrow={`Test kits · ${p.name}`}
         title={p.title}
         lede={p.lede}

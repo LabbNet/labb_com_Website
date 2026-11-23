@@ -3,6 +3,10 @@ import Link from "next/link";
 
 type Btn = { href: string; label: string };
 
+// Default art for dark heroes with no image of their own: the Labb Station reader stand, background removed.
+// LabbPO, LabbMD and corrections heroes (tone) keep their own look. Pass art={false} to leave a hero text-only.
+const READER = { src: "/img/labb-station-reader-stand-phone-cup.webp", alt: "Labb Station reader stand with a phone running Labb Station and a Labb drug screen cup", w: 1400, h: 1000, bare: true };
+
 // Dark page header band from the Labb Redesign (Draft) theme, used on inner pages.
 export function PageHero({
   eyebrow,
@@ -13,6 +17,7 @@ export function PageHero({
   image,
   aside,
   tone,
+  art = true,
 }: {
   eyebrow: string;
   title: React.ReactNode;
@@ -22,7 +27,9 @@ export function PageHero({
   image?: { src: string; alt: string; w: number; h: number; bare?: boolean };
   aside?: React.ReactNode;
   tone?: "po" | "md";
+  art?: boolean;
 }) {
+  if (!image && !aside && !tone && art) image = READER;
   const side = aside || image;
   return (
     <section className={`page-hero${tone ? ` tone-${tone}` : ""}`}>
