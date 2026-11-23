@@ -12,11 +12,14 @@ const TABS = [
   { href: "/members/trade-shows", label: "Trade shows", d: "M3 21h18M5 21V8l7-5 7 5v13M9 21v-6h6v6" },
 ];
 
-export function MemberNav() {
+// Shown only to members Labb has switched it on for (Admin > CPP member > Shelf-Life Tracker).
+const SHELF_LIFE = { href: "/members/shelf-life", label: "Shelf-Life Tracker", d: "M8 2h8M9 2v6.5L4.5 17A2.5 2.5 0 0 0 6.7 21h10.6a2.5 2.5 0 0 0 2.2-4L15 8.5V2M7 14h10" };
+
+export function MemberNav({ shelfLife = false }: { shelfLife?: boolean }) {
   const path = usePathname() || "";
   return (
     <nav aria-label="Member area" className="admin-nav member-tabs">
-      {TABS.map((t) => {
+      {(shelfLife ? [...TABS, SHELF_LIFE] : TABS).map((t: (typeof TABS)[number]) => {
         const on = t.exact ? path === t.href : path === t.href || path.startsWith(`${t.href}/`);
         return (
           <Link key={t.href} href={t.href} aria-current={on ? "page" : undefined}>

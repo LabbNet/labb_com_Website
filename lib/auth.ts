@@ -23,6 +23,7 @@ export type Member = {
   role: "member" | "admin" | "learner" | "reader";
   status: "invited" | "active" | "disabled";
   session_version: number;
+  shelf_life_tracker?: boolean;
   created_at: Date;
   last_login_at: Date | null;
 };

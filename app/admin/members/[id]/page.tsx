@@ -28,6 +28,8 @@ const EVENT_LABEL: Record<string, string> = {
   contract_countersigned: "Contract countersigned by Labb",
   contract_uploaded: "Contract uploaded",
   contract_deleted: "Contract deleted",
+  shelf_life_on: "Shelf-Life Tracker turned on",
+  shelf_life_off: "Shelf-Life Tracker turned off",
 };
 
 const kb = (n: number) => (n > 1024 * 1024 ? `${(n / 1024 / 1024).toFixed(1)} MB` : `${Math.max(1, Math.round(n / 1024))} KB`);
@@ -38,6 +40,7 @@ type Row = {
   id: string; name: string; email: string; username: string; clinic: string | null; phone: string | null;
   city: string | null; state: string | null; role: string; status: string; created_at: Date; last_login_at: Date | null;
   cpp_start_date: string | null; cpp_status: "prospect" | "active" | "inactive"; cpp_status_changed_at: Date | null; legal_name: string | null;
+  shelf_life_tracker: boolean;
 };
 
 export default async function AdminMember({ params }: { params: Promise<{ id: string }> }) {
@@ -47,7 +50,7 @@ export default async function AdminMember({ params }: { params: Promise<{ id: st
   const db = sql();
   const [m] = await db<Row[]>`
     select id, name, email, username, clinic, phone, city, state, role, status, created_at, last_login_at,
-      to_char(cpp_start_date, 'YYYY-MM-DD') as cpp_start_date, cpp_status, cpp_status_changed_at, legal_name
+      to_char(cpp_start_date, 'YYYY-MM-DD') as cpp_start_date, cpp_status, cpp_status_changed_at, legal_name, shelf_life_tracker
     from members where id = ${id}`;
   if (!m || m.role === "reader" || m.role === "admin") notFound(); // admin users are managed in Settings -> Admin users
   const [contracts, events, flash, template, requests] = await Promise.all([
@@ -214,6 +217,25 @@ export default async function AdminMember({ params }: { params: Promise<{ id: st
                 ))}
                 {!contracts.length && <li className="muted">No contract on file yet.</li>}
               </ul>
+            </div>
+          </div>
+
+          <div className="hero-card" style={{ marginTop: 28 }}>
+            <div className="agreement-head">
+              <div>
+                <h2 className="form-title" style={{ marginBottom: 4 }}>Shelf-Life Tracker</h2>
+                <p className="form-sub" style={{ margin: 0 }}>
+                  {m.shelf_life_tracker
+                    ? <><strong>On.</strong> This member sees the Shelf-Life Tracker tab in their member area, with verified expiration dates for extended rapid test lots.</>
+                    : <><strong>Off.</strong> Turn it on to add the Shelf-Life Tracker tab to this member&apos;s area. Lot data comes from the POCT tracker.</>}
+                </p>
+              </div>
+              <form action="/api/admin/members/cpp" method="post">
+                <input type="hidden" name="id" value={m.id} />
+                <input type="hidden" name="action" value="shelf-life" />
+                <input type="hidden" name="on" value={m.shelf_life_tracker ? "0" : "1"} />
+                <button className={m.shelf_life_tracker ? "btn btn-outline-dark" : "btn btn-primary"} type="submit">{m.shelf_life_tracker ? "Turn off" : "Turn on"}</button>
+              </form>
             </div>
           </div>
 

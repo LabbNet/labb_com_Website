@@ -1912,3 +1912,28 @@ td.acts { white-space: nowrap; }
 .kit-docs li { display: flex; align-items: center; gap: 10px; }
 .kit-doc-icon { flex: none; width: 32px; height: 32px; border-radius: 8px; display: grid; place-items: center; background: var(--tint-10); color: var(--orange); }
 .kit-doc-icon svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+
+/* ---- Shelf-Life Tracker (CPP member area) ---- */
+.sl-explain .card h3 { font-size: 1.08rem; margin-top: 6px; }
+.sl-toolbar { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 16px; margin-top: 32px; }
+.sl-search { display: flex; align-items: center; gap: 10px; flex: 1 1 380px; max-width: 520px; }
+.sl-search input { flex: 1; min-width: 0; padding: 11px 14px; border: 1px solid var(--border); border-radius: 10px; font: inherit; }
+.sl-search input:focus { outline: 2px solid var(--orange); outline-offset: 1px; border-color: var(--orange); }
+.sl-counts { display: flex; flex-wrap: wrap; gap: 8px; }
+.sl-counts span { background: var(--bg-soft); border-radius: 999px; padding: 5px 14px; font-size: 0.88rem; color: var(--dark); }
+.sl-table td, .sl-table th { text-align: left; vertical-align: top; }
+.sl-table thead th { font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.06em; border-bottom: 2px solid var(--orange); }
+.sl-mono { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 0.9rem; }
+.sl-controls { margin-top: 4px; font-weight: 400; font-size: 0.85rem; }
+.sl-controls summary { cursor: pointer; color: var(--orange); font-weight: 600; }
+.sl-controls ul { margin: 6px 0 0; padding-left: 18px; color: var(--muted); }
+.sl-pass { color: #1c7a37; font-weight: 600; }
+.sl-fail { color: var(--red); font-weight: 600; }
+.sl-active { background: #eef0f2; color: var(--dark); }
+.sl-extended { background: #eaf7ef; color: #1c7a37; }
+.sl-due { background: #fdf1e8; color: #9a4f1f; }
+.sl-expired { background: #404951; color: #fff; }
+.sl-failed { background: #fdecef; color: #b3263b; }
+.sl-legend { list-style: none; padding: 0; margin: 12px 0 0; display: grid; gap: 10px; color: var(--muted); }
+.sl-legend .status { min-width: 140px; text-align: center; margin-right: 10px; }
+.sl-table a { color: var(--orange); font-weight: 600; }
