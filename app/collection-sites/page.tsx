@@ -1,6 +1,7 @@
 import Link from "next/link";
 import type { Metadata } from "next";
 import { SegmentPage } from "@/components/SegmentPage";
+import { currentMember } from "@/lib/auth";
 
 export const metadata: Metadata = {
   title: "Rapid Drug Test Documentation for Collection Sites",
@@ -9,7 +10,19 @@ export const metadata: Metadata = {
   alternates: { canonical: "/collection-sites" },
 };
 
-export default function CollectionSites() {
+// Hero graphic: set HERO to the image (in public/img) once it's supplied. Until then only Labb admins
+// see a marked placeholder showing where it goes; the public page keeps the full-width hero.
+const HERO: { src: string; alt: string; w: number; h: number } | null = null;
+
+export default async function CollectionSites() {
+  const me = HERO ? null : await currentMember();
+  const placeholder = !HERO && me?.role === "admin" ? (
+    <div className="graphic-slot" role="note">
+      <strong>Graphic goes here</strong>
+      <span>Collection sites hero · 1400 × 1000 px (7:5), PNG, JPG or WebP</span>
+      <span>Only Labb admins see this box.</span>
+    </div>
+  ) : undefined;
   return (
     <SegmentPage
       slug="collection-sites"
@@ -19,6 +32,8 @@ export default function CollectionSites() {
       lede="Objective reads, a court-ready record and unlimited panel options for every client you serve."
       primary={{ href: "#contact", label: "Request a consultation" }}
       secondary={{ href: "/find-your-platform", label: "Find your platform" }}
+      image={HERO ?? undefined}
+      heroAside={placeholder}
       problem={{
         title: "A rapid result with no proof is a liability",
         body: (

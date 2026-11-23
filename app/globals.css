@@ -1873,3 +1873,8 @@ td.acts { white-space: nowrap; }
   .pf-rname { font-size: 1.3rem; margin: 2px 0 4px; }
 }
 @media (max-width: 640px) { .pf-items { grid-template-columns: 1fr; } .pf-quote { padding: 22px 18px; } }
+
+/* Admin-only marker for a graphic that hasn't been supplied yet */
+.graphic-slot { aspect-ratio: 7 / 5; display: grid; place-content: center; gap: 6px; text-align: center; border: 2px dashed rgba(255,255,255,.45); border-radius: var(--radius-card); background: rgba(255,255,255,.06); color: #e4ebf1; padding: 24px; }
+.graphic-slot strong { font-size: 1.2rem; color: #fff; }
+.graphic-slot span { font-size: .85rem; }
