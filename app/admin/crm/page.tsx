@@ -67,6 +67,23 @@ export default async function Crm({ searchParams }: { searchParams: Promise<{ q?
             </form>
           </div>
 
+            <aside className="hero-card crm-side crm-tasks-bar">
+              <div className="crm-tasks-head"><h2>Open tasks{tasks.length ? ` (${tasks.length})` : ""}</h2>
+              <p className="fine" style={{ margin: "0 0 10px", textAlign: "left" }}>
+                {sp.mine === "0" ? <>Everyone&apos;s · <Link href="/admin/crm">Show mine</Link></> : <>Yours · <Link href="/admin/crm?mine=0">Show everyone&apos;s</Link></>}
+              </p></div>
+              {!tasks.length ? <p className="fine" style={{ textAlign: "left" }}>No open tasks.</p> : (
+                <ul className="crm-tasks">
+                  {tasks.map((t) => (
+                    <li key={t.id}>
+                      <Link href={keyHref(t.key)}>{t.body.length > 90 ? `${t.body.slice(0, 88)}...` : t.body}</Link>
+                      <span className={`fine${t.due_at && new Date(t.due_at).toISOString().slice(0, 10) <= today ? " crm-due" : ""}`}>{t.due_at ? `Due ${day(t.due_at)}` : "No due date"}{t.owner_name ? ` · ${t.owner_name}` : ""}</span>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </aside>
+
           <div className="crm-grid">
             <div>
               <p className="fine" style={{ textAlign: "left", margin: "0 0 10px" }}>{total.toLocaleString("en-US")} {total === 1 ? "record" : "records"}{f.q ? ` matching "${f.q}"` : ""}</p>
@@ -106,22 +123,6 @@ export default async function Crm({ searchParams }: { searchParams: Promise<{ q?
               )}
             </div>
 
-            <aside className="hero-card crm-side">
-              <h2>Open tasks</h2>
-              <p className="fine" style={{ margin: "0 0 10px", textAlign: "left" }}>
-                {sp.mine === "0" ? <>Everyone&apos;s · <Link href="/admin/crm">Show mine</Link></> : <>Yours · <Link href="/admin/crm?mine=0">Show everyone&apos;s</Link></>}
-              </p>
-              {!tasks.length ? <p className="fine" style={{ textAlign: "left" }}>No open tasks.</p> : (
-                <ul className="crm-tasks">
-                  {tasks.map((t) => (
-                    <li key={t.id}>
-                      <Link href={keyHref(t.key)}>{t.body.length > 90 ? `${t.body.slice(0, 88)}...` : t.body}</Link>
-                      <span className={`fine${t.due_at && new Date(t.due_at).toISOString().slice(0, 10) <= today ? " crm-due" : ""}`}>{t.due_at ? `Due ${day(t.due_at)}` : "No due date"}{t.owner_name ? ` · ${t.owner_name}` : ""}</span>
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </aside>
           </div>
         </div>
       </section>

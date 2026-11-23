@@ -1878,3 +1878,12 @@ td.acts { white-space: nowrap; }
 .graphic-slot { aspect-ratio: 7 / 5; display: grid; place-content: center; gap: 6px; text-align: center; border: 2px dashed rgba(255,255,255,.45); border-radius: var(--radius-card); background: rgba(255,255,255,.06); color: #e4ebf1; padding: 24px; }
 .graphic-slot strong { font-size: 1.2rem; color: #fff; }
 .graphic-slot span { font-size: .85rem; }
+
+/* CRM list: open tasks as a full-width bar above the table so the table keeps the whole width */
+.crm-tasks-bar { margin-bottom: 20px; }
+.crm-tasks-head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 14px; margin-bottom: 10px; }
+.crm-tasks-head h2 { margin: 0 !important; }
+.crm-tasks-head p { margin: 0 !important; }
+.crm-tasks-bar .crm-tasks { grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 10px 20px; max-height: 260px; overflow-y: auto; }
+.crm-tasks-bar .crm-tasks li { padding: 10px 12px; border: 1px solid var(--border); border-radius: 10px; background: #fff; }
+.crm-grid:has(> div:only-child) { grid-template-columns: 1fr; }
