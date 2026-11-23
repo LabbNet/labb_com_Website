@@ -62,6 +62,14 @@ export async function POST(req: Request) {
   if (!m) return go(req, "/admin/members");
   const flash = (msg: string, kind: "ok" | "error" = "ok") => setFlash(msg, kind, undefined, "/admin");
 
+  if (action === "shelf-life") {
+    const on = fd.get("on") === "1";
+    await db`update members set shelf_life_tracker = ${on}, updated_at = now() where id = ${m.id}`;
+    await logEvent(m.id, on ? "shelf_life_on" : "shelf_life_off", undefined, admin.id);
+    await flash(on ? `Shelf-Life Tracker is on for ${m.name}.` : `Shelf-Life Tracker is off for ${m.name}.`);
+    return go(req, back);
+  }
+
   if (action === "program") {
     const start = field(fd, "start", 10);
     const raw = fd.get("cpp_status");

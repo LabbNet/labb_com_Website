@@ -30,7 +30,7 @@ export default async function MembersLayout({ children }: { children: React.Reac
               <form action="/api/auth/logout" method="post"><button type="submit" className="linkish">Sign out</button></form>
             </div>
           </div>
-          <MemberNav />
+          <MemberNav shelfLife={Boolean(m.shelf_life_tracker) || m.role === "admin"} />
         </div>
       </section>
       {children}
