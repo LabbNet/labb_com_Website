@@ -74,18 +74,29 @@ export default async function KitPage({ params }: { params: Promise<{ slug: stri
             <div className="chips" style={{ margin: "12px 0 24px" }}>
               {kit.goodFor.map((g) => <span key={g}>{g}</span>)}
             </div>
-            {kit.dataSheet && (
-              <p><a href={kit.dataSheet} target="_blank" rel="noopener">Download the {kit.code} data sheet (PDF)</a></p>
-            )}
-            {kit.procedureCards && (
-              <div className="proc-btns">
-                {kit.procedureCards.map((c) => (
-                  <a key={c.pdf} href={c.pdf} target="_blank" rel="noopener" className="btn btn-outline-dark">
-                    <svg aria-hidden="true" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z M14 3v6h6 M12 12v6 M9 15l3 3 3-3" /></svg>
-                    Procedure Card: {c.label}
-                  </a>
+            {(kit.dataSheet || kit.procedureCards) && (
+              <ul className="kit-docs">
+                {kit.dataSheet && (
+                  <li>
+                    <span className="kit-doc-icon" aria-hidden="true">
+                      <svg viewBox="0 0 24 24"><path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z M14 3v6h6 M8 13h8 M8 17h5" /></svg>
+                    </span>
+                    <a href={kit.dataSheet} target="_blank" rel="noopener">Download the {kit.code} data sheet (PDF)</a>
+                  </li>
+                )}
+                {kit.procedureCards?.map((c) => (
+                  <li key={c.pdf}>
+                    <span className="kit-doc-icon" aria-hidden="true">
+                      {/confirm/i.test(c.label) ? (
+                        <svg viewBox="0 0 24 24"><path d="M9 3h6 M10 3v6.5L5.5 18A2 2 0 0 0 7.3 21h9.4a2 2 0 0 0 1.8-3L14 9.5V3 M7.5 15h9" /></svg>
+                      ) : (
+                        <svg viewBox="0 0 24 24"><path d="M9 4H7a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2h-2 M9 3h6v3H9z M9 13l2 2 4-4" /></svg>
+                      )}
+                    </span>
+                    <a href={c.pdf} target="_blank" rel="noopener">Procedure Card: {c.label} (PDF)</a>
+                  </li>
                 ))}
-              </div>
+              </ul>
             )}
             <div className="hero-card" style={{ marginTop: 24 }}>
               <LeadForm variant="sample" compact title={`Get a quote or a free ${kit.code} sample`} submitLabel="Request a Sample" />

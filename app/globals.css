@@ -1908,3 +1908,7 @@ td.acts { white-space: nowrap; }
 .proc-card-label { display: flex; justify-content: space-between; align-items: center; padding: 12px 18px; background: #404951; color: #fff; font-weight: 700; }
 .proc-card-label span { font-size: .78rem; font-weight: 700; letter-spacing: .05em; background: #CF743C; border-radius: var(--radius-pill); padding: 2px 10px; }
 .proc-card-link img { display: block; width: 100%; height: auto; }
+.kit-docs { list-style: none; margin: 4px 0 8px; padding: 0; display: grid; gap: 10px; }
+.kit-docs li { display: flex; align-items: center; gap: 10px; }
+.kit-doc-icon { flex: none; width: 32px; height: 32px; border-radius: 8px; display: grid; place-items: center; background: var(--tint-10); color: var(--orange); }
+.kit-doc-icon svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
