@@ -11,6 +11,7 @@ export const metadata: Metadata = {
 export default function Laboratories() {
   return (
     <SegmentPage
+      heroArt={false}
       slug="laboratories"
       crumb="Laboratories"
       eyebrow="Laboratories"
