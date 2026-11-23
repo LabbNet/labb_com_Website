@@ -7,7 +7,7 @@ import { sql } from "@/lib/db";
 export const metadata: Metadata = { title: "Admin users", robots: { index: false, follow: false } };
 export const dynamic = "force-dynamic";
 
-type Row = { id: string; name: string; email: string; role: string; status: string; read_role: string | null; read_approver: boolean; superadmin: boolean; last_login_at: Date | null };
+type Row = { id: string; name: string; email: string; phone: string | null; username: string; role: string; status: string; read_role: string | null; read_approver: boolean; superadmin: boolean; last_login_at: Date | null };
 const day = (d: Date | null) => (d ? new Date(d).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric", timeZone: "America/New_York" }) : "Never");
 
 // Superadmin only: who can use the Labb admin portal, who can use the reads schedule, and who has both.
@@ -16,7 +16,7 @@ export default async function Access() {
   const [me] = await sql()<{ superadmin: boolean }[]>`select superadmin from members where id = ${admin.id}`;
   if (!me?.superadmin) redirect("/admin/crm");
   const [rows, flash] = await Promise.all([
-    sql()<Row[]>`select id, name, email, role, status, read_role, read_approver, superadmin, last_login_at from members
+    sql()<Row[]>`select id, name, email, phone, username, role, status, read_role, read_approver, superadmin, last_login_at from members
       where role in ('admin', 'reader') or read_role is not null or read_approver or superadmin
       order by superadmin desc, (role = 'admin' and (read_role is not null or read_approver)) desc, role, name`,
     readFlash(),
@@ -48,7 +48,21 @@ export default async function Access() {
               <tbody>
                 {rows.map((r) => (
                   <tr key={r.id}>
-                    <th scope="row">{r.name}<span className="bg-note">{r.email}{r.status !== "active" ? ` · ${r.status === "invited" ? "setup link not used yet" : r.status}` : ""}</span></th>
+                    <th scope="row">
+                      {r.name}<span className="bg-note">{r.email}{r.phone ? ` · ${r.phone}` : ""}{r.status !== "active" ? ` · ${r.status === "invited" ? "setup link not used yet" : r.status}` : ""}</span>
+                      <details className="au-edit">
+                        <summary className="linkish">Edit details</summary>
+                        <form action="/api/admin/access" method="post" className="au-form">
+                          <input type="hidden" name="action" value="details" />
+                          <input type="hidden" name="id" value={r.id} />
+                          <label>Name<input name="name" required maxLength={120} defaultValue={r.name} /></label>
+                          <label>Email<input name="email" type="email" required maxLength={160} defaultValue={r.email} /></label>
+                          <label>Phone<input name="phone" type="tel" maxLength={40} defaultValue={r.phone || ""} /></label>
+                          <label>Username (sign-in)<input name="username" required maxLength={40} pattern="[A-Za-z0-9._-]{3,40}" defaultValue={r.username} /></label>
+                          <button className="btn btn-primary btn-sm" type="submit">Save details</button>
+                        </form>
+                      </details>
+                    </th>
                     {r.superadmin ? (
                       <><td>Superadmin</td><td>Everything</td><td>{day(r.last_login_at)}</td><td></td></>
                     ) : (

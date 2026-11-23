@@ -36,6 +36,24 @@ export async function POST(req: Request) {
     return go(req, "/admin/access");
   }
   const id = field(fd, "id", 40);
+  // Edit an admin's details: name, email, phone, username (sign-in name).
+  if (action === "details") {
+    const [t] = await db<{ id: string; name: string; email: string; username: string; role: string; read_role: string | null; superadmin: boolean }[]>`
+      select id, name, email, username, role, read_role, superadmin from members where id::text = ${id}`;
+    if (!t || (t.role !== "admin" && t.role !== "reader" && !t.read_role && !t.superadmin)) return go(req, "/admin/access");
+    const name = field(fd, "name", 120), email = field(fd, "email", 160).toLowerCase(), phone = field(fd, "phone", 40), username = field(fd, "username", 40).toLowerCase();
+    if (!name || !EMAIL_RE.test(email)) { await flash("Enter a name and a valid email address.", "error"); return go(req, "/admin/access"); }
+    if (!/^[a-z0-9._-]{3,40}$/.test(username)) { await flash("Username must be 3 to 40 letters, numbers, dots, dashes or underscores.", "error"); return go(req, "/admin/access"); }
+    const [dupE] = await db<{ name: string }[]>`select name from members where lower(email) = ${email} and id <> ${t.id}`;
+    if (dupE) { await flash(`${email} is already used by ${dupE.name}.`, "error"); return go(req, "/admin/access"); }
+    const [dupU] = await db<{ name: string }[]>`select name from members where lower(username) = ${username} and id <> ${t.id}`;
+    if (dupU) { await flash(`The username ${username} is already taken.`, "error"); return go(req, "/admin/access"); }
+    await db`update members set name = ${name}, email = ${email}, phone = ${phone || null}, username = ${username}, updated_at = now() where id = ${t.id}`;
+    const changed = [t.name !== name && "name", t.email !== email && "email", t.username !== username && "username"].filter(Boolean).join(", ");
+    await logEvent(t.id, "details_updated", changed || "phone", m.id);
+    await flash(`${name}'s details saved.${t.email !== email ? ` Sign-in and notices now go to ${email}.` : ""}`);
+    return go(req, "/admin/access");
+  }
   if (action === "resend" || action === "reset") {
     const [t] = await db<{ id: string; email: string; name: string; username: string; role: string; status: string; superadmin: boolean }[]>`
       select id, email, name, username, role, status, superadmin from members where id::text = ${id}`;

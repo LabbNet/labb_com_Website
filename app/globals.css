@@ -1889,3 +1889,12 @@ td.acts { white-space: nowrap; }
 .crm-tasks-bar .crm-tasks { grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 10px 20px; max-height: 260px; overflow-y: auto; }
 .crm-tasks-bar .crm-tasks li { padding: 10px 12px; border: 1px solid var(--border); border-radius: 10px; background: #fff; }
 .crm-grid:has(> div:only-child) { grid-template-columns: 1fr; }
+
+/* Admin users: edit details */
+.au-edit { margin-top: 6px; font-weight: 400; }
+.au-edit summary { font-size: .84rem; cursor: pointer; list-style: none; }
+.au-edit summary::-webkit-details-marker { display: none; }
+.au-form { display: grid; grid-template-columns: 1fr; gap: 8px; margin-top: 10px; padding: 12px; background: #f7f8f8; border: 1px solid var(--border); border-radius: 10px; width: 100%; max-width: 340px; }
+.au-form label { display: grid; gap: 3px; font-size: .78rem; font-weight: 600; color: var(--muted); }
+.au-form input { width: 100%; min-width: 0; box-sizing: border-box; min-height: 36px; border: 1px solid var(--gray); border-radius: 8px; padding: 4px 10px; font: 400 .9rem Poppins, sans-serif; color: var(--dark); }
+.au-form .btn { grid-column: 1 / -1; justify-self: start; }
