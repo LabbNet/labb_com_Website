@@ -12,7 +12,13 @@ export const metadata: Metadata = {
 
 // Hero graphic: set HERO to the image (in public/img) once it's supplied. Until then only Labb admins
 // see a marked placeholder showing where it goes; the public page keeps the full-width hero.
-const HERO: { src: string; alt: string; w: number; h: number } | null = null;
+const HERO: { src: string; alt: string; w: number; h: number; bare?: boolean } | null = {
+  src: "/img/labb-station-reader-stand-phone-cup.webp",
+  alt: "Labb Station reader stand holding a phone running Labb Station next to a Labb workplace drug screen cup",
+  w: 1400,
+  h: 1000,
+  bare: true,
+};
 
 export default async function CollectionSites() {
   const me = HERO ? null : await currentMember();

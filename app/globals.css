@@ -313,6 +313,8 @@ p { margin: 0 0 1em; }
 .page-hero .eyebrow { color: #fff; }
 .page-hero-media { background: #fff; border-radius: 18px; padding: 28px; }
 .page-hero-media img { margin: 0 auto; max-height: 380px; width: auto; }
+.page-hero-media.bare { background: transparent; padding: 0; }
+.page-hero-media.bare img { max-height: 440px; }
 @media (max-width: 900px) { .page-hero .wrap.with-side { grid-template-columns: 1fr; gap: 32px; } }
 
 /* Announcement pill */

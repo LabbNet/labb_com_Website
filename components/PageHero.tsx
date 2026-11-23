@@ -19,7 +19,7 @@ export function PageHero({
   lede?: React.ReactNode;
   primary?: Btn;
   secondary?: Btn;
-  image?: { src: string; alt: string; w: number; h: number };
+  image?: { src: string; alt: string; w: number; h: number; bare?: boolean };
   aside?: React.ReactNode;
   tone?: "po" | "md";
 }) {
@@ -41,7 +41,7 @@ export function PageHero({
         {aside ? (
           <div>{aside}</div>
         ) : image ? (
-          <div className="page-hero-media">
+          <div className={`page-hero-media${image.bare ? " bare" : ""}`}>
             <Image src={image.src} alt={image.alt} width={image.w} height={image.h} priority sizes="(max-width: 900px) 90vw, 520px" />
           </div>
         ) : null}

@@ -19,7 +19,7 @@ export function SegmentPage(p: {
   lede: string;
   primary: { href: string; label: string };
   secondary?: { href: string; label: string };
-  image?: { src: string; alt: string; w: number; h: number };
+  image?: { src: string; alt: string; w: number; h: number; bare?: boolean };
   heroAside?: React.ReactNode;
   problem: { eyebrow?: string; title: string; body: React.ReactNode };
   pains?: string[];
