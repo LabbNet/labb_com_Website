@@ -85,3 +85,21 @@ export function fmtExtension(days: number) {
   const months = Math.round((days / 30) * 10) / 10;
   return `${days} days (${months} mo)`;
 }
+
+// ---- Lot extension requests (stored on labb.com, worked by Labb staff in Admin > Shelf-life requests) ----
+export const SLR_STATUSES = [
+  { value: "requested", label: "Requested" },
+  { value: "in_review", label: "Control scheduled" },
+  { value: "extended", label: "Extended" },
+  { value: "declined", label: "Not extended" },
+] as const;
+export type SlrStatus = (typeof SLR_STATUSES)[number]["value"];
+export const isSlrStatus = (s: string): s is SlrStatus => SLR_STATUSES.some((x) => x.value === s);
+export const slrStatusLabel = (s: string) => SLR_STATUSES.find((x) => x.value === s)?.label ?? s;
+export const SLR_CLASS: Record<string, string> = { requested: "s-invited", in_review: "sl-due", extended: "sl-extended", declined: "s-disabled" };
+export const SLR_COLUMNS = `id, kit, lot_number, to_char(printed_exp, 'YYYY-MM-DD') as printed_exp, quantity,
+  to_char(need_by, 'YYYY-MM-DD') as need_by, notes, status, admin_note, created_at, updated_at`;
+export type SlrRow = {
+  id: string; kit: string; lot_number: string; printed_exp: string; quantity: string | null; need_by: string | null;
+  notes: string | null; status: string; admin_note: string | null; created_at: Date; updated_at: Date;
+};

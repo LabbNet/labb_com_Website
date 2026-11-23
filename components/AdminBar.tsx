@@ -30,6 +30,7 @@ const SECTIONS = [
       { href: "/admin/members/agreement", label: "Agreement" },
       { href: "/admin/pricing", label: "Pricing" },
       { href: "/admin/trade-shows", label: "Trade shows" },
+      { href: "/admin/shelf-life", label: "Shelf-life requests" },
     ],
   },
   {
