@@ -1898,3 +1898,13 @@ td.acts { white-space: nowrap; }
 .au-form label { display: grid; gap: 3px; font-size: .78rem; font-weight: 600; color: var(--muted); }
 .au-form input { width: 100%; min-width: 0; box-sizing: border-box; min-height: 36px; border: 1px solid var(--gray); border-radius: 8px; padding: 4px 10px; font: 400 .9rem Poppins, sans-serif; color: var(--dark); }
 .au-form .btn { grid-column: 1 / -1; justify-self: start; }
+
+/* Kit procedure cards */
+.proc-btns { display: flex; flex-wrap: wrap; gap: 10px; margin: 4px 0 8px; }
+.proc-btns .btn { display: inline-flex; align-items: center; gap: 8px; }
+.proc-cards { display: grid; gap: 28px; margin-top: 20px; }
+.proc-card-link { display: block; background: #fff; border: 1px solid var(--border); border-radius: var(--radius-card); box-shadow: var(--shadow); overflow: hidden; text-decoration: none; transition: box-shadow .15s, transform .15s; }
+.proc-card-link:hover { box-shadow: 0 10px 30px rgba(64,73,81,.18); transform: translateY(-2px); }
+.proc-card-label { display: flex; justify-content: space-between; align-items: center; padding: 12px 18px; background: #404951; color: #fff; font-weight: 700; }
+.proc-card-label span { font-size: .78rem; font-weight: 700; letter-spacing: .05em; background: #CF743C; border-radius: var(--radius-pill); padding: 2px 10px; }
+.proc-card-link img { display: block; width: 100%; height: auto; }

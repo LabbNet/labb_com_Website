@@ -22,6 +22,8 @@ export type Kit = {
   published: boolean;
   gallery?: { src: string; alt: string; w: number; h: number }[]; // extra views shown under the main image
   procedure?: { image: string; steps: string[] }; // procedure card and its steps as text
+  // Printable procedure cards (PDF), one per side or step, each with a preview image. Add more devices the same way.
+  procedureCards?: { label: string; pdf: string; preview: string; alt: string }[];
 };
 
 const drive = (id: string) => `https://drive.google.com/file/d/${id}/view`;
@@ -66,6 +68,20 @@ export const kits: Kit[] = [
       { src: "/kits/orf-31c/oraflo-orf-31c-oral-fluid-drug-test-qr.webp", alt: "OraFlo ORF:31C with the QR code label", w: 1000, h: 1000 },
     ],
     dataSheet: drive("1wJT3vmxDFI2sl4SCxOCVLjjjyLXYCEpz"),
+    procedureCards: [
+      {
+        label: "Screen",
+        pdf: "/docs/procedure-cards/oraflo-orf-31c-procedure-card-screen.pdf",
+        preview: "/kits/orf-31c/oraflo-orf-31c-procedure-card-screen.webp",
+        alt: "OraFlo ORF:31C procedure card, side 1: screen. Label the kit, swab, check volume, insert, press and slide, then read and scan",
+      },
+      {
+        label: "Confirm",
+        pdf: "/docs/procedure-cards/oraflo-orf-31c-procedure-card-confirm.pdf",
+        preview: "/kits/orf-31c/oraflo-orf-31c-procedure-card-confirm.webp",
+        alt: "OraFlo ORF:31C procedure card, side 2: confirm with Quantisal. Collect, tube and cap, label and seal, send to lab",
+      },
+    ],
     goodFor: ["Post-accident", "Random", "Pre-employment", "Sites without restrooms"],
     published: true,
   },

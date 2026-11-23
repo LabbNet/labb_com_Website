@@ -77,6 +77,16 @@ export default async function KitPage({ params }: { params: Promise<{ slug: stri
             {kit.dataSheet && (
               <p><a href={kit.dataSheet} target="_blank" rel="noopener">Download the {kit.code} data sheet (PDF)</a></p>
             )}
+            {kit.procedureCards && (
+              <div className="proc-btns">
+                {kit.procedureCards.map((c) => (
+                  <a key={c.pdf} href={c.pdf} target="_blank" rel="noopener" className="btn btn-outline-dark">
+                    <svg aria-hidden="true" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z M14 3v6h6 M12 12v6 M9 15l3 3 3-3" /></svg>
+                    Procedure Card: {c.label}
+                  </a>
+                ))}
+              </div>
+            )}
             <div className="hero-card" style={{ marginTop: 24 }}>
               <LeadForm variant="sample" compact title={`Get a quote or a free ${kit.code} sample`} submitLabel="Request a Sample" />
             </div>
@@ -84,7 +94,25 @@ export default async function KitPage({ params }: { params: Promise<{ slug: stri
         </div>
       </section>
 
-      {kit.procedure && (
+      {kit.procedureCards && (
+        <section className="section" id="how-to-use">
+          <div className="wrap">
+            <span className="eyebrow">How to use</span>
+            <h2>{kit.code} procedure cards</h2>
+            <p style={{ maxWidth: 760 }}>Print these and keep them at the collection station. Click a card to open the PDF.</p>
+            <div className="proc-cards">
+              {kit.procedureCards.map((c) => (
+                <a key={c.pdf} href={c.pdf} target="_blank" rel="noopener" className="proc-card-link">
+                  <span className="proc-card-label">Procedure Card: {c.label}<span>PDF</span></span>
+                  <Image src={c.preview} alt={c.alt} width={1600} height={880} sizes="(max-width: 1240px) 94vw, 1150px" />
+                </a>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
+
+      {kit.procedure && !kit.procedureCards && (
         <section className="section" id="how-to-use">
           <div className="wrap">
             <span className="eyebrow">How to use</span>
