@@ -2170,3 +2170,13 @@ td.acts { white-space: nowrap; }
 .outlook-how { margin-top: 8px; text-align: left; }
 .outlook-how summary { cursor: pointer; font-weight: 600; font-size: .9rem; }
 .outlook-how ol { padding-left: 20px; display: grid; gap: 6px; font-size: .9rem; }
+.mg-col { width: 36px; text-align: center !important; }
+.mg-col input { width: 18px; height: 18px; accent-color: #CF743C; cursor: pointer; }
+.mg-hint { text-align: left; margin: 14px 0 0; }
+.mg-bar { position: sticky; top: 8px; z-index: 5; display: flex; flex-wrap: wrap; align-items: center; gap: 10px 14px; background: #404951; color: #fff; border-radius: 12px; padding: 10px 16px; margin-top: 14px; }
+.mg-bar .fine, .mg-bar label { color: #d5dade; margin: 0; }
+.mg-bar select { min-height: 36px; border-radius: 8px; border: 0; padding: 4px 10px; max-width: 420px; }
+.mg-bar .linkish { color: #fff; }
+.form-count { display: inline-flex; align-items: center; justify-content: center; min-width: 22px; height: 22px; padding: 0 6px; margin-left: 8px; border-radius: 999px; background: #d92d20; color: #fff; font-size: .78rem; font-weight: 700; line-height: 1; vertical-align: middle; }
+.form-count.lg { min-width: 30px; height: 30px; font-size: .95rem; margin-left: 12px; }
+.admin-search label.fine input[type=checkbox] { width: 18px; height: 18px; min-height: 0; padding: 0; accent-color: #CF743C; }

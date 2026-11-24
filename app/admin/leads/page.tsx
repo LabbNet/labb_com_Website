@@ -6,6 +6,7 @@ import { sql } from "@/lib/db";
 import { findLeads, partnerOptions, type LeadFilters } from "@/lib/leadQuery";
 import { leadName } from "@/lib/leads";
 import { openDupeCount } from "@/lib/dupes";
+import { MergeBar } from "@/components/MergeBar";
 import { LEAD_STATUSES, SEGMENTS, segmentLabel, statusLabel } from "@/lib/segments";
 
 export const metadata: Metadata = { title: "Leads", robots: { index: false, follow: false } };
@@ -28,6 +29,8 @@ export default async function AdminLeads({ searchParams }: { searchParams: Promi
   const dupCount = new Map(dupRows.map((d) => [d.email, d.n]));
   const showDups = (f as Record<string, string | undefined>).dups === "1";
   const rows = showDups ? allRows.filter((l) => dupCount.has(l.email.toLowerCase())) : allRows;
+  // Forms this person completed: this lead plus every submission merged into it.
+  const forms = (l: { data?: unknown }) => 1 + (((l.data as { merged_from?: unknown[] } | null)?.merged_from?.length) || 0);
   const bySeg = Object.fromEntries(counts.map((c) => [c.segment, c]));
   const total = counts.reduce((a, c) => a + c.n, 0);
   const qs = new URLSearchParams(Object.entries(f).filter(([, v]) => v) as [string, string][]).toString();
@@ -86,10 +89,14 @@ export default async function AdminLeads({ searchParams }: { searchParams: Promi
             <a className="btn btn-outline" href={`/api/admin/leads/export${qs ? `?${qs}` : ""}`}>Export CSV</a>
           </form>
 
-          <div className="compare-wrap" style={{ marginTop: 18 }}>
+          <form id="merge-form" action="/api/admin/leads/merge-many" method="post">
+          <input type="hidden" name="back" value={`/admin/leads${qs ? `?${qs}` : ""}`} />
+          <MergeBar />
+          <div className="compare-wrap" style={{ marginTop: 12 }}>
             <table className="compare admin-table">
               <thead>
                 <tr>
+                  <th scope="col" className="mg-col"><span className="visually-hidden">Select to merge</span></th>
                   <th scope="col" style={{ textAlign: "left" }}>Lead</th>
                   <th scope="col">Segment</th>
                   <th scope="col">Owner</th>
@@ -100,11 +107,13 @@ export default async function AdminLeads({ searchParams }: { searchParams: Promi
               <tbody>
                 {rows.map((l) => (
                   <tr key={l.id}>
+                    <td className="mg-col"><input type="checkbox" name="ids" value={l.id} aria-label={`Select ${leadName(l)} to merge`} data-name={`#${l.id} ${leadName(l)}${l.email ? ` (${l.email})` : ""}`} data-created={new Date(l.created_at).getTime()} /></td>
                     <th scope="row">
                       <Link href={`/admin/leads/${l.id}`}>{leadName(l)}</Link>
                       {l.archived && <span className="tag plain" style={{ marginLeft: 8 }}>Archived</span>}
                       {l.existing_client && l.status !== "existing-client" && <span className="tag plain client-tag" style={{ marginLeft: 8 }}>Existing client</span>}
-                      {dupCount.has(l.email.toLowerCase()) && <span className="dup-badge" title="This person submitted more than once. Open the lead to merge.">{dupCount.get(l.email.toLowerCase())} submissions</span>}
+                      {forms(l) > 1 && <span className="form-count" title={`${forms(l)} forms completed by this person`} aria-label={`${forms(l)} forms completed`}>{forms(l)}</span>}
+                      {dupCount.has(l.email.toLowerCase()) && <span className="dup-badge" title="This person has another lead with the same email. Check both and merge.">{dupCount.get(l.email.toLowerCase())} leads, same email</span>}
                       <span className="sub">{[l.company, l.email, l.state].filter(Boolean).join(" · ")}</span>
                       {l.products && <span className="sub">Interested in: {l.products}</span>}
                     </th>
@@ -114,10 +123,11 @@ export default async function AdminLeads({ searchParams }: { searchParams: Promi
                     <td>{fmtDate(l.created_at)}</td>
                   </tr>
                 ))}
-                {!rows.length && <tr><td colSpan={5}>No leads match.</td></tr>}
+                {!rows.length && <tr><td colSpan={6}>No leads match.</td></tr>}
               </tbody>
             </table>
           </div>
+          </form>
           {rows.length === 500 && <p className="fine">Showing the newest 500. Narrow the filters or export to see more.</p>}
         </div>
       </section>

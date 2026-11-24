@@ -129,6 +129,7 @@ export default async function AdminLead({ params, searchParams }: { params: Prom
       ["Received", fmtDate(lead.created_at) + " ET"],
     ] },
   ];
+  const formCount = 1 + (((d as { merged_from?: unknown[] }).merged_from?.length) || 0);
   const shown = (v: unknown) => v !== undefined && v !== null && v !== "";
 
   // What to do next, shown in the header.
@@ -165,7 +166,7 @@ export default async function AdminLead({ params, searchParams }: { params: Prom
           <header className="lp-head">
             <div className="lp-id">
               <span className="lp-eyebrow">Lead #{lead.id} · {segmentLabel(lead.segment)} · received {fmtDate(lead.created_at)} ET</span>
-              <h1>{leadName(lead)}</h1>
+              <h1>{leadName(lead)}{formCount > 1 && <span className="form-count lg" title={`${formCount} forms completed by this person`} aria-label={`${formCount} forms completed`}>{formCount}</span>}</h1>
               {(lead.company || lead.city || lead.state) && lead.company !== leadName(lead) && <p className="lp-org">{[lead.company, [lead.city, lead.state].filter(Boolean).join(", ")].filter(Boolean).join(" · ")}</p>}
               <p className="lp-contact">
                 <a href={`mailto:${lead.email}`}>{lead.email}</a>
