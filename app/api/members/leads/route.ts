@@ -33,7 +33,7 @@ export async function POST(req: Request) {
 
   let changed = false;
   if (isStatus(status) && status !== lead.status) {
-    await db`update leads set status = ${status}, updated_at = now() where id = ${id}`;
+    await db`update leads set status = ${status}, existing_client = ${status === "existing-client"}, updated_at = now() where id = ${id}`;
     await logLeadEvent(id, "status", `${statusLabel(lead.status)} to ${statusLabel(status)}`, actor);
     changed = true;
   }

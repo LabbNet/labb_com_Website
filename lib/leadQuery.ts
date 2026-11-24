@@ -16,7 +16,7 @@ export async function findLeads(f: LeadFilters, limit = 500) {
   const partner = /^[0-9a-f-]{36}$/.test(f.partner || "") ? f.partner! : "";
   const archived = f.archived === "yes" ? true : f.archived === "all" ? null : false;
   // Existing clients are left out of the working list unless asked for.
-  const client = f.client === "yes" ? true : f.client === "all" ? null : false;
+  const client = f.client === "yes" || status === "existing-client" ? true : f.client === "all" ? null : false;
 
   return db<LeadRow[]>`
     select l.*, m.name as partner_name, m.clinic as partner_clinic

@@ -30,7 +30,8 @@ export async function POST(req: Request) {
   if (action === "status") {
     const status = field(fd, "status", 20);
     if (isStatus(status) && status !== lead.status) {
-      await db`update leads set status = ${status}, updated_at = now() where id = ${id}`;
+      await db`update leads set status = ${status}, existing_client = ${status === "existing-client"}, updated_at = now() where id = ${id}`;
+      if (status === "existing-client") await upsertPerson(lead.email.toLowerCase(), { stage: "customer" });
       await logLeadEvent(id, "status", `${statusLabel(lead.status)} to ${statusLabel(status)}`, actor);
       await flash(`Status set to ${statusLabel(status)}.`);
     }
@@ -180,10 +181,10 @@ export async function POST(req: Request) {
     await flash(ok ? (action === "meeting-done" ? "Meeting marked completed." : "Marked as a no-show.") : "That meeting wasn't found.", ok ? "ok" : "error");
   } else if (action === "client") {
     const on = fd.get("on") === "1";
-    await db`update leads set existing_client = ${on}, updated_at = now() where id = ${id}`;
+    await db`update leads set existing_client = ${on}, status = ${on ? "existing-client" : "contacted"}, updated_at = now() where id = ${id}`;
     if (on) await upsertPerson(lead.email.toLowerCase(), { stage: "customer" });
     await logLeadEvent(id, on ? "existing-client" : "prospect", on ? "Tagged as an existing client; removed from the prospect list" : "Existing client tag removed", actor);
-    await flash(on ? "Tagged as an existing client. It's out of the lead list; find it under the Existing clients filter." : "Existing client tag removed.");
+    await flash(on ? "Tagged as an existing client. It's out of the lead list; find it under the Existing clients filter." : "Existing client tag removed. Status set to Contacted.");
   } else if (action === "merge-other") {
     const raw = field(fd, "other", 254).replace(/^#/, "").trim();
     const [other] = /^\d+$/.test(raw)

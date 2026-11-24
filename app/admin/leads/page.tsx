@@ -103,7 +103,7 @@ export default async function AdminLeads({ searchParams }: { searchParams: Promi
                     <th scope="row">
                       <Link href={`/admin/leads/${l.id}`}>{leadName(l)}</Link>
                       {l.archived && <span className="tag plain" style={{ marginLeft: 8 }}>Archived</span>}
-                      {l.existing_client && <span className="tag plain client-tag" style={{ marginLeft: 8 }}>Existing client</span>}
+                      {l.existing_client && l.status !== "existing-client" && <span className="tag plain client-tag" style={{ marginLeft: 8 }}>Existing client</span>}
                       {dupCount.has(l.email.toLowerCase()) && <span className="dup-badge" title="This person submitted more than once. Open the lead to merge.">{dupCount.get(l.email.toLowerCase())} submissions</span>}
                       <span className="sub">{[l.company, l.email, l.state].filter(Boolean).join(" · ")}</span>
                       {l.products && <span className="sub">Interested in: {l.products}</span>}

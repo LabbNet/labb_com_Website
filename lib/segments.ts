@@ -39,6 +39,8 @@ export const LEAD_STATUSES = [
   { value: "qualified", label: "Qualified" },
   { value: "won", label: "Won" },
   { value: "lost", label: "Lost" },
+  { value: "not-qualified", label: "Not qualified" },
+  { value: "existing-client", label: "Existing client" },
 ] as const;
 
 export type LeadStatus = (typeof LEAD_STATUSES)[number]["value"];

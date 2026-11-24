@@ -25,7 +25,7 @@ export default async function Meetings({ searchParams }: { searchParams: Promise
   const editing = hosts.find((h) => h.id === editId)!;
   const [hours, toAssign, upcoming, waiting, pipe, outcome] = await Promise.all([
     hoursFor(editId),
-    db<LeadRow[]>`select * from leads where owner = 'labb' and not archived and not existing_client and accepted_at is null and status not in ('won', 'lost') and type not in ('newsletter', 'quick-test')
+    db<LeadRow[]>`select * from leads where owner = 'labb' and not archived and not existing_client and accepted_at is null and status not in ('won', 'lost', 'not-qualified', 'existing-client') and type not in ('newsletter', 'quick-test')
       and created_at > now() - interval '120 days' order by created_at desc limit 100`,
     db<{ id: string; kind: string; starts_at: Date; room_url: string; host_name: string; lead_id: string; first_name: string | null; last_name: string | null; company: string | null; email: string }[]>`
       select g.id, g.kind, g.starts_at, g.room_url, m.name as host_name, l.id as lead_id, l.first_name, l.last_name, l.company, l.email
@@ -35,7 +35,7 @@ export default async function Meetings({ searchParams }: { searchParams: Promise
       select l.*, h.name as host_name from leads l left join members h on h.id = l.meeting_host
       where l.owner = 'labb' and not l.archived and l.accepted_at is not null and l.book_token is not null
         and not exists (select 1 from lead_meetings g where g.lead_id = l.id and g.status = 'booked' and g.ends_at > now())
-        and l.status not in ('won', 'lost') order by l.accepted_at desc limit 100`,
+        and l.status not in ('won', 'lost', 'not-qualified', 'existing-client') order by l.accepted_at desc limit 100`,
     pipeline(),
     db<{ id: string; kind: string; starts_at: Date; host_name: string; lead_id: string; first_name: string | null; last_name: string | null; company: string | null; email: string }[]>`
       select g.id, g.kind, g.starts_at, m.name as host_name, l.id as lead_id, l.first_name, l.last_name, l.company, l.email

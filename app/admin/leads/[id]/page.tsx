@@ -141,7 +141,7 @@ export default async function AdminLead({ params }: { params: Promise<{ id: stri
             <span className={`status s-${lead.status}`}>{statusLabel(lead.status)}</span>{" "}
             <span className="tag plain">{lead.owner === "partner" ? `Passed to ${lead.partner_clinic || lead.partner_name}` : "Labb owned"}</span>{" "}
             {lead.archived && <span className="tag plain">Archived</span>}{" "}
-            {lead.existing_client && <span className="tag plain client-tag">Existing client</span>}
+            {lead.existing_client && lead.status !== "existing-client" && <span className="tag plain client-tag">Existing client</span>}
           </p>
           {flags.length > 0 && (
             <div className="dup-flag">

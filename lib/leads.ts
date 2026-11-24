@@ -379,7 +379,7 @@ export async function duplicateLeads(lead: LeadRow) {
     order by l.created_at`;
 }
 
-const STATUS_RANK: Record<string, number> = { new: 0, contacted: 1, qualified: 2, won: 3, lost: -1 };
+const STATUS_RANK: Record<string, number> = { new: 0, contacted: 1, qualified: 2, won: 3, lost: -1, "not-qualified": -1, "existing-client": 4 };
 
 // Fold duplicate leads into one record. History, meetings, quotes, guidebook emails and website visits move
 // to the primary; empty fields on the primary are filled from the duplicates; the duplicates are deleted.
@@ -397,7 +397,7 @@ export async function mergeLeads(primaryId: string, dupIds: string[], actor: { i
     const pick = <K extends keyof LeadRow>(k: K) => (primary[k] ?? dups.map((d) => d[k]).find((v) => v !== null && v !== "")) ?? null;
     const products = [...new Set(all.flatMap((l) => String(l.products || "").split(",").map((p) => p.trim()).filter(Boolean)))].join(", ") || null;
     const messages = all.filter((l) => l.message?.trim()).map((l) => (l === primary ? l.message!.trim() : `[${new Date(l.created_at).toLocaleDateString("en-US", { timeZone: "America/New_York" })}, ${l.type}] ${l.message!.trim()}`));
-    const status = all.filter((l) => l.status !== "lost").sort((a, b) => STATUS_RANK[b.status] - STATUS_RANK[a.status])[0]?.status ?? primary.status;
+    const status = all.filter((l) => l.status !== "lost" && l.status !== "not-qualified").sort((a, b) => STATUS_RANK[b.status] - STATUS_RANK[a.status])[0]?.status ?? primary.status;
     const created = new Date(Math.min(...all.map((l) => new Date(l.created_at).getTime())));
     const data = { ...Object.assign({}, ...dups.map((d) => d.data || {}).reverse()), ...(primary.data || {}) } as Record<string, unknown>;
     data.details = { ...Object.assign({}, ...dups.map((d) => (d.data as Record<string, unknown>)?.details || {}).reverse()), ...((primary.data as Record<string, unknown>)?.details as object || {}) };
@@ -420,7 +420,7 @@ export async function mergeLeads(primaryId: string, dupIds: string[], actor: { i
       await tx`update leads set book_token = ${token} where id = ${primaryId}`;
     }
     await tx`delete from lead_dupe_flags where (lead_a = any(${dupIds}) and lead_b = ${primaryId}) or (lead_b = any(${dupIds}) and lead_a = ${primaryId})`;
-    await tx`update leads set existing_client = true where id = ${primaryId} and ${all.some((l) => l.existing_client)}`;
+    await tx`update leads set existing_client = true, status = 'existing-client' where id = ${primaryId} and ${all.some((l) => l.existing_client)}`;
     await tx`delete from leads where id = any(${dupIds}) and id <> ${primaryId}`;
     await tx`insert into lead_events (lead_id, actor_id, actor_name, event, detail) values (${primaryId}, ${actor.id}, ${actor.name}, 'merged',
       ${`Merged ${dups.length === 1 ? "a duplicate submission" : `${dups.length} duplicate submissions`} into this record: ${dups.map((d) => `#${d.id} (${d.type}, ${new Date(d.created_at).toLocaleDateString("en-US", { timeZone: "America/New_York" })})`).join(", ")}`})`;
