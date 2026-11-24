@@ -2,7 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import { AnswerText } from "@/components/AnswerText";
-import type { AskRow } from "@/lib/ask";
+import { AUTO_DISCLAIMER, type AskRow } from "@/lib/ask";
 import { sql } from "@/lib/db";
 
 export const metadata: Metadata = { title: "Your question", robots: { index: false, follow: false } };
@@ -12,7 +12,9 @@ export const dynamic = "force-dynamic";
 export default async function AskStatus({ params }: { params: Promise<{ token: string }> }) {
   const { token } = await params;
   if (!/^[A-Za-z0-9_-]{10,40}$/.test(token)) notFound();
-  const [q] = await sql()<AskRow[]>`select * from ask_questions where token = ${token}`;
+  const [q] = await sql()<(AskRow & { unreviewed: boolean })[]>`
+    select a.*, (a.status = 'auto' or (a.status = 'matched' and m.status = 'auto')) as unreviewed
+    from ask_questions a left join ask_questions m on m.id = a.matched_id where a.token = ${token}`;
   if (!q) notFound();
   if (q.status === "approved" && q.published && q.slug) {
     return (
@@ -33,6 +35,7 @@ export default async function AskStatus({ params }: { params: Promise<{ token: s
             <div className="ask-answer"><AnswerText text={q.answer} /></div>
             {q.sources?.length > 0 && <p className="fine" style={{ textAlign: "left", marginBottom: 0 }}>From: {q.sources.map((s, i) => <span key={i}>{i ? " · " : ""}{s.url ? <Link href={s.url}>{s.title}</Link> : s.title}</span>)}</p>}
             {q.email && q.status === "auto" && <p className="fine" style={{ textAlign: "left", marginBottom: 0 }}>We also emailed this answer to {q.email}.</p>}
+            {q.unreviewed && <p className="ask-disclaimer">{AUTO_DISCLAIMER}</p>}
           </>
         ) : q.status === "rejected" ? (
           <p>We weren&apos;t able to answer this one here. Email <a href="mailto:info@labb.com">info@labb.com</a> and we&apos;ll help.</p>

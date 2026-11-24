@@ -2011,3 +2011,4 @@ td.acts { white-space: nowrap; }
   body:has(.pf-result) .askw, body:has(.sp-confirm) .askw { bottom: 96px; }
 }
 @media print { .askw { display: none; } }
+.ask-disclaimer { margin: 16px 0 0; padding: 12px 14px; background: #f3f5f6; border-radius: 10px; font-size: .8rem; line-height: 1.55; color: #5f6a74; text-align: left; }

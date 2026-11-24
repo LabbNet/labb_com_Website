@@ -4,7 +4,6 @@ import { sql } from "@/lib/db";
 import { drugsIn, kitCoverage, kitTable, searchKb, type Hit } from "@/lib/kb";
 import { badgeLabel, publishedKits } from "@/lib/kits";
 import { emailLayout, esc, sendMail } from "@/lib/mail";
-import { notifyAddresses } from "@/lib/leads";
 import { absoluteUrl } from "@/lib/site";
 
 // Ask an Expert. A question is answered on the spot only when it matches an answer a Labb admin already approved.
@@ -149,11 +148,17 @@ export const answersOnItsOwn = (r?: { source: string; confidence: string }) =>
   !!r && (r.source === "kits" || (r.source === "ai" && (r.confidence === "high" || r.confidence === "medium")));
 
 // ---- Emails ----
+// Questions the website content can't answer go to support and James (ASK_NOTIFY_EMAILS overrides).
+const ASK_NOTIFY = () => (process.env.ASK_NOTIFY_EMAILS || "support@labb.com,James@labb.com").split(",").map((s) => s.trim()).filter(Boolean);
+
+// Shown under every answer that went out without a Labb review.
+export const AUTO_DISCLAIMER = "This answer was generated automatically from information on Labb.com and has not been reviewed by a Labb expert. Any information about program setup or regulations is for informational purposes only and must be reviewed by legal counsel before you make any changes or put it into practice.";
+
 export async function emailTeamNewQuestion(q: { id: string; question: string; name: string | null; email: string | null; company: string | null }) {
-  const to = await notifyAddresses();
+  const to = ASK_NOTIFY();
   const link = absoluteUrl("/admin/ask");
-  await sendMail(to, `Ask an Expert: new question to review`,
-    emailLayout("New question to review", `<p><strong>${esc(q.question)}</strong></p><p>${esc([q.name, q.company, q.email].filter(Boolean).join(" · "))}</p><p>A draft answer is being prepared. Review, edit and approve it before it goes out.</p>`, { href: link, label: "Review the question" }),
+  await sendMail(to, `Ask an Expert: question needs an answer`,
+    emailLayout("A question needs an answer", `<p><strong>${esc(q.question)}</strong></p><p>${esc([q.name, q.company, q.email].filter(Boolean).join(" · "))}</p><p>Labb.com and the guidebooks don't answer this one. Write the answer and approve it; it goes to the person and is used for anyone who asks the same thing.</p>`, { href: link, label: "Answer the question" }),
     `New Ask an Expert question:\n\n${q.question}\n\n${[q.name, q.company, q.email].filter(Boolean).join(" · ")}\n\nReview: ${link}`, { replyTo: q.email || undefined });
 }
 
@@ -183,11 +188,12 @@ export function answerHtml(text: string) {
 
 export async function emailAnswer(q: AskRow) {
   if (!q.email || !q.answer) return false;
+  const auto = q.status === "auto";
   const page = q.published && q.slug ? absoluteUrl(`/ask/${q.slug}`) : absoluteUrl(`/ask/status/${q.token}`);
   const first = q.name?.trim().split(" ")[0];
   const label = "font-size:11px;font-weight:bold;letter-spacing:1px;text-transform:uppercase;color:#5f6a74;margin:0 0 6px";
   const body = `
-    <p style="margin:0 0 20px;font-size:15px;line-height:1.6">Hi ${esc(first || "there")},<br>Thanks for asking Labb. Here's the answer from our team.</p>
+    <p style="margin:0 0 20px;font-size:15px;line-height:1.6">Hi ${esc(first || "there")},<br>Thanks for asking Labb. ${auto ? "Here's your answer from Labb.com." : "Here's the answer from our team."}</p>
     <div style="background:#f3f5f6;border-radius:8px;padding:14px 18px;margin:0 0 22px">
       <p style="${label}">Your question</p>
       <p style="margin:0;font-size:16px;line-height:1.5;font-weight:bold;color:#404951">${esc(q.question)}</p>
@@ -195,8 +201,9 @@ export async function emailAnswer(q: AskRow) {
     <p style="${label}">Our answer</p>
     <div style="border-left:3px solid #CF743C;padding:2px 0 0 16px;margin:0 0 24px">${answerHtml(q.answer)}</div>
     <p style="margin:0 0 24px"><a href="${page}" style="background:#CF743C;color:#fff;text-decoration:none;font-weight:bold;padding:12px 22px;border-radius:8px;display:inline-block;font-size:15px">View the answer online</a></p>
-    <p style="margin:0;font-size:14px;line-height:1.6">Have a follow-up question? Just reply to this email, or <a href="${absoluteUrl("/schedule")}" style="color:#CF743C;font-weight:bold;text-decoration:none">book a call with Labb</a>.</p>`;
+    <p style="margin:0;font-size:14px;line-height:1.6">Have a follow-up question? Just reply to this email, or <a href="${absoluteUrl("/schedule")}" style="color:#CF743C;font-weight:bold;text-decoration:none">book a call with Labb</a>.</p>
+    ${auto ? `<p style="margin:22px 0 0;padding:12px 14px;background:#f3f5f6;border-radius:8px;font-size:12px;line-height:1.55;color:#5f6a74">${esc(AUTO_DISCLAIMER)}</p>` : ""}`;
   const html = emailLayout("Your question, answered", body);
-  const text = `Hi ${first || "there"},\n\nThanks for asking Labb. Here's the answer from our team.\n\nYOUR QUESTION\n${q.question}\n\nOUR ANSWER\n${q.answer}\n\nView online: ${page}\n\nHave a follow-up? Reply to this email or book a call: ${absoluteUrl("/schedule")}\n\nRamsey Diagnostics Corporation d/b/a Labb, 2115 Granby Street, Norfolk, VA 23517, info@labb.com`;
+  const text = `Hi ${first || "there"},\n\nThanks for asking Labb. ${auto ? "Here's your answer from Labb.com." : "Here's the answer from our team."}\n\nYOUR QUESTION\n${q.question}\n\nOUR ANSWER\n${q.answer}\n\nView online: ${page}\n\nHave a follow-up? Reply to this email or book a call: ${absoluteUrl("/schedule")}${auto ? `\n\n${AUTO_DISCLAIMER}` : ""}\n\nRamsey Diagnostics Corporation d/b/a Labb, 2115 Granby Street, Norfolk, VA 23517, info@labb.com`;
   return sendMail(q.email, `Your question for Labb: ${q.question.slice(0, 70)}${q.question.length > 70 ? "..." : ""}`, html, text, { replyTo: "info@labb.com" });
 }
