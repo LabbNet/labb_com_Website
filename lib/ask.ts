@@ -13,7 +13,7 @@ import { absoluteUrl } from "@/lib/site";
 
 export type AskRow = {
   id: string; token: string; question: string; name: string | null; email: string | null; company: string | null; lead_id: string | null;
-  status: "pending" | "approved" | "matched" | "rejected"; draft: string | null; draft_source: string | null; answer: string | null;
+  status: "pending" | "approved" | "auto" | "matched" | "rejected"; draft: string | null; draft_source: string | null; answer: string | null;
   sources: Source[]; confidence: string | null; matched_id: string | null; slug: string | null; published: boolean;
   reviewed_by: string | null; reviewed_at: Date | null; emailed_at: Date | null; views: number; created_at: Date; updated_at: Date;
 };
@@ -34,7 +34,7 @@ export async function uniqueSlug(q: string, id: string) {
 export async function findApproved(q: string): Promise<AskRow | null> {
   const [hit] = await sql()<(AskRow & { score: number })[]>`
     select *, similarity(lower(question), lower(${q})) as score from ask_questions
-    where status = 'approved' and published and answer is not null and lower(question) % lower(${q})
+    where status in ('approved', 'auto') and answer is not null and lower(question) % lower(${q})
     order by score desc limit 1`.catch(() => [] as (AskRow & { score: number })[]);
   return hit && hit.score >= 0.62 ? hit : null;
 }
@@ -115,7 +115,7 @@ const toSource = (h: Hit): Source => ({ title: h.source_title, url: h.url, headi
 const dedupe = (s: Source[]) => s.filter((x, i) => s.findIndex((y) => y.title === x.title && y.heading === x.heading) === i);
 
 // Build (or rebuild) the draft for a pending question.
-export async function draftAnswer(id: string) {
+export async function draftAnswer(id: string): Promise<{ source: string; confidence: string } | undefined> {
   const db = sql();
   const [q] = await db<AskRow[]>`select * from ask_questions where id = ${id}`;
   if (!q) return;
@@ -123,7 +123,7 @@ export async function draftAnswer(id: string) {
   const kitQ = codes.length > 0 && /\b(kits?|panels?|cups?|swabs?|cutoffs?|detects?|covers?|includes?|available|offer|carry|sell|which tests?|what tests?|do you have)\b/i.test(q.question);
   const hits = await searchKb(q.question, 8);
   const approved = await db<{ question: string; answer: string }[]>`
-    select question, answer from ask_questions where status = 'approved' and answer is not null and lower(question) % lower(${q.question})
+    select question, answer from ask_questions where status in ('approved', 'auto') and answer is not null and lower(question) % lower(${q.question})
     order by similarity(lower(question), lower(${q.question})) desc limit 3`.catch(() => []);
 
   let draft: string | null = null, source = "none", sources: Source[] = [], confidence = "unknown";
@@ -141,7 +141,12 @@ export async function draftAnswer(id: string) {
   }
   await db`update ask_questions set draft = ${draft}, draft_source = ${source}, sources = ${db.json(sources as never)}, confidence = ${confidence}, updated_at = now()
     where id = ${id} and status = 'pending'`;
+  return { source, confidence };
 }
+
+// A draft that came straight from the guidebooks, labb.com or the kit data can go out without review.
+export const answersOnItsOwn = (r?: { source: string; confidence: string }) =>
+  !!r && (r.source === "kits" || (r.source === "ai" && (r.confidence === "high" || r.confidence === "medium")));
 
 // ---- Emails ----
 export async function emailTeamNewQuestion(q: { id: string; question: string; name: string | null; email: string | null; company: string | null }) {

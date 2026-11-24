@@ -2,6 +2,7 @@ import "server-only";
 import { createHash } from "node:crypto";
 import chunks from "@/content/kb/chunks.json";
 import { sql } from "@/lib/db";
+import { listArticles } from "@/lib/articles";
 import { drugProfiles } from "@/lib/drugProfiles";
 import { badgeLabel, publishedKits, type Kit } from "@/lib/kits";
 
@@ -12,6 +13,22 @@ type Chunk = { id: string; source: string; source_title: string; url: string | n
 
 function kitText(k: Kit) {
   return `${k.name} (${k.code}) is a ${k.specimen.toLowerCase()} ${k.drugCount} drug test kit in the ${k.series}, labeled ${badgeLabel[k.badge]}. ${k.summary} Drugs and cutoffs: ${k.drugs.map((d) => `${d.name} (${d.code}) ${d.cutoff} ng/mL`).join("; ")}.${k.validity ? ` Specimen validity: ${k.validity}.` : ""} Read time: ${k.readTime}. Good for: ${k.goodFor.join(", ")}.`;
+}
+
+// labb.com articles, split into passages of about 300 words.
+async function articleChunks(): Promise<Chunk[]> {
+  const list = await listArticles().catch(() => []);
+  return list.flatMap((a) => {
+    const text = a.html.replace(/<(script|style)[\s\S]*?<\/\1>/gi, " ").replace(/<\/(p|h[1-6]|li|tr)>/gi, "\n").replace(/<[^>]+>/g, " ")
+      .replace(/&nbsp;/g, " ").replace(/&amp;/g, "&").replace(/&#39;|&rsquo;/g, "'").replace(/&quot;|&ldquo;|&rdquo;/g, '"').replace(/[ \t]+/g, " ");
+    const paras = text.split(/\n+/).map((p) => p.trim()).filter((p) => p.split(" ").length > 4);
+    const out: Chunk[] = [];
+    let buf: string[] = [];
+    const flush = () => { if (buf.length) out.push({ id: `article-${a.slug}-${out.length}`, source: "articles", source_title: a.title, url: `/news/${a.slug}`, page: null, heading: a.title, body: buf.join(" ") }); buf = []; };
+    for (const p of paras) { if (buf.join(" ").split(" ").length + p.split(" ").length > 320) flush(); buf.push(p); }
+    flush();
+    return out;
+  });
 }
 
 export function allChunks(): Chunk[] {
@@ -26,7 +43,7 @@ export function allChunks(): Chunk[] {
 // Load the knowledge base into Postgres when its content changed (runs once at server start).
 export async function syncKb() {
   try {
-    const all = allChunks();
+    const all = [...allChunks(), ...(await articleChunks())];
     const hash = createHash("sha256").update(JSON.stringify(all)).digest("hex");
     const db = sql();
     const [cur] = await db<{ value: string }[]>`select value from kb_meta where key = 'chunks_hash'`;

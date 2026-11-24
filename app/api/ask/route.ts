@@ -1,7 +1,7 @@
 import { createHash } from "node:crypto";
 import { cookies } from "next/headers";
 import { sameOrigin } from "@/lib/auth";
-import { draftAnswer, emailTeamNewQuestion, findApproved, newAskToken } from "@/lib/ask";
+import { answersOnItsOwn, draftAnswer, emailAnswer, emailTeamNewQuestion, findApproved, newAskToken, uniqueSlug, type AskRow } from "@/lib/ask";
 import { sql } from "@/lib/db";
 import { field, go } from "@/lib/http";
 import { logLeadEvent } from "@/lib/leads";
@@ -25,12 +25,13 @@ export async function POST(req: Request) {
     if (n >= 6) return go(req, "/ask?m=slow");
   }
 
-  // Already answered and approved: show it now. No review needed.
+  // Already answered: show it now. No review needed.
   const hit = await findApproved(question);
-  if (hit?.slug) {
-    await db`insert into ask_questions (token, question, name, email, company, status, answer, matched_id, ip_hash)
-      values (${newAskToken()}, ${question}, ${name || null}, ${EMAIL.test(email) ? email : null}, ${company || null}, 'matched', ${hit.answer}, ${hit.id}, ${ipHash})`;
-    return go(req, `/ask/${hit.slug}?asked=1`);
+  if (hit) {
+    const token = newAskToken();
+    await db`insert into ask_questions (token, question, name, email, company, status, answer, sources, matched_id, ip_hash)
+      values (${token}, ${question}, ${name || null}, ${EMAIL.test(email) ? email : null}, ${company || null}, 'matched', ${hit.answer}, ${db.json(hit.sources as never)}, ${hit.id}, ${ipHash})`;
+    return go(req, hit.published && hit.slug ? `/ask/${hit.slug}?asked=1` : `/ask/status/${token}`);
   }
 
   if (!EMAIL.test(email)) return go(req, `/ask?m=email&q=${encodeURIComponent(question.slice(0, 300))}`);
@@ -50,9 +51,16 @@ export async function POST(req: Request) {
     values (${token}, ${question}, ${name || null}, ${email}, ${company || null}, ${lead.id}, ${ipHash}) returning id`;
   await logLeadEvent(lead.id, "asked", `Asked an expert: ${question}`, null);
   await linkVisitor((await cookies()).get("labb_v")?.value, email, lead.id, "form").catch(() => {});
-  void (async () => {
-    await draftAnswer(q.id).catch((e) => console.error("[ask] draft failed", e));
-    await emailTeamNewQuestion({ id: q.id, question, name, email, company }).catch(() => {});
-  })();
+  // Answer now when the guidebooks, labb.com or the kit data cover it; otherwise hold it for a Labb admin.
+  const result = await draftAnswer(q.id).catch((e) => { console.error("[ask] draft failed", e); return undefined; });
+  if (answersOnItsOwn(result)) {
+    const [row] = await db<AskRow[]>`update ask_questions set status = 'auto', answer = draft, slug = ${await uniqueSlug(question, q.id)}, updated_at = now()
+      where id = ${q.id} and status = 'pending' and draft is not null returning *`;
+    if (row) {
+      if (await emailAnswer(row).catch(() => false)) await db`update ask_questions set emailed_at = now() where id = ${q.id}`;
+      return go(req, `/ask/status/${token}`);
+    }
+  }
+  void emailTeamNewQuestion({ id: q.id, question, name, email, company }).catch(() => {});
   return go(req, `/ask/status/${token}`);
 }

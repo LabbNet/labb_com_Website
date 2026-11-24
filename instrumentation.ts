@@ -6,6 +6,7 @@ export async function register() {
   // Ask an Expert knowledge base: load guidebook passages, kits and drug profiles when they change.
   const { syncKb } = await import("@/lib/kb");
   setTimeout(() => syncKb(), 5_000);
+  setInterval(() => syncKb(), 60 * 60_000); // picks up new and edited articles
   const { runReadsJobs } = await import("@/lib/readsNotify");
   setTimeout(() => runReadsJobs(), 15_000);
   setInterval(() => runReadsJobs(), 60_000);

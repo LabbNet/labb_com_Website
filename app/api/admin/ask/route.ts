@@ -51,7 +51,7 @@ export async function POST(req: Request) {
       if (sent) await db`update ask_questions set emailed_at = now() where id = ${id}`;
       if (row.lead_id) await logLeadEvent(row.lead_id, "emailed", `To ${row.email}. Subject: Ask an Expert answer\n\n${row.question}\n\n${answer}`.slice(0, 4000), { id: me.id, name: me.name });
     }
-    await flash(action === "update" ? "Answer updated." : `Approved${publish ? " and published" : " (kept private)"}.${row.email ? (sent ? ` Emailed to ${row.email}.` : row.emailed_at ? "" : " The email didn't send; check the email settings.") : ""} Future matching questions get this answer right away.`, action === "approve" && row.email && !sent && !row.emailed_at ? "error" : "ok");
+    await flash(action === "update" ? "Answer updated." : q.status === "auto" ? `Approved${publish ? " and published on labb.com" : ""}.` : `Approved${publish ? " and published" : " (kept private)"}.${row.email ? (sent ? ` Emailed to ${row.email}.` : row.emailed_at ? "" : " The email didn't send; check the email settings.") : ""} Future matching questions get this answer right away.`, action === "approve" && row.email && !sent && !row.emailed_at ? "error" : "ok");
     return go(req, `${back}#q-${id}`);
   }
   if (action === "redraft") {

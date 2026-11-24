@@ -25,11 +25,15 @@ export default async function AskStatus({ params }: { params: Promise<{ token: s
   return (
     <section className="section"><div className="wrap" style={{ maxWidth: 760 }}>
       <span className="eyebrow">Ask an Expert</span>
-      <h1 style={{ fontSize: "1.8rem", margin: "8px 0 16px" }}>{q.status === "approved" ? "Your answer" : "Thanks, we've got your question"}</h1>
+      <h1 style={{ fontSize: "1.8rem", margin: "8px 0 16px" }}>{q.answer && q.status !== "pending" && q.status !== "rejected" ? "Here's your answer" : "Thanks, we've got your question"}</h1>
       <div className="hero-card" style={{ textAlign: "left" }}>
         <p style={{ marginTop: 0 }}><strong>{q.question}</strong></p>
-        {q.status === "approved" && q.answer ? (
-          <div className="ask-answer"><AnswerText text={q.answer} /></div>
+        {q.status !== "pending" && q.status !== "rejected" && q.answer ? (
+          <>
+            <div className="ask-answer"><AnswerText text={q.answer} /></div>
+            {q.sources?.length > 0 && <p className="fine" style={{ textAlign: "left", marginBottom: 0 }}>From: {q.sources.map((s, i) => <span key={i}>{i ? " · " : ""}{s.url ? <Link href={s.url}>{s.title}</Link> : s.title}</span>)}</p>}
+            {q.email && q.status === "auto" && <p className="fine" style={{ textAlign: "left", marginBottom: 0 }}>We also emailed this answer to {q.email}.</p>}
+          </>
         ) : q.status === "rejected" ? (
           <p>We weren&apos;t able to answer this one here. Email <a href="mailto:info@labb.com">info@labb.com</a> and we&apos;ll help.</p>
         ) : (
