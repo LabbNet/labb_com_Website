@@ -173,6 +173,7 @@ async function sendOne(sendId: string) {
     replyTo: partner?.email || "info@labb.com",
     ...(partner ? { from: `${(partner.clinic || partner.name).replace(/[<>"]/g, "")} via Labb <info@mail.labb.com>` } : {}),
     headers: { "List-Unsubscribe": `<${oneClickUrl(run.email, "sequences")}>`, "List-Unsubscribe-Post": "List-Unsubscribe=One-Click" },
+    track: { sequence_run: String(run.id), step: String(s.step) },
   });
   await done(ok ? "sent" : "failed", ok ? null : "Mail not sent (check the mail settings)");
 }

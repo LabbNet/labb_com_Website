@@ -218,6 +218,7 @@ export async function sendCampaign(c: Campaign): Promise<{ sent: number; failed:
           ],
           categories: [`broadcast-${c.audience}`],
           custom_args: { campaign: c.id },
+          tracking_settings: { open_tracking: { enable: true }, click_tracking: { enable: true, enable_text: false } },
         }),
       }).catch((e: unknown) => ({ ok: false, status: 0, text: async () => String(e) }) as Response);
       if (res.ok) sent += batch.length;
@@ -231,7 +232,7 @@ export async function sendCampaign(c: Campaign): Promise<{ sent: number; failed:
     // No SendGrid: one message per person through whatever mail provider is set up.
     for (const r of list) {
       const one = tagLinks(buildHtml(c, unsubUrl(r.email, c.audience)), linkToken(r.email));
-      (await sendMail(r.email, c.subject, one, toText(one), { replyTo })) ? sent++ : failed++;
+      (await sendMail(r.email, c.subject, one, toText(one), { replyTo, track: { campaign: c.id } })) ? sent++ : failed++;
     }
     if (failed) error = "Some messages failed. Check the mail settings.";
   }

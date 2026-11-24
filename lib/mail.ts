@@ -11,7 +11,8 @@ export const esc = (s: unknown = "") => String(s ?? "").replace(/[&<>"']/g, (c) 
 // so callers can fall back to showing a copyable link to the admin.
 
 export type MailAttachment = { filename: string; content: Buffer; type: string };
-type MailOpts = { replyTo?: string; from?: string; attachments?: MailAttachment[]; headers?: Record<string, string> };
+// track: tags the message for email analytics (SendGrid custom args plus open and click tracking).
+type MailOpts = { replyTo?: string; from?: string; attachments?: MailAttachment[]; headers?: Record<string, string>; track?: Record<string, string> };
 
 const defaultFrom = () => process.env.MAIL_FROM || process.env.LEAD_FROM_EMAIL || "Labb <info@mail.labb.com>";
 
@@ -42,6 +43,7 @@ async function viaSendGrid(to: string[], subject: string, html: string, text: st
         { type: "text/plain", value: text },
         { type: "text/html", value: html },
       ],
+      ...(o.track ? { custom_args: o.track, tracking_settings: { open_tracking: { enable: true }, click_tracking: { enable: true, enable_text: false } } } : {}),
       ...(o.attachments?.length
         ? { attachments: o.attachments.map((a) => ({ filename: a.filename, type: a.type, content: a.content.toString("base64"), disposition: "attachment" })) }
         : {}),

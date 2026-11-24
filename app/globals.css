@@ -2012,3 +2012,36 @@ td.acts { white-space: nowrap; }
 }
 @media print { .askw { display: none; } }
 .ask-disclaimer { margin: 16px 0 0; padding: 12px 14px; background: #f3f5f6; border-radius: 10px; font-size: .8rem; line-height: 1.55; color: #5f6a74; text-align: left; }
+
+/* Email analytics */
+.em-mini { display: flex; flex-wrap: wrap; gap: 4px 10px; font-size: .76rem; color: #5f6a74; margin-top: 2px; }
+.em-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; margin: 14px 0; }
+.em-card { background: #fff; border: 1px solid var(--border); border-radius: 12px; padding: 12px 14px; text-align: left; }
+.em-card span { display: block; font-size: .72rem; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; color: var(--muted); }
+.em-card strong { display: block; font-size: 1.6rem; color: var(--dark); line-height: 1.2; margin-top: 2px; }
+.em-card em { font-style: normal; font-size: .8rem; color: #5f6a74; }
+.em-report { margin: 10px 0 24px; }
+.em-details { margin-top: 12px; text-align: left; }
+.em-details summary { cursor: pointer; font-weight: 700; }
+.em-setup ol { text-align: left; padding-left: 20px; display: grid; gap: 8px; }
+.em-setup input.copy-link, .em-details input.copy-link { display: block; width: 100%; margin-top: 6px; }
+.em-best { text-align: left; padding-left: 20px; display: grid; gap: 6px; }
+
+/* Live visitors */
+.lv-tiles { display: grid; grid-template-columns: 1.3fr 1fr 1fr 1fr; gap: 12px; margin-bottom: 16px; }
+.lv-tile { border: 1px solid var(--border); border-radius: 10px; padding: 12px 14px; text-align: left; }
+.lv-tile span { display: block; font-size: .72rem; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; color: var(--muted); }
+.lv-tile strong { display: block; font-size: 1.8rem; color: var(--dark); line-height: 1.2; font-variant-numeric: tabular-nums; }
+.lv-tile em { font-style: normal; font-size: .78rem; color: #5f6a74; }
+.lv-big { background: #404951; border-color: #404951; }
+.lv-big span, .lv-big em { color: #d5dade; }
+.lv-big strong { color: #fff; font-size: 2.4rem; }
+.lv-hours { display: flex; align-items: flex-end; gap: 3px; height: 110px; padding-bottom: 18px; margin-bottom: 14px; border-bottom: 1px solid var(--border); }
+.lv-hour { flex: 1; height: 100%; display: flex; flex-direction: column; justify-content: flex-end; position: relative; max-width: 34px; }
+.lv-bar { background: #CF743C; border-radius: 4px 4px 0 0; min-height: 0; }
+.lv-hour:hover .lv-bar { background: #b5612f; }
+.lv-hour span { position: absolute; bottom: -18px; left: 0; font-size: .68rem; color: var(--muted); }
+.lv-cols { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+.lv-cols h4 { font-size: .9rem; margin: 0 0 8px; text-align: left; }
+.lv-recent em { display: block; font-style: normal; font-size: .72rem; color: var(--muted); }
+@media (max-width: 860px) { .lv-tiles { grid-template-columns: 1fr 1fr; } .lv-cols { grid-template-columns: 1fr; } }

@@ -12,7 +12,7 @@ const ALLOWED = new Set([
   "GU", "AS", "MP", "UM", // other US territories
 ]);
 // Payment and scheduled-job callbacks must always get through.
-const GEO_EXEMPT = ["/api/stripe/webhook", "/api/cron/"];
+const GEO_EXEMPT = ["/api/stripe/webhook", "/api/cron/", "/api/email/events"];
 const GATED = ["/members", "/admin", "/learn", "/api/members", "/reads"];
 
 function blocked() {

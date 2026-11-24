@@ -3,7 +3,8 @@ import Link from "next/link";
 import { AdminBar } from "@/components/AdminBar";
 import { AnalyticsChart } from "@/components/AnalyticsChart";
 import { requireAdmin } from "@/lib/admin";
-import { customerSessionCount, TRAFFIC, type Traffic, companies, identifiedShare, knownVisitors, breakdown, daily, entryPages, FORM_LABELS, formsByPage, formsByType, formTotals, kpis, live, liveCount, RANGES, signedIn, topPages, totalRows, type Kpis, type RangeKey } from "@/lib/analytics";
+import { LiveVisitors } from "@/components/LiveVisitors";
+import { customerSessionCount, TRAFFIC, type Traffic, companies, identifiedShare, knownVisitors, breakdown, daily, entryPages, FORM_LABELS, formsByPage, formsByType, formTotals, kpis, liveData, RANGES, signedIn, topPages, totalRows, type Kpis, type RangeKey } from "@/lib/analytics";
 
 export const metadata: Metadata = { title: "Analytics", robots: { index: false, follow: false } };
 export const dynamic = "force-dynamic";
@@ -61,9 +62,9 @@ export default async function Analytics({ searchParams }: { searchParams: Promis
   const [fNow, fPrev, fTypes, fPages] = await Promise.all([formTotals(f), formTotals(f, f.days), formsByType(f), formsByPage(f)]);
   const [orgs, known, share] = await Promise.all([companies(f), knownVisitors(f), identifiedShare(f)]);
   const lookupOn = Boolean(process.env.IPINFO_TOKEN);
-  const [k, prev, series, pages, entries, refs, devices, browsers, oses, campaigns, users, now, total, liveN] = await Promise.all([
+  const [k, prev, series, pages, entries, refs, devices, browsers, oses, campaigns, users, liveD, total] = await Promise.all([
     kpis(f), kpis(f, f.days), daily(f), topPages(f), entryPages(f), breakdown(f, "referrer"), breakdown(f, "device"),
-    breakdown(f, "browser"), breakdown(f, "os"), breakdown(f, "utm_campaign"), signedIn(f), live(), totalRows(), liveCount(),
+    breakdown(f, "browser"), breakdown(f, "os"), breakdown(f, "utm_campaign"), signedIn(f), liveData(), totalRows(),
   ]);
   const q = (r: string, s = f.staff, t: Traffic = traffic) => `/admin/analytics?range=${r}${s ? "&staff=1" : ""}${t !== "prospects" ? `&traffic=${t}` : ""}`;
   const tiles: { label: string; value: string; key: keyof Kpis; invert?: boolean }[] = [
@@ -104,6 +105,8 @@ export default async function Analytics({ searchParams }: { searchParams: Promis
               <strong>Tracking just started.</strong> Numbers fill in as people visit the site. Labb admins&apos; own visits are left out by default.
             </div>
           )}
+
+          <LiveVisitors initial={liveD} />
 
           <div className="an-kpis">
             {tiles.map((t) => (
@@ -255,11 +258,6 @@ export default async function Analytics({ searchParams }: { searchParams: Promis
               )}
             </div>
             <div className="an-side">
-              <div className="an-card an-live">
-                <h3><span className="an-dot" aria-hidden="true" /> On the site now</h3>
-                <p className="an-live-n"><strong>{num(liveN)}</strong> {liveN === 1 ? "visitor" : "visitors"} in the last 30 minutes</p>
-                {now.length > 0 && <ul className="an-mini">{now.map((r) => <li key={r.path}><span>{r.path}</span><span>{r.visitors}</span></li>)}</ul>}
-              </div>
               <Bars title="Where visitors start" rows={entries.map((e) => ({ label: e.path, value: e.sessions }))} unit="visits" empty="No visits yet." />
             </div>
           </div>

@@ -209,3 +209,46 @@ export async function customerSessionCount(f: F) {
     from page_views where ${where({ ...f, traffic: "customers" })}`;
   return r;
 }
+
+// Live panel: who is on the site now and today so far (Eastern time). Labb staff and the read area are left out.
+const LIVE_W = `coalesce(role, '') not in ('admin', 'reader') and left(path, 3) <> '/__' and left(path, 6) <> '/reads'`;
+export type LiveData = {
+  now: number; last30: number; today: number; todayViews: number; yesterdaySoFar: number;
+  pages: { path: string; title: string | null; visitors: number }[];
+  sources: { label: string; visitors: number }[];
+  hours: { hour: number; visitors: number; views: number }[];
+  recent: { ts: string; path: string; region: string | null; device: string | null; referrer: string | null }[];
+  at: string;
+};
+export async function liveData(): Promise<LiveData> {
+  const db = sql();
+  const w = db.unsafe(LIVE_W);
+  const today = db`ts >= (date_trunc('day', now() at time zone ${TZ}) at time zone ${TZ})`;
+  const [[c], pages, sources, hours, recent] = await Promise.all([
+    db<{ now: number; last30: number; today: number; today_views: number; yday: number }[]>`select
+      (select count(distinct visitor)::int from page_views where ts > now() - interval '5 minutes' and ${w}) as now,
+      (select count(distinct visitor)::int from page_views where ts > now() - interval '30 minutes' and ${w}) as last30,
+      (select count(distinct visitor)::int from page_views where ${today} and ${w}) as today,
+      (select count(*)::int from page_views where ${today} and ${w}) as today_views,
+      (select count(distinct visitor)::int from page_views where ts >= (date_trunc('day', now() at time zone ${TZ}) at time zone ${TZ}) - interval '1 day'
+         and ts < now() - interval '1 day' and ${w}) as yday`,
+    db<{ path: string; title: string | null; visitors: number }[]>`
+      select path, (array_agg(title order by ts desc))[1] as title, count(distinct visitor)::int as visitors from page_views
+      where ts > now() - interval '5 minutes' and ${w} group by path order by visitors desc limit 10`,
+    db<{ label: string; visitors: number }[]>`
+      select coalesce(referrer, 'Direct or unknown') as label, count(distinct visitor)::int as visitors from (
+        select distinct on (session) session, visitor, referrer from page_views where ${today} and ${w} order by session, ts) s
+      group by 1 order by visitors desc limit 8`,
+    db<{ hour: number; visitors: number; views: number }[]>`
+      with h as (select generate_series(0, extract(hour from now() at time zone ${TZ})::int) as hour)
+      select h.hour, count(distinct p.visitor)::int as visitors, count(p.id)::int as views from h
+      left join page_views p on ${today} and ${w} and extract(hour from p.ts at time zone ${TZ})::int = h.hour
+      group by h.hour order by h.hour`,
+    db<{ ts: Date; path: string; region: string | null; device: string | null; referrer: string | null }[]>`
+      select ts, path, region, device, referrer from page_views where ts > now() - interval '30 minutes' and ${w} order by ts desc limit 15`,
+  ]);
+  return {
+    now: c.now, last30: c.last30, today: c.today, todayViews: c.today_views, yesterdaySoFar: c.yday,
+    pages, sources, hours, recent: recent.map((r) => ({ ...r, ts: new Date(r.ts).toISOString() })), at: new Date().toISOString(),
+  };
+}
