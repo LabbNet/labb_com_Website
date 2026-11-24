@@ -74,19 +74,28 @@ export function productImage(path: string | null): string | null {
 }
 // Saved link, or the kit whose code matches the SKU or the product name.
 // Codes compare on letters and digits only, so "UA:23A", "UA-23A-SVT", "ua23a" and "UA:23" all find UA:23A.
-const norm = (v: string | null | undefined) => (v || "").toUpperCase().replace(/[^A-Z0-9]/g, "");
+// Leading zeros are ignored too, so "OR:6A" finds OR:06A.
+const norm = (v: string | null | undefined) => (v || "").toUpperCase().replace(/[^A-Z0-9]/g, "").replace(/(^|[A-Z])0+(\d)/g, "$1$2");
 function kitFor(text: string | null | undefined) {
   const t = norm(text);
   if (t.length < 3) return null;
   const exact = publishedKits.find((k) => t.includes(norm(k.code)));
   if (exact) return exact;
   // A short code like "UA:18" or "OR:06" finds the one kit it starts.
-  const starts = publishedKits.filter((k) => norm(k.code).startsWith(t) || (/^[A-Z]+\d+$/.test(t) && norm(k.code).startsWith(t)));
+  const starts = publishedKits.filter((k) => norm(k.code).startsWith(t));
   if (starts.length === 1) return starts[0];
-  const tokens = (text || "").toUpperCase().match(/[A-Z]{2,3}[:\s-]?\d{2}[A-Z]?/g) || [];
+  const tokens = (text || "").toUpperCase().match(/[A-Z]{2,3}[:\s-]?\d{1,2}[A-Z]?/g) || [];
   for (const tok of tokens) {
     const n = norm(tok);
     const hit = publishedKits.filter((k) => norm(k.code) === n || norm(k.code).startsWith(n));
+    if (hit.length === 1) return hit[0];
+  }
+  // Plain names: specimen words plus a panel count, like "eTest Swab 6 panel" or "Oral fluid 6-drug".
+  const words = (text || "").toLowerCase();
+  const specimen = /swab|oral|saliva/.test(words) ? "Oral fluid" : /cup|urine/.test(words) ? "Urine" : null;
+  const panel = /(\d{1,2})\s*-?\s*(?:panel|drug|pnl)/.exec(words)?.[1];
+  if (specimen && panel) {
+    const hit = publishedKits.filter((k) => k.specimen === specimen && Number(/\d+/.exec(k.code)?.[0]) === Number(panel));
     if (hit.length === 1) return hit[0];
   }
   return null;
