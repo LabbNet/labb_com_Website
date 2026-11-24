@@ -7,7 +7,8 @@ function linkify(text: string) {
   return parts.map((p, i) => {
     if (!/^https?:\/\//.test(p)) return <Fragment key={i}>{p}</Fragment>;
     const internal = p.match(/^https?:\/\/(www\.)?labb\.com(\/[^\s]*)?$/);
-    return internal ? <Link key={i} href={internal[2] || "/"}>{internal[2] || "labb.com"}</Link> : <a key={i} href={p} target="_blank" rel="noopener nofollow">{p}</a>;
+    const path = internal?.[2] || "/";
+    return internal ? <Link key={i} href={path}>{path.startsWith("/test-kits/") ? "View kit" : `labb.com${path === "/" ? "" : path}`}</Link> : <a key={i} href={p} target="_blank" rel="noopener nofollow">{p}</a>;
   });
 }
 

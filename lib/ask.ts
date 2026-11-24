@@ -54,14 +54,14 @@ function kitAnswer(codes: string[], question: string): string | null {
   const { full, partial, none } = kitCoverage(codes, specimen);
   const label = (c: string) => publishedKits.flatMap((k) => k.drugs).find((d) => d.code === c)?.name || c;
   const names = codes.map((c) => `${label(c)} (${c})`).join(", ").replace(/, ([^,]*)$/, " and $1");
-  const line = (k: (typeof full)[number]) => `- ${k.name} (${k.code}), ${k.specimen.toLowerCase()}, ${badgeLabel[k.badge]}: ${codes.filter((c) => k.drugs.some((d) => d.code === c)).map((c) => `${c} ${k.drugs.find((d) => d.code === c)!.cutoff} ng/mL`).join(", ")}. ${absoluteUrl(`/test-kits/${k.slug}`)}`;
+  const line = (k: (typeof full)[number]) => `- ${k.name} (${k.specimen.toLowerCase()}, ${badgeLabel[k.badge]}). Cutoffs: ${codes.filter((c) => k.drugs.some((d) => d.code === c)).map((c) => `${label(c)} ${k.drugs.find((d) => d.code === c)!.cutoff} ng/mL`).join(", ")}. ${absoluteUrl(`/test-kits/${k.slug}`)}`;
   const parts: string[] = [];
   const which = specimen ? `${specimen.toLowerCase()} ` : "";
   if (full.length) parts.push(`These Labb ${which}kits test for ${codes.length > 1 ? "all of " : ""}${names}:\n${full.map(line).join("\n")}`);
   else parts.push(`No single Labb ${which}kit tests for ${codes.length > 1 ? "all of " : ""}${names} today.`);
-  if (!full.length && partial.length) parts.push(`Closest matches:\n${partial.slice(0, 4).map((r) => `- ${r.kit.name} (${r.kit.code}) covers ${r.covered.join(", ")}. ${absoluteUrl(`/test-kits/${r.kit.slug}`)}`).join("\n")}`);
+  if (!full.length && partial.length) parts.push(`Closest matches:\n${partial.slice(0, 4).map((r) => `- ${r.kit.name} covers ${r.covered.map(label).join(", ")}. ${absoluteUrl(`/test-kits/${r.kit.slug}`)}`).join("\n")}`);
   if (none.length) parts.push(`${none.map(label).join(", ")} ${none.length === 1 ? "is" : "are"} not on any current Labb rapid kit. A laboratory test can usually add ${none.length === 1 ? "it" : "them"}; contact Labb for options.`);
-  parts.push("Cutoffs are in ng/mL. A non-negative rapid screen is preliminary until a laboratory confirms it.");
+  parts.push("A non-negative rapid screen is preliminary until a laboratory confirms it.");
   return parts.join("\n\n");
 }
 
@@ -152,15 +152,46 @@ export async function emailTeamNewQuestion(q: { id: string; question: string; na
     `New Ask an Expert question:\n\n${q.question}\n\n${[q.name, q.company, q.email].filter(Boolean).join(" · ")}\n\nReview: ${link}`, { replyTo: q.email || undefined });
 }
 
+// Turns an answer into clean email HTML: paragraphs, bulleted lists, and short link labels instead of raw URLs.
+function linkHtml(text: string) {
+  return esc(text).replace(/(https?:\/\/[^\s<)]+[^\s<).,;:!?])/g, (url) => {
+    const kit = url.match(/labb\.com\/test-kits\/[a-z0-9-]+/);
+    const path = url.replace(/^https?:\/\/(www\.)?/, "");
+    const label = kit ? "View kit" : path.length > 48 ? `${path.slice(0, 45)}...` : path;
+    return `<a href="${url}" style="color:#CF743C;font-weight:bold;text-decoration:none">${label}</a>`;
+  });
+}
+export function answerHtml(text: string) {
+  const P = "margin:0 0 14px;font-size:15px;line-height:1.6;color:#404951";
+  return text.split(/\n{2,}/).map((block) => {
+    const lines = block.split("\n").filter((l) => l.trim());
+    const items = lines.filter((l) => /^\s*[-•*]\s+/.test(l));
+    const intro = lines.filter((l) => !/^\s*[-•*]\s+/.test(l));
+    let html = intro.length ? `<p style="${P}">${intro.map(linkHtml).join("<br>")}</p>` : "";
+    if (items.length) {
+      html += `<table role="presentation" cellpadding="0" cellspacing="0" style="margin:0 0 14px;width:100%">${items.map((l) =>
+        `<tr><td style="vertical-align:top;width:18px;padding:0 0 10px;color:#CF743C;font-size:15px;line-height:1.6">&#8226;</td><td style="padding:0 0 10px;font-size:15px;line-height:1.6;color:#404951">${linkHtml(l.replace(/^\s*[-•*]\s+/, ""))}</td></tr>`).join("")}</table>`;
+    }
+    return html;
+  }).join("");
+}
+
 export async function emailAnswer(q: AskRow) {
   if (!q.email || !q.answer) return false;
   const page = q.published && q.slug ? absoluteUrl(`/ask/${q.slug}`) : absoluteUrl(`/ask/status/${q.token}`);
-  const html = emailLayout("Your question, answered",
-    `<p>Hi ${esc(q.name?.split(" ")[0] || "there")},</p><p>Thanks for asking Labb. Here's the answer from our team.</p>
-     <p style="margin:18px 0 6px"><strong>${esc(q.question)}</strong></p>
-     <div style="white-space:pre-wrap;border-left:3px solid #CF743C;padding:2px 0 2px 14px">${esc(q.answer)}</div>
-     <p style="margin-top:18px">Have a follow-up? Reply to this email or <a href="${absoluteUrl("/schedule")}" style="color:#CF743C">book a call with Labb</a>.</p>`,
-    { href: page, label: "View the answer online" });
-  const text = `Hi ${q.name?.split(" ")[0] || "there"},\n\nThanks for asking Labb. Here's the answer from our team.\n\n${q.question}\n\n${q.answer}\n\nView online: ${page}\nBook a call: ${absoluteUrl("/schedule")}`;
+  const first = q.name?.trim().split(" ")[0];
+  const label = "font-size:11px;font-weight:bold;letter-spacing:1px;text-transform:uppercase;color:#5f6a74;margin:0 0 6px";
+  const body = `
+    <p style="margin:0 0 20px;font-size:15px;line-height:1.6">Hi ${esc(first || "there")},<br>Thanks for asking Labb. Here's the answer from our team.</p>
+    <div style="background:#f3f5f6;border-radius:8px;padding:14px 18px;margin:0 0 22px">
+      <p style="${label}">Your question</p>
+      <p style="margin:0;font-size:16px;line-height:1.5;font-weight:bold;color:#404951">${esc(q.question)}</p>
+    </div>
+    <p style="${label}">Our answer</p>
+    <div style="border-left:3px solid #CF743C;padding:2px 0 0 16px;margin:0 0 24px">${answerHtml(q.answer)}</div>
+    <p style="margin:0 0 24px"><a href="${page}" style="background:#CF743C;color:#fff;text-decoration:none;font-weight:bold;padding:12px 22px;border-radius:8px;display:inline-block;font-size:15px">View the answer online</a></p>
+    <p style="margin:0;font-size:14px;line-height:1.6">Have a follow-up question? Just reply to this email, or <a href="${absoluteUrl("/schedule")}" style="color:#CF743C;font-weight:bold;text-decoration:none">book a call with Labb</a>.</p>`;
+  const html = emailLayout("Your question, answered", body);
+  const text = `Hi ${first || "there"},\n\nThanks for asking Labb. Here's the answer from our team.\n\nYOUR QUESTION\n${q.question}\n\nOUR ANSWER\n${q.answer}\n\nView online: ${page}\n\nHave a follow-up? Reply to this email or book a call: ${absoluteUrl("/schedule")}\n\nRamsey Diagnostics Corporation d/b/a Labb, 2115 Granby Street, Norfolk, VA 23517, info@labb.com`;
   return sendMail(q.email, `Your question for Labb: ${q.question.slice(0, 70)}${q.question.length > 70 ? "..." : ""}`, html, text, { replyTo: "info@labb.com" });
 }
