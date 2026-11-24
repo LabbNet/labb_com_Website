@@ -65,10 +65,10 @@ export default async function Contacts({ searchParams }: { searchParams: Promise
     total = r[0]?.total ?? 0;
   }
   // Do not send: admin blocks and unsubscribes, with the contact's name where we have it.
-  let blocks: { email: string; audience: string; created_at: Date; by: string | null; added_by: string | null; name: string | null; company: string | null; total: number }[] = [];
+  let blocks: { email: string; audience: string; created_at: Date; by: string | null; added_by: string | null; reason: string | null; name: string | null; company: string | null; total: number }[] = [];
   if (view === "donotsend") {
     blocks = await db<typeof blocks>`
-      select s.email, string_agg(distinct s.audience, ', ') as audience, max(s.created_at) as created_at, max(m.name) as by, max(s.added_by::text) as added_by,
+      select s.email, string_agg(distinct s.audience, ', ') as audience, max(s.created_at) as created_at, max(m.name) as by, max(s.added_by::text) as added_by, max(s.reason) as reason,
         max(nullif(trim(coalesce(c.first_name, '') || ' ' || coalesce(c.last_name, '')), '')) as name, max(c.company) as company, count(*) over ()::int as total
       from email_suppressions s left join members m on m.id = s.added_by left join contact_imports c on lower(c.email) = s.email
       where s.audience in ('all', 'newsletter') and (${q} = '' or s.email like ${like} or lower(coalesce(c.company, '')) like ${like})
@@ -137,7 +137,7 @@ export default async function Contacts({ searchParams }: { searchParams: Promise
             // Two levels: the group first, then the lists inside it.
             const groups: { key: string; label: string; tabs: [string, string][] }[] = [
               { key: "sort", label: "To sort", tabs: [["pending", "Pending"], ["ignored", "Not added"]] },
-              { key: "lists", label: "Newsletter lists", tabs: (["employers", "clinics", "treatment", "corrections"] as const).map((l) => [l, LIST_LABELS[l]] as [string, string]) },
+              { key: "lists", label: "Newsletter lists", tabs: (["employers", "clinics", "fastest-labs", "treatment", "corrections"] as const).map((l) => [l, LIST_LABELS[l]] as [string, string]) },
               { key: "locations", label: "No marketing", tabs: [["clinic-locations", "Clinic locations"]] },
               { key: "block", label: "Do not send", tabs: [["donotsend", "Do not send"]] },
             ];
@@ -231,7 +231,7 @@ export default async function Contacts({ searchParams }: { searchParams: Promise
                             <td>{b.added_by ? <input type="checkbox" name="email" value={b.email} aria-label={`Select ${b.email}`} /> : null}</td>
                             <th scope="row">{b.name || b.email}{b.name && <span className="bg-note" style={{ color: "var(--muted)" }}>{b.email}</span>}</th>
                             <td>{b.company}</td>
-                            <td>{b.added_by ? `Added by ${b.by || "an admin"}` : "Unsubscribed"}</td>
+                            <td>{b.reason === "bounced" ? "Bounced" : b.added_by ? `Added by ${b.by || "an admin"}` : "Unsubscribed"}</td>
                             <td>{fmtDate(b.created_at).split(",").slice(0, 2).join(",")}</td>
                           </tr>
                         ))}

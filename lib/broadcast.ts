@@ -6,25 +6,29 @@ import { sendMail } from "@/lib/mail";
 import { site } from "@/lib/site";
 
 // HTML email broadcasts to CPP members or newsletter subscribers, sent through SendGrid in batches.
-export type Audience = "cpp" | "employers" | "clinics" | "treatment" | "corrections" | "newsletter" | "sequences";
-export type ListAudience = "employers" | "clinics" | "treatment" | "corrections";
+export type Audience = "cpp" | "employers" | "clinics" | "fastest-labs" | "clinics-all" | "treatment" | "corrections" | "newsletter" | "sequences";
+export type ListAudience = "employers" | "clinics" | "fastest-labs" | "treatment" | "corrections";
 export const AUDIENCES: Record<Audience, { label: string; why: string }> = {
   cpp: { label: "CPP members", why: "You're receiving this because you're a member of the Labb Channel Partner Program." },
   employers: { label: "Employer newsletter", why: "You're receiving this because you joined the Labb newsletter for employers at labb.com." },
-  clinics: { label: "Clinic newsletter", why: "You're receiving this because you joined the Labb newsletter for clinics and collection sites at labb.com." },
+  clinics: { label: "Clinic newsletter (without Fastest Labs)", why: "You're receiving this because you joined the Labb newsletter for clinics and collection sites at labb.com." },
+  "fastest-labs": { label: "Fastest Labs locations", why: "You're receiving this because your location is a Labb clinic contact." },
+  "clinics-all": { label: "Clinics and Fastest Labs", why: "You're receiving this because you're on the Labb list for clinics and collection sites." },
   treatment: { label: "Treatment center newsletter", why: "You're receiving this because you joined the Labb newsletter for treatment and recovery programs." },
   corrections: { label: "Corrections newsletter", why: "You're receiving this because you joined the Labb newsletter for corrections agencies." },
   newsletter: { label: "All newsletter subscribers (old list)", why: "You're receiving this because you subscribed to Labb updates at labb.com." },
   sequences: { label: "Guidebook emails", why: "You're receiving this because a Labb guidebook was shared with you." },
 };
 // The lists offered when composing an email. "newsletter" is kept only for older campaigns.
-export const SEND_AUDIENCES: Audience[] = ["cpp", "employers", "clinics", "treatment", "corrections"];
-export const LISTS: ListAudience[] = ["employers", "clinics", "treatment", "corrections"];
+export const SEND_AUDIENCES: Audience[] = ["cpp", "employers", "clinics", "fastest-labs", "clinics-all", "treatment", "corrections"];
+export const LISTS: ListAudience[] = ["employers", "clinics", "fastest-labs", "treatment", "corrections"];
 export const isAudience = (a: string): a is Audience => a in AUDIENCES;
 
 // Which form segments feed each newsletter list.
 // Earlier footer sign-ups had no type ("other"); they stay on the employer list.
-const LIST_SEGMENTS: Record<ListAudience, string[]> = { employers: ["employer", "other", "general"], clinics: ["collection-site"], treatment: ["treatment"], corrections: ["corrections"] };
+const LIST_SEGMENTS: Record<ListAudience, string[]> = { employers: ["employer", "other", "general"], clinics: ["collection-site"], "fastest-labs": [], treatment: ["treatment"], corrections: ["corrections"] };
+// Fastest Labs people are on their own list: any newsletter sign-up from a fastestlabs.com address goes there, not to Clinics.
+const FL_DOMAIN = "%@fastestlabs.com";
 
 export type Campaign = {
   id: string; audience: Audience; subject: string; preheader: string; html: string; wrap: boolean;
@@ -50,6 +54,14 @@ export async function recipients(audience: Audience): Promise<{ email: string; n
         and not exists (select 1 from email_suppressions s where s.email = lower(m.email) and s.audience in ('cpp', 'all'))
       order by lower(m.email)`;
   }
+  // Clinics and Fastest Labs together: both lists, minus anyone who left either one.
+  if (audience === "clinics-all") {
+    const [a, b] = await Promise.all([recipients("clinics"), recipients("fastest-labs")]);
+    const byEmail = new Map([...a, ...b].map((r) => [r.email, r]));
+    const left = byEmail.size ? await db<{ email: string }[]>`select email from email_suppressions where audience = 'clinics-all' and email = any(${[...byEmail.keys()]})` : [];
+    for (const l of left) byEmail.delete(l.email);
+    return [...byEmail.values()].sort((x, y) => x.email.localeCompare(y.email));
+  }
   // Newsletter lists: people who opted in on a form, by the kind of organization they told us they are.
   // Clinics that apply to the CPP join the clinic list. An unsubscribe from the old single list still applies.
   const segs = audience === "newsletter" ? null : LIST_SEGMENTS[audience as ListAudience];
@@ -59,7 +71,9 @@ export async function recipients(audience: Audience): Promise<{ email: string; n
       select lower(l.email) as email, nullif(trim(coalesce(l.first_name, '') || ' ' || coalesce(l.last_name, '')), '') as name, l.created_at
       from leads l
       where ((l.type = 'newsletter' or l.data->>'newsletter' = 'true') or (${audience === "clinics"} and l.type = 'cpp-application'))
-        and (${segs === null} or l.segment = any(${segs ?? []}) or (${audience === "clinics"} and l.type = 'cpp-application'))
+        and (${segs === null} or l.segment = any(${segs ?? []}) or (${audience === "clinics"} and l.type = 'cpp-application') or ${audience === "fastest-labs"})
+        and (${audience !== "fastest-labs"} or lower(l.email) like ${FL_DOMAIN})
+        and (${audience !== "clinics"} or lower(l.email) not like ${FL_DOMAIN})
         and l.email like '%@%'
       union all
       select lower(c.email), nullif(trim(coalesce(c.first_name, '') || ' ' || coalesce(c.last_name, '')), ''), c.created_at
@@ -70,8 +84,9 @@ export async function recipients(audience: Audience): Promise<{ email: string; n
 }
 
 export async function audienceCounts(): Promise<Record<Audience, number>> {
-  const [cpp, employers, clinics, treatment, corrections, newsletter] = await Promise.all((["cpp", "employers", "clinics", "treatment", "corrections", "newsletter"] as Audience[]).map((a) => recipients(a)));
-  return { cpp: cpp.length, employers: employers.length, clinics: clinics.length, treatment: treatment.length, corrections: corrections.length, newsletter: newsletter.length, sequences: 0 };
+  const list = ["cpp", "employers", "clinics", "fastest-labs", "clinics-all", "treatment", "corrections", "newsletter"] as Audience[];
+  const counts = await Promise.all(list.map((a) => recipients(a)));
+  return { ...Object.fromEntries(list.map((a, i) => [a, counts[i].length])), sequences: 0 } as Record<Audience, number>;
 }
 
 // ---- Unsubscribe links (signed, no stored tokens) ----
@@ -96,7 +111,7 @@ export function oneClickUrl(email: string, audience: Audience) {
   return `${site.url}/api/email/unsubscribe?${q}`;
 }
 export async function suppress(email: string, audience: Audience) {
-  await sql()`insert into email_suppressions (email, audience) values (${email.toLowerCase()}, ${audience}) on conflict do nothing`;
+  await sql()`insert into email_suppressions (email, audience, reason) values (${email.toLowerCase()}, ${audience}, 'unsubscribed') on conflict do nothing`;
   if (audience === "sequences") {
     // Stop every guidebook sequence still running for this address.
     const runs = await sql()<{ id: string }[]>`update sequence_runs set status = 'unsubscribed', updated_at = now() where lower(email) = ${email.toLowerCase()} and status = 'active' returning id`;

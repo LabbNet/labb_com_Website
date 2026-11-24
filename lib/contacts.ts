@@ -15,7 +15,7 @@ export const sourceLabel = (v: string) => SOURCES.find((s) => s.value === v)?.la
 // lab network locations such as Quest and LabCorp patient service centers, which may have no email at all).
 export type ContactList = ListAudience | "clinic-locations";
 export const LIST_LABELS: Record<ContactList, string> = {
-  employers: "Employers", clinics: "Clinics", treatment: "Treatment centers", corrections: "Corrections",
+  employers: "Employers", clinics: "Clinics", "fastest-labs": "Fastest Labs", treatment: "Treatment centers", corrections: "Corrections",
   "clinic-locations": "Clinic locations (no marketing)",
 };
 export const ALL_LISTS = Object.keys(LIST_LABELS) as ContactList[];
