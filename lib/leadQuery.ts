@@ -3,7 +3,7 @@ import { sql } from "@/lib/db";
 import type { LeadRow } from "@/lib/leads";
 import { isSegment, isStatus } from "@/lib/segments";
 
-export type LeadFilters = { q?: string; segment?: string; owner?: string; partner?: string; status?: string; archived?: string };
+export type LeadFilters = { q?: string; segment?: string; owner?: string; partner?: string; status?: string; archived?: string; client?: string };
 
 // Shared by the admin lead list and the CSV export so both always show the same rows.
 export async function findLeads(f: LeadFilters, limit = 500) {
@@ -15,6 +15,8 @@ export async function findLeads(f: LeadFilters, limit = 500) {
   const owner = f.owner === "labb" || f.owner === "partner" ? f.owner : "";
   const partner = /^[0-9a-f-]{36}$/.test(f.partner || "") ? f.partner! : "";
   const archived = f.archived === "yes" ? true : f.archived === "all" ? null : false;
+  // Existing clients are left out of the working list unless asked for.
+  const client = f.client === "yes" ? true : f.client === "all" ? null : false;
 
   return db<LeadRow[]>`
     select l.*, m.name as partner_name, m.clinic as partner_clinic
@@ -26,6 +28,7 @@ export async function findLeads(f: LeadFilters, limit = 500) {
       ${owner ? db`and l.owner = ${owner}` : db``}
       ${partner ? db`and l.partner_id = ${partner}` : db``}
       ${archived === null ? db`` : db`and l.archived = ${archived}`}
+      ${client === null ? db`` : db`and l.existing_client = ${client}`}
     order by l.created_at desc
     limit ${limit}`;
 }

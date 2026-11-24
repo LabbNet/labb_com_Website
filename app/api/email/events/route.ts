@@ -5,7 +5,7 @@ import { webhookKey } from "@/lib/emailStats";
 // SendGrid Event Webhook. SendGrid posts batches of events (delivered, open, click, bounce, dropped, spamreport...).
 // The address includes a secret key (shown under Content, Email analytics). Bounces and spam reports also go on
 // Do not send so they're never mailed again.
-type Ev = { email?: string; event?: string; sg_event_id?: string; timestamp?: number; url?: string; reason?: string; type?: string; campaign?: string; sequence_run?: string; step?: string };
+type Ev = { email?: string; event?: string; sg_event_id?: string; timestamp?: number; url?: string; reason?: string; type?: string; campaign?: string; sequence_run?: string; step?: string; lead_meeting?: string };
 const KEEP = new Set(["processed", "delivered", "open", "click", "bounce", "dropped", "deferred", "spamreport", "unsubscribe", "group_unsubscribe"]);
 
 export async function POST(req: Request) {
@@ -23,10 +23,11 @@ export async function POST(req: Request) {
     const ts = e.timestamp ? new Date(e.timestamp * 1000) : new Date();
     const campaign = e.campaign && uuid.test(e.campaign) ? e.campaign : null;
     const run = e.sequence_run && /^\d+$/.test(e.sequence_run) ? e.sequence_run : null;
+    const mtg = e.lead_meeting && /^\d+$/.test(e.lead_meeting) ? e.lead_meeting : null;
     const step = e.step && /^\d+$/.test(e.step) ? Number(e.step) : null;
     try {
-      await db`insert into email_events (sg_event_id, campaign, sequence_run, step, email, event, url, reason, ts)
-        select ${e.sg_event_id ?? null}, ${campaign}, ${run}, ${step}, ${email}, ${e.event}, ${e.url?.slice(0, 1000) ?? null}, ${(e.reason || e.type || "").slice(0, 500) || null}, ${ts}
+      await db`insert into email_events (sg_event_id, campaign, sequence_run, step, lead_meeting, email, event, url, reason, ts)
+        select ${e.sg_event_id ?? null}, ${campaign}, ${run}, ${step}, (select id from lead_meetings where id = ${mtg}::bigint), ${email}, ${e.event}, ${e.url?.slice(0, 1000) ?? null}, ${(e.reason || e.type || "").slice(0, 500) || null}, ${ts}
         where ${campaign}::uuid is null or exists (select 1 from email_campaigns where id = ${campaign}::uuid)
         on conflict (sg_event_id) do nothing`;
       if (e.event === "bounce" || e.event === "spamreport" || (e.event === "dropped" && /bounce|invalid/i.test(e.reason || ""))) {

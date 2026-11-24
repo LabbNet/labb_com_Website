@@ -5,6 +5,7 @@ import { fmtDate, readFlash, requireAdmin } from "@/lib/admin";
 import { sql } from "@/lib/db";
 import { findLeads, partnerOptions, type LeadFilters } from "@/lib/leadQuery";
 import { leadName } from "@/lib/leads";
+import { openDupeCount } from "@/lib/dupes";
 import { LEAD_STATUSES, SEGMENTS, segmentLabel, statusLabel } from "@/lib/segments";
 
 export const metadata: Metadata = { title: "Leads", robots: { index: false, follow: false } };
@@ -13,13 +14,15 @@ export const dynamic = "force-dynamic";
 export default async function AdminLeads({ searchParams }: { searchParams: Promise<LeadFilters> }) {
   await requireAdmin("/admin/leads");
   const f = await searchParams;
-  const [allRows, partners, counts, flash, dupRows] = await Promise.all([
+  const [allRows, partners, counts, flash, dupRows, review, clients] = await Promise.all([
     findLeads(f),
     partnerOptions(),
     sql()<{ segment: string; n: number; fresh: number }[]>`
-      select segment, count(*)::int as n, count(*) filter (where status = 'new')::int as fresh from leads where not archived group by segment`,
+      select segment, count(*)::int as n, count(*) filter (where status = 'new')::int as fresh from leads where not archived and not existing_client group by segment`,
     readFlash(),
     sql()<{ email: string; n: number }[]>`select lower(email) as email, count(*)::int as n from leads group by lower(email) having count(*) > 1`,
+    openDupeCount(),
+    sql()<{ n: number }[]>`select count(*)::int as n from leads where existing_client and not archived`.then((r) => r[0].n),
   ]);
   // People who filled in a form more than once: flagged in the list and filterable, merged from the lead page.
   const dupCount = new Map(dupRows.map((d) => [d.email, d.n]));
@@ -35,7 +38,10 @@ export default async function AdminLeads({ searchParams }: { searchParams: Promi
       <section className="section" style={{ paddingTop: 32 }}>
         <div className="wrap">
           <Flash flash={flash} />
-          <p style={{ textAlign: "right", margin: "0 0 12px" }}><Link href="/admin/leads/new" className="btn btn-outline btn-sm">+ Add a lead</Link></p>
+          <div className="leads-top">
+            {review > 0 ? <Link href="/admin/leads/duplicates" className="dup-alert"><strong>{review}</strong> possible {review === 1 ? "duplicate" : "duplicates"} to review</Link> : <Link href="/admin/leads/duplicates" className="fine">Possible duplicates</Link>}
+            <Link href="/admin/leads/new" className="btn btn-outline btn-sm">+ Add a lead</Link>
+          </div>
           <div className="stats" style={{ marginBottom: 22 }}>
             <div><strong>{total}</strong><span>Open leads</span></div>
             {SEGMENTS.filter((s) => s.value !== "other").map((s) => (
@@ -70,6 +76,11 @@ export default async function AdminLeads({ searchParams }: { searchParams: Promi
               <option value="yes">Archived</option>
               <option value="all">Open and archived</option>
             </select>
+            <select name="client" defaultValue={f.client || ""} aria-label="Existing clients">
+              <option value="">Prospects</option>
+              <option value="yes">Existing clients{clients ? ` (${clients})` : ""}</option>
+              <option value="all">Prospects and existing clients</option>
+            </select>
             <label className="fine" style={{ display: "inline-flex", alignItems: "center", gap: 6 }}><input type="checkbox" name="dups" value="1" defaultChecked={showDups} /> Duplicates only{dupRows.length ? ` (${dupRows.length})` : ""}</label>
             <button className="btn btn-outline-dark" type="submit">Filter</button>
             <a className="btn btn-outline" href={`/api/admin/leads/export${qs ? `?${qs}` : ""}`}>Export CSV</a>
@@ -92,6 +103,7 @@ export default async function AdminLeads({ searchParams }: { searchParams: Promi
                     <th scope="row">
                       <Link href={`/admin/leads/${l.id}`}>{leadName(l)}</Link>
                       {l.archived && <span className="tag plain" style={{ marginLeft: 8 }}>Archived</span>}
+                      {l.existing_client && <span className="tag plain client-tag" style={{ marginLeft: 8 }}>Existing client</span>}
                       {dupCount.has(l.email.toLowerCase()) && <span className="dup-badge" title="This person submitted more than once. Open the lead to merge.">{dupCount.get(l.email.toLowerCase())} submissions</span>}
                       <span className="sub">{[l.company, l.email, l.state].filter(Boolean).join(" · ")}</span>
                       {l.products && <span className="sub">Interested in: {l.products}</span>}

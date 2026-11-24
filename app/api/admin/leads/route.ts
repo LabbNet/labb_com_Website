@@ -4,7 +4,8 @@ import { sql } from "@/lib/db";
 import { field, go } from "@/lib/http";
 import { esc, sendMail } from "@/lib/mail";
 import { linkToken, tagLinks } from "@/lib/visitors";
-import { emailBookingInvite, emailCancelled, newToken, testLead, testToken } from "@/lib/meetings";
+import { emailBookingInvite, emailCancelled, etToUtc, finishMeeting, isKind, newToken, scheduleSalesMeeting, testLead, testToken } from "@/lib/meetings";
+import { upsertPerson } from "@/lib/crm";
 import { emailPartner, logLeadEvent, mergeLeads, type LeadRow } from "@/lib/leads";
 import { isSegment, isStatus, segmentLabel, statusLabel } from "@/lib/segments";
 import { sequenceName, startSequence, stopSequence } from "@/lib/sequences";
@@ -16,7 +17,7 @@ export async function POST(req: Request) {
   if (!(await sameOrigin())) return go(req, "/admin/leads");
   const fd = await req.formData();
   const id = field(fd, "id", 20);
-  const action = field(fd, "action", 20);
+  const action = (fd.getAll("action").map(String).pop() || "").trim().slice(0, 20);
   if (!/^\d+$/.test(id)) return go(req, "/admin/leads");
   const nextField = field(fd, "back", 200);
   const back = nextField.startsWith("/admin/") ? nextField : `/admin/leads/${id}`;
@@ -155,6 +156,45 @@ export async function POST(req: Request) {
       await emailCancelled(lead, mt, { name: mt.host_name, email: mt.host_email }, false, lead.book_token || null);
       await logLeadEvent(id, "meeting", `Meeting cancelled by Labb; ${lead.email} was emailed${lead.book_token ? " a link to pick a new time" : ""}`, actor);
       await flash("Meeting cancelled and the prospect was emailed.");
+    }
+  } else if (action === "meeting-schedule") {
+    const kind = field(fd, "kind", 20);
+    const date = field(fd, "date", 10);
+    const time = field(fd, "time", 5);
+    const minutes = Math.min(240, Math.max(15, Number(field(fd, "minutes", 3)) || 30));
+    const tm = /^(\d{1,2}):(\d{2})$/.exec(time);
+    if (!isKind(kind) || !/^\d{4}-\d{2}-\d{2}$/.test(date) || !tm) { await flash("Choose the meeting type, date and time.", "error"); return go(req, back); }
+    const start = etToUtc(date, Number(tm[1]) * 60 + Number(tm[2]));
+    if (start.getTime() < Date.now() - 5 * 60000) { await flash("That time has already passed.", "error"); return go(req, back); }
+    try {
+      const r = await scheduleSalesMeeting(lead, {
+        kind, start, minutes, hostId: field(fd, "host", 40) || admin.id, room: field(fd, "room", 300),
+        agenda: String(fd.get("agenda") ?? "").slice(0, 2000).trim(), by: actor, replace: field(fd, "replace", 20) || undefined,
+      });
+      await flash(r.sent ? `${r.updated ? "Meeting moved" : "Meeting scheduled"}. The calendar invite was emailed to ${lead.email} and the host.` : "Meeting saved, but the invite email didn't send. Check email settings.", r.sent ? "ok" : "error");
+    } catch (e) {
+      await flash(e instanceof Error ? e.message : "The meeting wasn't scheduled.", "error");
+    }
+  } else if (action === "meeting-done" || action === "meeting-noshow") {
+    const ok = await finishMeeting(id, field(fd, "meeting", 20).replace(/\D/g, "") || "0", action === "meeting-done" ? "completed" : "no-show", field(fd, "outcome", 1000), actor);
+    await flash(ok ? (action === "meeting-done" ? "Meeting marked completed." : "Marked as a no-show.") : "That meeting wasn't found.", ok ? "ok" : "error");
+  } else if (action === "client") {
+    const on = fd.get("on") === "1";
+    await db`update leads set existing_client = ${on}, updated_at = now() where id = ${id}`;
+    if (on) await upsertPerson(lead.email.toLowerCase(), { stage: "customer" });
+    await logLeadEvent(id, on ? "existing-client" : "prospect", on ? "Tagged as an existing client; removed from the prospect list" : "Existing client tag removed", actor);
+    await flash(on ? "Tagged as an existing client. It's out of the lead list; find it under the Existing clients filter." : "Existing client tag removed.");
+  } else if (action === "merge-other") {
+    const raw = field(fd, "other", 254).replace(/^#/, "").trim();
+    const [other] = /^\d+$/.test(raw)
+      ? await db<{ id: string }[]>`select id::text from leads where id = ${raw} and id <> ${id}`
+      : await db<{ id: string }[]>`select id::text from leads where lower(email) = ${raw.toLowerCase()} and id <> ${id} order by created_at limit 1`;
+    if (!other) { await flash("No other lead matches that number or email.", "error"); return go(req, back); }
+    try {
+      await mergeLeads(id, [other.id], actor);
+      await flash(`Lead #${other.id} was merged into this record.`);
+    } catch (e) {
+      await flash(e instanceof Error ? e.message : "The merge didn't go through.", "error");
     }
   } else if (action === "merge") {
     const ids = fd.getAll("dup").map(String).filter((x) => /^\d+$/.test(x) && x !== id).slice(0, 50);

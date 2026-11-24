@@ -13,4 +13,8 @@ export async function register() {
   // Lead meeting reminders (video link about an hour before each call).
   const { runMeetingJobs } = await import("@/lib/meetings");
   setInterval(() => runMeetingJobs(), 60_000);
+  // Leads: fold repeat submissions from the same email into one record, and flag likely duplicates for review.
+  const { runDupeJobs } = await import("@/lib/dupes");
+  setTimeout(() => runDupeJobs(), 25_000);
+  setInterval(() => runDupeJobs(), 60 * 60_000);
 }

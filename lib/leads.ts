@@ -73,6 +73,7 @@ export type LeadRow = {
   book_token?: string | null;
   status: string;
   archived: boolean;
+  existing_client?: boolean;
   notified: boolean;
   created_at: Date;
   updated_at: Date;
@@ -181,6 +182,37 @@ function table(r: [string, string | undefined][]) {
 
 // ---- Save and deliver ----
 export async function saveLead(lead: Lead): Promise<string> {
+  return (await saveLeadDetailed(lead)).id;
+}
+
+export type RepeatOf = { id: string; owner: string; partner: string | null; accepted: boolean; host: string | null };
+
+// Saves the submission. When the same email already has a lead, the new submission is folded into it so one
+// person stays one record with one owner (never two reps). Quick Test orders are kept separate.
+export async function saveLeadDetailed(lead: Lead): Promise<{ id: string; repeatOf: RepeatOf | null }> {
+  const id = await insertLead(lead);
+  if (lead.type === "quick-test") return { id, repeatOf: null };
+  const flag = (leadId: string) => { import("@/lib/dupes").then((m) => m.scanDupes(leadId)).catch((e) => console.error("[dupes] scan failed", e)); };
+  try {
+    const db = sql();
+    const [prev] = await db<(LeadRow & { partner: string | null; host: string | null })[]>`
+      select l.*, coalesce(p.clinic, p.name) as partner, h.name as host from leads l
+      left join members p on p.id = l.partner_id left join members h on h.id = l.meeting_host
+      where lower(l.email) = ${lead.email.toLowerCase()} and l.id <> ${id} and l.type <> 'quick-test'
+      order by l.created_at limit 1`;
+    if (!prev) { flag(id); return { id, repeatOf: null }; }
+    await mergeLeads(String(prev.id), [id], { id: null as never, name: "Website" });
+    if (prev.type === "newsletter" && lead.type !== "newsletter") await db`update leads set type = ${lead.type}, segment = ${lead.segment} where id = ${prev.id}`;
+    await logLeadEvent(prev.id, "repeat", `Submitted again (${lead.type.replace(/-/g, " ")}) from ${lead.page || "the website"}; added to this record`);
+    flag(String(prev.id));
+    return { id: String(prev.id), repeatOf: { id: String(prev.id), owner: prev.owner, partner: prev.owner === "partner" ? prev.partner : null, accepted: !!prev.accepted_at, host: prev.host } };
+  } catch (e) {
+    console.error("[lead] consolidate failed", e);
+    return { id, repeatOf: null };
+  }
+}
+
+async function insertLead(lead: Lead): Promise<string> {
   const extra = {
     legalName: lead.legalName || undefined,
     signer: lead.signer || undefined,
@@ -220,9 +252,10 @@ export function checkLeadToken(id: string, token: string) {
 
 export async function deliverLead(lead: Lead, existingId?: string) {
   let id: string | undefined = existingId;
+  let repeatOf: RepeatOf | null = null;
   if (!id && dbConfigured) {
     try {
-      id = await saveLead(lead);
+      ({ id, repeatOf } = await saveLeadDetailed(lead));
     } catch (e) {
       console.error("[lead] save failed", e);
     }
@@ -235,8 +268,10 @@ export async function deliverLead(lead: Lead, existingId?: string) {
       ? `CPP application${lead.wantsAgreement ? " (SEND AGREEMENT)" : ""}: ${lead.company} (${[lead.city, lead.state].filter(Boolean).join(", ")})`
       : lead.type === "software-quote"
       ? `Software quote (${lead.details?.recommended || "platform"}): ${name}${lead.city || lead.state ? ` (${[lead.city, lead.state].filter(Boolean).join(", ")})` : ""}`
-      : `New ${segmentLabel(lead.segment).toLowerCase()} lead: ${name}${lead.details?.stage?.startsWith("Step 1") ? " (contact details; program details may follow)" : ""}`;
+      : `${repeatOf ? "Repeat submission" : `New ${segmentLabel(lead.segment).toLowerCase()} lead`}: ${name}${lead.details?.stage?.startsWith("Step 1") ? " (contact details; program details may follow)" : ""}`;
   const r = rows(lead);
+  const owned = repeatOf ? (repeatOf.partner ? `with CPP member ${repeatOf.partner}` : repeatOf.accepted ? `kept at Labb${repeatOf.host ? `, assigned to ${repeatOf.host}` : ""}` : null) : null;
+  if (repeatOf) r.unshift(["Existing lead", `This person already had lead #${repeatOf.id}${owned ? ` (${owned})` : ""}. This submission was added to that record.`]);
   const html = emailLayout(
     esc(subject),
     table(r) + (id ? "" : `<p style="color:#b42318;font-size:13px">This lead could not be saved to the lead database. Keep this email.</p>`),
@@ -258,7 +293,7 @@ export async function deliverLead(lead: Lead, existingId?: string) {
 
   // Every new lead also asks Labb to decide who owns it: a CPP member or Labb.
   // Newsletter sign-ups and CPP applications aren't sales leads, so they're skipped.
-  if (lead.type !== "newsletter" && lead.type !== "cpp-application") {
+  if (lead.type !== "newsletter" && lead.type !== "cpp-application" && !repeatOf) {
     const assignTo = (process.env.LEAD_ASSIGN_EMAILS || "James@labb.com,Kelly.Ramsey@labb.com").split(",").map((e) => e.trim()).filter(Boolean);
     const who = [`${lead.firstName || ""} ${lead.lastName || ""}`.trim(), lead.company].filter(Boolean).join(", ") || lead.email;
     const where = [lead.city, lead.state].filter(Boolean).join(", ");
@@ -375,7 +410,7 @@ export async function mergeLeads(primaryId: string, dupIds: string[], actor: { i
       accepted_at = ${pick("accepted_at" as keyof LeadRow) as never}, meeting_host = ${pick("meeting_host" as keyof LeadRow) as never},
       status = ${status}, archived = false, data = ${tx.json(data as never)}, created_at = ${created}, updated_at = now()
       where id = ${primaryId}`;
-    for (const t of ["lead_events", "lead_meetings", "member_quotes", "sequence_runs", "visitor_links"]) {
+    for (const t of ["lead_events", "lead_meetings", "member_quotes", "sequence_runs", "visitor_links", "ask_questions"]) {
       await tx`update ${tx(t)} set lead_id = ${primaryId} where lead_id = any(${dupIds})`;
     }
     // A duplicate's booking link keeps working by moving it to the primary when the primary has none.
@@ -384,6 +419,8 @@ export async function mergeLeads(primaryId: string, dupIds: string[], actor: { i
       await tx`update leads set book_token = null where id = any(${dupIds})`;
       await tx`update leads set book_token = ${token} where id = ${primaryId}`;
     }
+    await tx`delete from lead_dupe_flags where (lead_a = any(${dupIds}) and lead_b = ${primaryId}) or (lead_b = any(${dupIds}) and lead_a = ${primaryId})`;
+    await tx`update leads set existing_client = true where id = ${primaryId} and ${all.some((l) => l.existing_client)}`;
     await tx`delete from leads where id = any(${dupIds}) and id <> ${primaryId}`;
     await tx`insert into lead_events (lead_id, actor_id, actor_name, event, detail) values (${primaryId}, ${actor.id}, ${actor.name}, 'merged',
       ${`Merged ${dups.length === 1 ? "a duplicate submission" : `${dups.length} duplicate submissions`} into this record: ${dups.map((d) => `#${d.id} (${d.type}, ${new Date(d.created_at).toLocaleDateString("en-US", { timeZone: "America/New_York" })})`).join(", ")}`})`;

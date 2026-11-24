@@ -2051,3 +2051,57 @@ td.acts { white-space: nowrap; }
 .nl-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px 18px; }
 .nl-wide { grid-column: 1 / -1; }
 @media (max-width: 640px) { .nl-grid { grid-template-columns: 1fr; } }
+
+/* Leads: existing clients, duplicates, sales meetings */
+.leads-top { display: flex; justify-content: flex-end; align-items: center; gap: 16px; margin: 0 0 12px; }
+.dup-alert { background: #fdf1e9; border: 1px solid #CF743C; color: #8a4a22; border-radius: 999px; padding: 6px 14px; font-size: .88rem; text-decoration: none; }
+.client-tag { background: #e8ecef; color: #404951; }
+.dup-flag { background: #fdf1e9; border: 1px solid #f0c9ad; border-radius: 10px; padding: 10px 14px; margin: 0 0 14px; font-size: .92rem; text-align: left; }
+.dd-pair { margin-bottom: 16px; text-align: left; }
+.dd-head { display: flex; gap: 12px; align-items: baseline; flex-wrap: wrap; margin-bottom: 10px; }
+.dd-score { font-weight: 700; font-size: .8rem; text-transform: uppercase; letter-spacing: .04em; color: #5f6a74; }
+.dd-score.hi { color: #CF743C; }
+.dd-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.dd-lead { border: 1px solid var(--border); border-radius: 10px; padding: 12px 14px; }
+.dd-title { margin: 0 0 6px; font-weight: 700; }
+.dd-lead table { width: 100%; font-size: .88rem; border-collapse: collapse; }
+.dd-lead th { text-align: left; color: var(--muted); font-weight: 600; padding: 3px 10px 3px 0; width: 90px; vertical-align: top; }
+.dd-lead td { padding: 3px 0; word-break: break-word; }
+.dd-diff { background: #fff6d6; }
+.dd-actions { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 12px; }
+@media (max-width: 760px) { .dd-grid { grid-template-columns: 1fr; } }
+.sales-mtgs { text-align: left; margin: 0 0 18px; }
+.sm-head { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; flex-wrap: wrap; }
+.sm-head h2 { font-size: 1.2rem; margin: 0; }
+.sm-steps { list-style: none; padding: 0; margin: 14px 0; display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+.sm-step { display: flex; gap: 10px; border: 1px solid var(--border); border-radius: 10px; padding: 10px 12px; }
+.sm-step div { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.sm-num { flex: 0 0 26px; height: 26px; border-radius: 50%; background: #e8ecef; color: #404951; font-weight: 700; display: grid; place-items: center; font-size: .85rem; }
+.sm-booked .sm-num { background: #CF743C; color: #fff; }
+.sm-completed .sm-num { background: #404951; color: #fff; }
+.sm-completed { background: #f4f6f7; }
+.sm-past, .sm-no-show { border-color: #f0c9ad; }
+.sm-when { font-size: .85rem; }
+.sm-list { list-style: none; padding: 0; margin: 0 0 12px; border-top: 1px solid var(--border); }
+.sm-list > li { border-bottom: 1px solid var(--border); padding: 10px 0; }
+.sm-row { display: flex; justify-content: space-between; gap: 12px; font-size: .92rem; }
+.sm-note { margin: 4px 0 0; text-align: left; }
+.sm-badge { font-size: .72rem; font-weight: 700; border-radius: 999px; padding: 2px 8px; margin-left: 4px; background: #e8ecef; color: #404951; }
+.sm-badge.sm-booked { background: #fdf1e9; color: #8a4a22; }
+.sm-badge.sm-no-show, .sm-badge.sm-cancelled { background: #f3f3f3; color: #7a7a7a; }
+.sm-actions { margin-top: 8px; }
+.sm-actions summary, .sm-new summary { cursor: pointer; font-weight: 600; font-size: .9rem; }
+.sm-actions form { display: grid; gap: 8px; margin-top: 8px; }
+.sm-btns { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+.sm-new summary { font-size: 1rem; }
+.sm-form { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-top: 12px; }
+.sm-wide { grid-column: 1 / -1; }
+@media (max-width: 760px) { .sm-steps, .sm-form { grid-template-columns: 1fr; } }
+.pipe-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+.pipe-card { background: #fff; border: 1px solid var(--border); border-radius: 12px; padding: 14px 16px; text-align: left; }
+.pipe-card span { display: block; font-size: .78rem; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; color: var(--muted); }
+.pipe-card strong { font-size: 1.8rem; color: var(--dark); margin-right: 6px; }
+.pipe-card em { font-style: normal; color: #5f6a74; }
+.pipe-card p { margin: 4px 0 0; }
+@media (max-width: 760px) { .pipe-grid { grid-template-columns: 1fr; } }
+.sm-step .fine, .sm-step span { text-align: left; }

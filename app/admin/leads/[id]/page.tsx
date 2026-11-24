@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import type { Metadata } from "next";
 import { AdminBar, Flash } from "@/components/AdminBar";
 import { fmtDate, readFlash, requireAdmin } from "@/lib/admin";
@@ -8,7 +8,8 @@ import { partnerOptions } from "@/lib/leadQuery";
 import { detailRows, duplicateLeads, leadName, type LeadRow } from "@/lib/leads";
 import { leadActivity } from "@/lib/analytics";
 import { runsForLeads, SEQUENCES, sequenceName, STEP_DAYS } from "@/lib/sequences";
-import { fmtWhen, meetingHosts } from "@/lib/meetings";
+import { etDate, fmtWhen, kindInfo, leadMeetings, MEETING_KINDS, MEETING_STATUS, meetingHosts, nextKind } from "@/lib/meetings";
+import { dupesFor } from "@/lib/dupes";
 import { absoluteUrl } from "@/lib/site";
 import { LEAD_STATUSES, SEGMENT_PATH, SEGMENTS, isSegment, segmentLabel, statusLabel } from "@/lib/segments";
 
@@ -34,6 +35,9 @@ const EVENT_LABEL: Record<string, string> = {
   accepted: "Lead accepted",
   prospect_emailed: "Prospect emailed",
   meeting: "Meeting",
+  repeat: "Submitted again",
+  "existing-client": "Existing client",
+  prospect: "Prospect again",
 };
 
 export default async function AdminLead({ params }: { params: Promise<{ id: string }> }) {
@@ -43,7 +47,12 @@ export default async function AdminLead({ params }: { params: Promise<{ id: stri
   const db = sql();
   const [lead] = await db<LeadRow[]>`
     select l.*, m.name as partner_name, m.clinic as partner_clinic from leads l left join members m on m.id = l.partner_id where l.id = ${id}`;
-  if (!lead) notFound();
+  if (!lead) {
+    // Merged away: send old links to the record it was merged into.
+    const [into] = await db<{ id: string }[]>`select id::text from leads where data->'merged_from' @> ${db.json([{ id: Number(id) }] as never)} limit 1`;
+    if (into) redirect(`/admin/leads/${into.id}`);
+    notFound();
+  }
   const [events, partners, flash, runs] = await Promise.all([
     db<{ id: string; event: string; detail: string | null; actor_name: string | null; created_at: Date }[]>`
       select id, event, detail, actor_name, created_at from lead_events where lead_id = ${id} order by created_at desc, id desc`,
@@ -51,12 +60,27 @@ export default async function AdminLead({ params }: { params: Promise<{ id: stri
     readFlash(),
     runsForLeads([String(lead.id)]),
   ]);
-  const [hosts, meetings] = await Promise.all([
+  const [hosts, meetings, sales, next, flags, opens] = await Promise.all([
     meetingHosts(),
     db<{ id: string; starts_at: Date; status: string; room_url: string; host_name: string }[]>`
       select g.id, g.starts_at, g.status, g.room_url, m.name as host_name from lead_meetings g join members m on m.id = g.host_id
       where g.lead_id = ${id} order by g.starts_at desc`,
+    leadMeetings(id),
+    nextKind(id),
+    dupesFor(id),
+    db<{ m: string; opened: boolean; clicked: boolean }[]>`select lead_meeting::text as m, bool_or(event = 'open') as opened, bool_or(event = 'click') as clicked
+      from email_events where lead_meeting in (select g.id from lead_meetings g where g.lead_id = ${id}) group by lead_meeting`.catch(() => []),
   ]);
+  const opened = new Map(opens.map((o) => [o.m, o]));
+  const today = etDate(new Date());
+  const times: string[] = [];
+  for (let mi = 7 * 60; mi <= 19 * 60; mi += 15) times.push(`${String(Math.floor(mi / 60)).padStart(2, "0")}:${String(mi % 60).padStart(2, "0")}`);
+  const clock = (t: string) => { const [h, m] = t.split(":").map(Number); return `${h % 12 || 12}:${String(m).padStart(2, "0")} ${h < 12 ? "AM" : "PM"}`; };
+  const step = (k: string) => {
+    const list = sales.filter((g) => g.kind === k);
+    const cur = list.find((g) => g.status === "booked") || list.find((g) => g.status === "completed") || list[0];
+    return { cur, count: list.length };
+  };
   const hostName = lead.meeting_host ? hosts.find((h) => h.id === lead.meeting_host)?.name : null;
   const dups = await duplicateLeads(lead);
   const [views, [blocked]] = await Promise.all([
@@ -116,8 +140,111 @@ export default async function AdminLead({ params }: { params: Promise<{ id: stri
           <p style={{ marginTop: 0 }}>
             <span className={`status s-${lead.status}`}>{statusLabel(lead.status)}</span>{" "}
             <span className="tag plain">{lead.owner === "partner" ? `Passed to ${lead.partner_clinic || lead.partner_name}` : "Labb owned"}</span>{" "}
-            {lead.archived && <span className="tag plain">Archived</span>}
+            {lead.archived && <span className="tag plain">Archived</span>}{" "}
+            {lead.existing_client && <span className="tag plain client-tag">Existing client</span>}
           </p>
+          {flags.length > 0 && (
+            <div className="dup-flag">
+              <strong>Possible duplicate.</strong>{" "}
+              {flags.map((f, i) => <span key={f.id}>{i ? "; " : ""}<Link href={`/admin/leads/${f.other}`}>#{f.other} {f.name || f.email}{f.company ? `, ${f.company}` : ""}</Link> <span className="fine">({f.reasons.join(", ")})</span></span>)}
+              {" · "}<Link href="/admin/leads/duplicates">Review and merge</Link>
+            </div>
+          )}
+
+          <div className="hero-card sales-mtgs">
+            <div className="sm-head">
+              <h2>Sales meetings</h2>
+              <span className="fine">Invites go to {lead.email} with a calendar file. Times are Eastern.</span>
+            </div>
+            <ol className="sm-steps">
+              {MEETING_KINDS.map((k) => {
+                const { cur, count } = step(k.value);
+                const st = cur ? (cur.status === "booked" && new Date(cur.ends_at) < new Date() ? "past" : cur.status) : "none";
+                return (
+                  <li key={k.value} className={`sm-step sm-${st}`}>
+                    <span className="sm-num">{k.step}</span>
+                    <div>
+                      <strong>{k.label}</strong>
+                      {!cur ? <span className="fine">Not scheduled</span> : (
+                        <>
+                          <span className="sm-when">{st === "past" ? "Needs an outcome" : MEETING_STATUS[cur.status]} · {fmtWhen(cur.starts_at)}</span>
+                          <span className="fine">With {cur.host_name}{opened.get(cur.id)?.opened ? " · invite opened" : ""}{count > 1 ? ` · ${count} meetings` : ""}</span>
+                        </>
+                      )}
+                    </div>
+                  </li>
+                );
+              })}
+            </ol>
+            {sales.length > 0 && (
+              <ul className="sm-list">
+                {sales.map((g) => {
+                  const k = kindInfo(g.kind);
+                  const live = g.status === "booked";
+                  return (
+                    <li key={g.id}>
+                      <div className="sm-row">
+                        <span><strong>{k.label}</strong> · {fmtWhen(g.starts_at)} · {g.host_name} <span className={`sm-badge sm-${g.status}`}>{MEETING_STATUS[g.status]}</span>
+                          {opened.get(g.id) && <span className="fine"> · invite {opened.get(g.id)!.clicked ? "opened and link clicked" : opened.get(g.id)!.opened ? "opened" : "delivered"}</span>}</span>
+                        {live && <a href={g.room_url} target="_blank" rel="noreferrer" className="fine">Join video</a>}
+                      </div>
+                      {g.notes && <p className="fine sm-note">Agenda: {g.notes}</p>}
+                      {g.outcome && <p className="fine sm-note">Outcome: {g.outcome}</p>}
+                      {(live || g.status === "completed" || g.status === "no-show") && (
+                        <details className="sm-actions">
+                          <summary>{live ? "Record outcome, move or cancel" : "Edit outcome"}</summary>
+                          {post("meeting-done", <>
+                            <input type="hidden" name="meeting" value={g.id} />
+                            <label className="sr-only" htmlFor={`o-${g.id}`}>Outcome</label>
+                            <textarea id={`o-${g.id}`} name="outcome" rows={2} maxLength={1000} placeholder="What happened and the next step" defaultValue={g.outcome || ""} />
+                            <div className="sm-btns">
+                              <button className="btn btn-primary btn-sm" type="submit">Mark completed</button>
+                              <button className="btn btn-outline-dark btn-sm" type="submit" name="action" value="meeting-noshow">No-show</button>
+                            </div>
+                          </>)}
+                          {live && post("meeting-schedule", <>
+                            <input type="hidden" name="replace" value={g.id} />
+                            <input type="hidden" name="kind" value={g.kind} />
+                            <input type="hidden" name="host" value={g.host_id} />
+                            <input type="hidden" name="room" value={g.room_url} />
+                            <input type="hidden" name="agenda" value={g.notes || ""} />
+                            <input type="hidden" name="minutes" value={Math.round((new Date(g.ends_at).getTime() - new Date(g.starts_at).getTime()) / 60000)} />
+                            <div className="sm-btns">
+                              <input type="date" name="date" required min={today} defaultValue={etDate(new Date(g.starts_at))} aria-label="New date" />
+                              <select name="time" aria-label="New time" defaultValue={new Date(g.starts_at).toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit", timeZone: "America/New_York" })}>
+                                {times.map((t) => <option key={t} value={t}>{clock(t)}</option>)}
+                              </select>
+                              <button className="btn btn-outline-dark btn-sm" type="submit">Move and send updated invite</button>
+                            </div>
+                          </>)}
+                          {live && post("meeting-cancel", <><input type="hidden" name="meeting" value={g.id} /><button className="linkish" type="submit">Cancel the meeting and email {lead.first_name || "them"}</button></>)}
+                        </details>
+                      )}
+                    </li>
+                  );
+                })}
+              </ul>
+            )}
+            <details className="sm-new" open={!sales.some((g) => g.status === "booked" && new Date(g.ends_at) > new Date())}>
+              <summary>Schedule a meeting</summary>
+              {post("meeting-schedule", <div className="sm-form">
+                <div className="field"><label htmlFor="sm-kind">Meeting</label>
+                  <select id="sm-kind" name="kind" defaultValue={next}>
+                    {MEETING_KINDS.map((k) => <option key={k.value} value={k.value}>{k.step}. {k.label}</option>)}
+                  </select></div>
+                <div className="field"><label htmlFor="sm-date">Date</label><input id="sm-date" type="date" name="date" required min={today} /></div>
+                <div className="field"><label htmlFor="sm-time">Time (ET)</label>
+                  <select id="sm-time" name="time" defaultValue="10:00">{times.map((t) => <option key={t} value={t}>{clock(t)}</option>)}</select></div>
+                <div className="field"><label htmlFor="sm-min">Length</label>
+                  <select id="sm-min" name="minutes" defaultValue={String(kindInfo(next).minutes)}>{[15, 30, 45, 60, 90].map((n) => <option key={n} value={n}>{n} minutes</option>)}</select></div>
+                <div className="field"><label htmlFor="sm-host">With</label>
+                  <select id="sm-host" name="host" defaultValue={lead.meeting_host || me.id}>{hosts.map((h) => <option key={h.id} value={h.id}>{h.id === me.id ? `Me (${h.name})` : h.name}</option>)}</select></div>
+                <div className="field"><label htmlFor="sm-room">Video link (optional)</label><input id="sm-room" name="room" type="url" placeholder="Your usual meeting room" /></div>
+                <div className="field sm-wide"><label htmlFor="sm-agenda">Agenda (included in the invite)</label><textarea id="sm-agenda" name="agenda" rows={2} maxLength={2000} /></div>
+                <div className="sm-wide"><button className="btn btn-primary" type="submit">Schedule and send invite</button></div>
+              </div>)}
+            </details>
+          </div>
 
           <div className="lead-grid">
             <div className="hero-card">
@@ -131,6 +258,14 @@ export default async function AdminLead({ params }: { params: Promise<{ id: stri
             </div>
 
             <div className="lead-actions">
+              <div className="hero-card">
+                {post("client", <>
+                  <h3>Existing client</h3>
+                  <p className="fine" style={{ margin: 0, textAlign: "left" }}>{lead.existing_client ? "Tagged as an existing client. It's left out of the lead list and shows under the Existing clients filter." : "Already a Labb client? Tag it to take it out of the lead list. It stays searchable under the Existing clients filter."}</p>
+                  <input type="hidden" name="on" value={lead.existing_client ? "0" : "1"} />
+                  <button className={lead.existing_client ? "btn btn-outline-dark" : "btn btn-primary"} type="submit">{lead.existing_client ? "Remove existing client tag" : "Tag as existing client"}</button>
+                </>)}
+              </div>
               {dups.length > 0 && (
                 <div className="hero-card dup-card">
                   {post("merge", <>
@@ -156,6 +291,15 @@ export default async function AdminLead({ params }: { params: Promise<{ id: stri
                   </>)}
                 </div>
               )}
+              <div className="hero-card">
+                {post("merge-other", <>
+                  <h3><label htmlFor="l-other">Merge another lead into this one</label></h3>
+                  <p className="fine" style={{ margin: 0, textAlign: "left" }}>Same person under a different email or spelling. Enter the other lead&apos;s number or email. Its history, meetings and visits move here and it&apos;s removed.</p>
+                  <input id="l-other" name="other" required maxLength={254} placeholder="Lead # or email" />
+                  <button className="btn btn-outline-dark" type="submit">Merge into this lead</button>
+                </>)}
+              </div>
+
               <div className="hero-card">
                 {post("email", <>
                   <h3><label htmlFor="l-subj">Send an email</label></h3>

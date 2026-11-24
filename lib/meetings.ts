@@ -128,13 +128,13 @@ export const roomFor = (host: { meeting_url: string | null }) =>
 // ---- Calendar invite ----
 const icsTime = (d: Date) => new Date(d).toISOString().replace(/[-:]/g, "").replace(/\.\d{3}/, "");
 const icsText = (s: string) => s.replace(/\\/g, "\\\\").replace(/;/g, "\\;").replace(/,/g, "\\,").replace(/\r?\n/g, "\\n");
-export function ics(m: { id: string | number; starts_at: Date; ends_at: Date; room_url: string }, title: string, description: string, organizer: { name: string; email: string }, attendee: string, cancel = false) {
+export function ics(m: { id: string | number; starts_at: Date; ends_at: Date; room_url: string }, title: string, description: string, organizer: { name: string; email: string }, attendee: string, cancel = false, seq?: number) {
   const lines = [
     "BEGIN:VCALENDAR", "VERSION:2.0", "PRODID:-//Labb//Lead meetings//EN", "CALSCALE:GREGORIAN", `METHOD:${cancel ? "CANCEL" : "REQUEST"}`,
     "BEGIN:VEVENT", `UID:labb-meeting-${m.id}@labb.com`, `DTSTAMP:${icsTime(new Date())}`, `DTSTART:${icsTime(m.starts_at)}`, `DTEND:${icsTime(m.ends_at)}`,
     `SUMMARY:${icsText(title)}`, `DESCRIPTION:${icsText(description)}`, `LOCATION:${icsText(m.room_url)}`, `URL:${m.room_url}`,
     `ORGANIZER;CN=${icsText(organizer.name)}:mailto:${organizer.email}`, `ATTENDEE;ROLE=REQ-PARTICIPANT;RSVP=FALSE:mailto:${attendee}`,
-    `STATUS:${cancel ? "CANCELLED" : "CONFIRMED"}`, `SEQUENCE:${cancel ? 1 : 0}`,
+    `STATUS:${cancel ? "CANCELLED" : "CONFIRMED"}`, `SEQUENCE:${seq ?? (cancel ? 1 : 0)}`,
     "BEGIN:VALARM", "TRIGGER:-PT15M", "ACTION:DISPLAY", "DESCRIPTION:Labb meeting", "END:VALARM",
     "END:VEVENT", "END:VCALENDAR",
   ];
@@ -218,7 +218,7 @@ export async function emailHostBooked(lead: LeadRow, m: Mtg, host: { name: strin
 
 export async function emailCancelled(lead: LeadRow, m: Mtg, host: { name: string; email: string }, byProspect: boolean, token: string | null) {
   const when = fmtWhen(m.starts_at);
-  const cancelIcs = (to: string) => ics(m, "Call with Labb", "Cancelled", { name: `${host.name}, Labb`, email: host.email }, to, true);
+  const cancelIcs = (to: string) => ics(m, "Call with Labb", "Cancelled", { name: `${host.name}, Labb`, email: host.email }, to, true, Math.floor(Date.now() / 1000) - 1_700_000_000);
   if (byProspect) {
     await sendMail(host.email, `Meeting cancelled: ${leadName(lead)}, ${when}`,
       emailLayout("Meeting cancelled", `<p>${esc(leadName(lead))} cancelled the call set for ${esc(when)}.</p>`, { href: absoluteUrl(`/admin/leads/${lead.id}`), label: "Open the lead" }),
@@ -248,8 +248,8 @@ export async function bookMeeting(lead: LeadRow, token: string, startIso: string
   let mt: Mtg;
   try {
     [mt] = await db<Mtg[]>`
-      insert into lead_meetings (lead_id, host_id, starts_at, ends_at, room_url, notes)
-      values (${lead.id}, ${host.id}, ${start}, ${end}, ${roomFor(host)}, ${notes}) returning id, starts_at, ends_at, room_url`;
+      insert into lead_meetings (lead_id, host_id, starts_at, ends_at, room_url, notes, kind)
+      values (${lead.id}, ${host.id}, ${start}, ${end}, ${roomFor(host)}, ${notes}, ${await nextKind(String(lead.id))}) returning id, starts_at, ends_at, room_url`;
   } catch {
     return "taken";
   }
@@ -299,3 +299,116 @@ export async function runMeetingJobs() {
   }
 }
 
+
+// ---- Sales meetings: 1 initial discussion, 2 demo, 3 close (proposal and quote review) ----
+export const MEETING_KINDS = [
+  { value: "discussion", step: 1, label: "Initial discussion", title: "Initial discussion with Labb", minutes: 30,
+    blurb: "An introductory call to learn about your testing program and talk through how Labb can help." },
+  { value: "demo", step: 2, label: "Demo", title: "Labb demo", minutes: 45,
+    blurb: "A live demonstration of Labb for you and your team. Invite anyone who should see it; forward this invite to them." },
+  { value: "close", step: 3, label: "Close: quote review", title: "Labb proposal and quote review", minutes: 30,
+    blurb: "We'll go over your proposal and pricing, answer final questions and talk through next steps to get started." },
+] as const;
+export type MeetingKind = (typeof MEETING_KINDS)[number]["value"];
+export const isKind = (k: string): k is MeetingKind => MEETING_KINDS.some((x) => x.value === k);
+export const kindInfo = (k: string) => MEETING_KINDS.find((x) => x.value === k) ?? MEETING_KINDS[0];
+export const MEETING_STATUS: Record<string, string> = { booked: "Scheduled", completed: "Completed", "no-show": "No-show", cancelled: "Cancelled" };
+
+// The next step for a lead: after the last completed (or scheduled) step.
+export async function nextKind(leadId: string): Promise<MeetingKind> {
+  const rows = await sql()<{ kind: string }[]>`select kind from lead_meetings where lead_id = ${leadId} and status in ('completed', 'booked')`;
+  const done = Math.max(0, ...rows.map((r) => kindInfo(r.kind).step));
+  return MEETING_KINDS[Math.min(done, 2)].value;
+}
+
+type Host2 = { id: string; name: string; email: string; meeting_url: string | null };
+type SalesMtg = Mtg & { kind: string; agenda: string | null };
+const seqNow = () => Math.floor(Date.now() / 1000) - 1_700_000_000;
+
+function inviteEmail(lead: LeadRow, m: SalesMtg, host: Host2, updated: boolean) {
+  const k = kindInfo(m.kind);
+  const when = fmtWhen(m.starts_at);
+  const mins = Math.round((new Date(m.ends_at).getTime() - new Date(m.starts_at).getTime()) / 60000);
+  const html = emailLayout(
+    updated ? `Updated: ${k.title}` : k.title,
+    `<p>Hi ${first(lead)},</p>
+     <p>${updated ? "The time for our meeting has changed. Here are the new details." : `${esc(host.name)} from Labb has scheduled a ${mins} minute video meeting with you.`}</p>
+     <p style="font-size:17px;margin:14px 0 4px"><strong>${esc(when)}</strong></p>
+     <p style="margin-top:0">${esc(k.title)} with ${esc(host.name)}</p>
+     <p>${esc(k.blurb)}</p>
+     ${m.agenda ? `<p><strong>Agenda:</strong><br>${esc(m.agenda).replace(/\n/g, "<br>")}</p>` : ""}
+     <p>A calendar invite is attached. At the meeting time, use the button below to join from your computer or phone.</p>
+     <p style="font-size:13px">Meeting link: <a href="${esc(m.room_url)}" style="color:#CF743C">${esc(m.room_url)}</a><br>Need a different time? Just reply to this email.</p>`,
+    { href: m.room_url, label: "Join the video meeting" },
+  );
+  const text = `Hi ${lead.first_name || "there"},\n\n${updated ? "The time for our meeting has changed." : `${host.name} from Labb has scheduled a ${mins} minute video meeting with you.`}\n\n${k.title}\n${when}\n\n${k.blurb}\n${m.agenda ? `\nAgenda:\n${m.agenda}\n` : ""}\nJoin: ${m.room_url}\n\nNeed a different time? Reply to this email.\n\n${host.name}\nLabb\n\n${footer}`;
+  return { html, text, subject: `${updated ? "Updated invitation" : "Invitation"}: ${k.title}, ${when}` };
+}
+
+// Admin schedules (or reschedules) a sales meeting: saves it, emails the prospect and the host a calendar invite, logs it.
+export async function scheduleSalesMeeting(lead: LeadRow, o: { kind: MeetingKind; start: Date; minutes: number; hostId: string; room?: string; agenda?: string; by: { id: string; name: string }; replace?: string }) {
+  const db = sql();
+  const [host] = await db<Host2[]>`select id, name, email, meeting_url from members where id = ${o.hostId} and role = 'admin'`;
+  if (!host) throw new Error("Choose who the meeting is with.");
+  const end = new Date(o.start.getTime() + o.minutes * 60000);
+  const room = o.room && /^https:\/\/\S+$/.test(o.room) ? o.room : roomFor(host);
+  let m: SalesMtg | undefined;
+  let updated = false;
+  try {
+    if (o.replace && /^\d+$/.test(o.replace)) {
+      [m] = await db<SalesMtg[]>`update lead_meetings set starts_at = ${o.start}, ends_at = ${end}, host_id = ${host.id}, kind = ${o.kind}, room_url = ${room},
+          notes = ${o.agenda || null}, reminded = false where id = ${o.replace} and lead_id = ${lead.id} and status = 'booked'
+        returning id, starts_at, ends_at, room_url, kind, notes as agenda`;
+      updated = !!m;
+    }
+    if (!m) {
+      [m] = await db<SalesMtg[]>`insert into lead_meetings (lead_id, host_id, starts_at, ends_at, room_url, notes, kind, scheduled_by)
+        values (${lead.id}, ${host.id}, ${o.start}, ${end}, ${room}, ${o.agenda || null}, ${o.kind}, ${o.by.id})
+        returning id, starts_at, ends_at, room_url, kind, notes as agenda`;
+    }
+  } catch {
+    throw new Error(`${host.name} already has a meeting at that time.`);
+  }
+  if (!m) throw new Error("The meeting wasn't saved.");
+  const k = kindInfo(m.kind);
+  const seq = updated ? seqNow() : 0;
+  const e = inviteEmail(lead, m, host, updated);
+  const sent = await sendMail(lead.email, e.subject, e.html, e.text, {
+    replyTo: host.email, track: { lead_meeting: String(m.id) },
+    attachments: [{ filename: "labb-meeting.ics", content: ics(m, k.title, `${k.blurb}\n${m.agenda ? `\nAgenda:\n${m.agenda}\n` : ""}\nVideo meeting: ${m.room_url}`, { name: `${host.name}, Labb`, email: host.email }, lead.email, false, seq), type: "text/calendar; method=REQUEST" }],
+  });
+  const rec = absoluteUrl(`/admin/leads/${lead.id}`);
+  await sendMail(host.email, `${updated ? "Updated" : "Scheduled"}: ${k.label} with ${leadName(lead)}, ${fmtWhen(m.starts_at)}`,
+    emailLayout(`${k.label} ${updated ? "updated" : "scheduled"}`, `<p>${esc(k.label)} with <strong>${esc(leadName(lead))}</strong>${lead.company ? `, ${esc(lead.company)}` : ""}.</p><p style="font-size:17px"><strong>${esc(fmtWhen(m.starts_at))}</strong></p><p>${esc(lead.email)}${lead.phone ? ` · ${esc(lead.phone)}` : ""}</p>${m.agenda ? `<p><strong>Agenda:</strong> ${esc(m.agenda)}</p>` : ""}<p>Video meeting: <a href="${esc(m.room_url)}" style="color:#CF743C">${esc(m.room_url)}</a></p>`, { href: rec, label: "Open the lead" }),
+    `${k.label} with ${leadName(lead)}: ${fmtWhen(m.starts_at)}\nVideo: ${m.room_url}\nLead: ${rec}`,
+    { replyTo: lead.email, attachments: [{ filename: "labb-meeting.ics", content: ics(m, `${k.label}: ${leadName(lead)}`, `Video meeting: ${m.room_url}\nLead: ${rec}`, { name: "Labb", email: "info@labb.com" }, host.email, false, seq), type: "text/calendar; method=REQUEST" }] });
+  await db`update leads set status = case when status = 'new' then 'contacted' else status end, updated_at = now() where id = ${lead.id}`;
+  await logLeadEvent(lead.id, "meeting", `${k.label} ${updated ? "moved to" : "scheduled for"} ${fmtWhen(m.starts_at)} with ${host.name}${sent ? "; invite emailed to " + lead.email : "; the invite email did not send"}`, o.by);
+  return { sent, updated };
+}
+
+// Record how a meeting went.
+export async function finishMeeting(leadId: string, meetingId: string, status: "completed" | "no-show", outcome: string, by: { id: string; name: string }) {
+  const db = sql();
+  const [m] = await db<{ kind: string; starts_at: Date }[]>`update lead_meetings set status = ${status}, outcome = ${outcome || null}, done_at = now()
+    where id = ${meetingId} and lead_id = ${leadId} and status in ('booked', 'completed', 'no-show') returning kind, starts_at`;
+  if (!m) return false;
+  if (status === "completed" && m.kind !== "close") await db`update leads set status = case when status in ('new', 'contacted') then 'qualified' else status end, updated_at = now() where id = ${leadId}`;
+  await logLeadEvent(leadId, "meeting", `${kindInfo(m.kind).label} on ${fmtWhen(m.starts_at)}: ${status === "completed" ? "completed" : "no-show"}${outcome ? `. ${outcome}` : ""}`, by);
+  return true;
+}
+
+export async function leadMeetings(leadId: string) {
+  return sql()<{ id: string; kind: string; status: string; starts_at: Date; ends_at: Date; room_url: string; host_id: string; host_name: string; notes: string | null; outcome: string | null }[]>`
+    select g.id, g.kind, g.status, g.starts_at, g.ends_at, g.room_url, g.host_id, m.name as host_name, g.notes, g.outcome
+    from lead_meetings g join members m on m.id = g.host_id where g.lead_id = ${leadId} order by g.starts_at desc`;
+}
+
+// Pipeline counts for the meetings page.
+export async function pipeline() {
+  return sql()<{ kind: string; upcoming: number; completed: number; noshow: number; completed30: number }[]>`
+    select kind, count(*) filter (where status = 'booked' and ends_at > now())::int as upcoming,
+      count(*) filter (where status = 'completed')::int as completed, count(*) filter (where status = 'no-show')::int as noshow,
+      count(*) filter (where status = 'completed' and starts_at > now() - interval '30 days')::int as completed30
+    from lead_meetings group by kind`;
+}
