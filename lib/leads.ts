@@ -115,7 +115,7 @@ export async function logLeadEvent(leadId: string | number, event: string, detai
 
 // ---- Rendering ----
 // Extra structured answers from specialized forms (for example Quick Test). Only known keys are kept.
-export const DETAIL_KEYS = ["topic", "backgroundScreening", "currentProgram", "improve", "costPerTest", "testingLocation", "fulfillment", "shipping", "clinicZip", "clinicName", "testType", "observation", "reason", "panel", "reportTo", "reportEmail", "address1", "address2", "city", "state", "zip", "deliverBy", "drugs", "kit", "screenFee", "shippingFee", "proctoringFee", "total", "recommended", "features", "locations"] as const;
+export const DETAIL_KEYS = ["topic", "backgroundScreening", "currentProgram", "improve", "costPerTest", "testingLocation", "fulfillment", "shipping", "clinicZip", "clinicName", "testType", "observation", "reason", "panel", "reportTo", "reportEmail", "address1", "address2", "city", "state", "zip", "deliverBy", "drugs", "kit", "screenFee", "shippingFee", "proctoringFee", "total", "recommended", "features", "locations", "source"] as const;
 export function detailsOf(v: unknown) {
   if (!v || typeof v !== "object") return undefined;
   const out: Record<string, string> = {};
@@ -127,6 +127,7 @@ export function detailsOf(v: unknown) {
 }
 
 export const DETAIL_LABELS: Record<string, string> = {
+  source: "Lead source",
   topic: "Opened from",
   stage: "Form",
   backgroundScreening: "Background screening",
@@ -200,7 +201,7 @@ export async function saveLead(lead: Lead): Promise<string> {
       ${lead.interest || null}, ${lead.message || null}, ${lead.resource || null}, ${lead.page || null}, ${lead.referrer || null},
       ${lead.utm && Object.keys(lead.utm).length ? db.json(lead.utm) : null}, ${db.json(JSON.parse(JSON.stringify(extra)))}, ${lead.submittedAt})
     returning id`;
-  await logLeadEvent(row.id, "received", `Submitted from ${lead.page || "the website"}`);
+  if (lead.type !== "manual") await logLeadEvent(row.id, "received", `Submitted from ${lead.page || "the website"}`);
   return row.id;
 }
 

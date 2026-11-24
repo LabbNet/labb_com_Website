@@ -35,6 +35,7 @@ export default async function AdminLeads({ searchParams }: { searchParams: Promi
       <section className="section" style={{ paddingTop: 32 }}>
         <div className="wrap">
           <Flash flash={flash} />
+          <p style={{ textAlign: "right", margin: "0 0 12px" }}><Link href="/admin/leads/new" className="btn btn-outline btn-sm">+ Add a lead</Link></p>
           <div className="stats" style={{ marginBottom: 22 }}>
             <div><strong>{total}</strong><span>Open leads</span></div>
             {SEGMENTS.filter((s) => s.value !== "other").map((s) => (

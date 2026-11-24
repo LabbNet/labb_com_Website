@@ -89,7 +89,7 @@ export default async function AdminLead({ params }: { params: Promise<{ id: stri
     ["Affiliation", d.affiliation],
     ["Send CPP agreement", lead.type === "cpp-application" ? (d.wantsAgreement ? "Yes, send the agreement" : "No, wants a call first") : ""],
     ["Newsletter", d.newsletter ? "Yes" : "No"],
-    ["Form", lead.type],
+    ["Form", lead.type === "manual" ? "Added by hand" : lead.type],
     ["Submitted from", lead.page],
     ["Referrer", lead.referrer],
     ["Campaign", lead.utm ? Object.entries(lead.utm).map(([k, v]) => `${k}=${v}`).join(" ") : ""],

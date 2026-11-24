@@ -53,3 +53,6 @@ export const FORM_SEGMENTS = SEGMENTS.filter((s) => s.value !== "corrections");
 
 // Segments a CPP member can add a lead for (the CPP covers LabbHR and rapid testing only).
 export const MEMBER_LEAD_SEGMENTS = ["employer", "tpa", "collection-site", "drug-testing-business", "other"] as const;
+
+// Where a lead an admin adds by hand came from.
+export const LEAD_SOURCES = ["Phone call", "Email", "Trade show", "Referral", "Walk-in", "LinkedIn", "Cold outreach", "CPP partner", "Other"];

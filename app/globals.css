@@ -2045,3 +2045,9 @@ td.acts { white-space: nowrap; }
 .lv-cols h4 { font-size: .9rem; margin: 0 0 8px; text-align: left; }
 .lv-recent em { display: block; font-style: normal; font-size: .72rem; color: var(--muted); }
 @media (max-width: 860px) { .lv-tiles { grid-template-columns: 1fr 1fr; } .lv-cols { grid-template-columns: 1fr; } }
+
+/* Add a lead */
+.nl-form { text-align: left; }
+.nl-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px 18px; }
+.nl-wide { grid-column: 1 / -1; }
+@media (max-width: 640px) { .nl-grid { grid-template-columns: 1fr; } }

@@ -64,6 +64,7 @@ export default async function Crm({ searchParams }: { searchParams: Promise<{ q?
               )}
               <label className="crm-check"><input type="checkbox" name="due" value="1" defaultChecked={f.due} /> Follow-up due</label>
               <button className="btn btn-primary" type="submit">Search</button>
+              <Link href="/admin/leads/new" className="btn btn-outline">+ Add a lead</Link>
             </form>
           </div>
 
