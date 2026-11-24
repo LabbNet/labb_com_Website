@@ -6,6 +6,7 @@ import { Header } from "@/components/Header";
 import { ConnectDrawer } from "@/components/visual/ConnectDrawer";
 import { JsonLd } from "@/components/ui";
 import { Tracker } from "@/components/Tracker";
+import { AskWidget } from "@/components/AskWidget";
 import { CompleteScreening } from "@/components/CompleteScreening";
 import { site } from "@/lib/site";
 
@@ -41,6 +42,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <Footer />
         <ConnectDrawer />
         <Tracker />
+        <AskWidget />
         <JsonLd
           data={{
             "@context": "https://schema.org",
