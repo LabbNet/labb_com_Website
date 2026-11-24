@@ -2107,3 +2107,62 @@ td.acts { white-space: nowrap; }
 .sm-step .fine, .sm-step span { text-align: left; }
 .s-not-qualified { background: #f3f3f3; color: #7a7a7a; }
 .s-existing-client { background: #e8ecef; color: #404951; }
+
+/* Lead page (redesign) */
+.lp .hero-card { text-align: left; padding: 20px 22px; }
+.lp .hero-card h2 { font-size: 1.05rem; margin: 0 0 12px; }
+.lp .hero-card h3 { font-size: .95rem; margin: 0 0 10px; }
+.lp form { display: grid; gap: 10px; }
+.lp select, .lp textarea, .lp input:not([type=checkbox]):not([type=radio]):not([type=hidden]) { min-height: 40px; border: 1px solid var(--gray); border-radius: 8px; padding: 8px 12px; font: 400 0.92rem Poppins, sans-serif; width: 100%; background: #fff; }
+.lp textarea { min-height: 70px; }
+.lp-head { display: grid; grid-template-columns: 1fr 340px; gap: 24px; background: #fff; border: 1px solid var(--border); border-radius: 16px; padding: 22px 24px; margin-bottom: 14px; }
+.lp-eyebrow { font-size: .74rem; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; color: var(--muted); }
+.lp-head h1 { font-size: 1.9rem; margin: 4px 0 2px; }
+.lp-org { margin: 0 0 8px; color: #404951; font-weight: 500; }
+.lp-contact { display: flex; flex-wrap: wrap; gap: 6px 18px; margin: 0 0 10px; font-size: .92rem; }
+.lp-chips { display: flex; flex-wrap: wrap; gap: 6px; margin: 0; }
+.lp-dns { background: #fdecea; color: #9a3412; }
+.lp-side { display: grid; gap: 12px; align-content: start; }
+.lp-next { background: #f4f6f7; border-left: 4px solid #CF743C; border-radius: 10px; padding: 12px 14px; }
+.lp-next span { font-size: .72rem; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; color: var(--muted); }
+.lp-next p { margin: 4px 0; font-size: .92rem; }
+.lp .lp-status { grid-template-columns: auto 1fr auto; align-items: center; gap: 8px; }
+.lp-status label { font-size: .85rem; font-weight: 600; }
+.lp-pipe { margin: 0 0 6px; }
+.lp-pipe .sm-steps { margin: 0; }
+.sm-link { display: flex; gap: 10px; color: inherit; text-decoration: none; width: 100%; }
+.sm-step:hover { border-color: #CF743C; }
+.lp-tabs { display: flex; gap: 4px; border-bottom: 1px solid var(--border); margin: 16px 0 18px; overflow-x: auto; }
+.lp-tabs a { padding: 10px 14px; font-weight: 600; font-size: .93rem; color: #5f6a74; text-decoration: none; border-bottom: 3px solid transparent; margin-bottom: -1px; white-space: nowrap; }
+.lp-tabs a[aria-current=page] { color: #404951; border-bottom-color: #CF743C; }
+.lp-tabs a span { margin-left: 6px; font-size: .75rem; background: #e8ecef; border-radius: 999px; padding: 1px 7px; }
+.lp-body { display: grid; grid-template-columns: 1fr 320px; gap: 24px; align-items: start; }
+.lp-main { display: grid; gap: 16px; min-width: 0; }
+.lp-aside { display: grid; gap: 16px; }
+.lp-aside .hero-card p { text-align: left; }
+.lp-message p { white-space: pre-wrap; margin: 0; font-size: 1rem; line-height: 1.6; }
+.lp-message { border-left: 4px solid #CF743C; }
+.lp-facts { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px; }
+.lp-facts dl { margin: 0; display: grid; gap: 0; }
+.lp-facts dl > div { display: grid; grid-template-columns: 120px 1fr; gap: 10px; padding: 7px 0; border-bottom: 1px solid var(--border); font-size: .9rem; }
+.lp-facts dl > div:last-child { border-bottom: 0; }
+.lp-facts dt { color: var(--muted); font-weight: 600; }
+.lp-facts dd { margin: 0; word-break: break-word; white-space: pre-wrap; }
+.lp-cardhead { display: flex; justify-content: space-between; align-items: baseline; }
+.lp-note { grid-template-columns: 1fr auto; align-items: end; margin-bottom: 14px; }
+.lp-history { gap: 10px; }
+.lp-row { grid-template-columns: 1fr auto; align-items: center; margin-bottom: 10px; }
+.lp-more summary { cursor: pointer; font-weight: 600; font-size: .9rem; margin: 4px 0 8px; }
+.lp .dup-card { display: block; }
+.lp .dup-card h3 { margin: 0 0 4px; }
+@media (max-width: 980px) { .lp-head, .lp-body { grid-template-columns: 1fr; } }
+.lp-status, .lp-note, .lp-row { display: grid; gap: 8px; }
+.lp-status { grid-template-columns: auto 1fr auto; align-items: center; }
+.lp .lp-status select { min-height: 38px; }
+.lp .dup-card summary { cursor: pointer; }
+.lp .dup-card form { margin-top: 8px; }
+.lp-pipe .sm-step { padding: 10px 12px; }
+.lp-pipe .sm-step .fine, .lp-pipe .sm-when { margin: 0; line-height: 1.4; }
+.lp-head .lp-chips .status { margin: 0; }
+.lp-aside .fine, .lp-main .fine { text-align: left; }
+.lp-row .fine { margin: 0; }

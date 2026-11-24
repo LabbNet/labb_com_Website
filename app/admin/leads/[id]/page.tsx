@@ -40,8 +40,13 @@ const EVENT_LABEL: Record<string, string> = {
   prospect: "Prospect again",
 };
 
-export default async function AdminLead({ params }: { params: Promise<{ id: string }> }) {
+const TABS = [["overview", "Overview"], ["meetings", "Meetings"], ["emails", "Emails"], ["visits", "Website visits"], ["history", "History"]] as const;
+type Tab = (typeof TABS)[number][0];
+
+export default async function AdminLead({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Promise<{ tab?: string }> }) {
   const { id } = await params;
+  const sp = await searchParams;
+  const tab: Tab = (TABS.find(([k]) => k === sp.tab)?.[0] ?? "overview") as Tab;
   const me = await requireAdmin(`/admin/leads/${id}`);
   if (!/^\d+$/.test(id)) notFound();
   const db = sql();
@@ -91,39 +96,60 @@ export default async function AdminLead({ params }: { params: Promise<{ id: stri
   const orgSeen = views.find((v) => v.org)?.org;
 
   const d = lead.data || {};
-  const facts: [string, unknown][] = [
-    ["Name", [lead.first_name, lead.last_name].filter(Boolean).join(" ")],
-    ["Organization", lead.company],
-    ["Email", lead.email],
-    ["Phone", lead.phone],
-    ["City / State", [lead.city, lead.state].filter(Boolean).join(", ")],
-    ["Segment", segmentLabel(lead.segment)],
-    ["Lead path", isSegment(lead.segment) ? SEGMENT_PATH[lead.segment] : ""],
-    ["Interested in", lead.products],
-    ["Industry", lead.industry],
-    ["Monthly volume", lead.volume],
-    ["Interest level", lead.interest],
-    ["Message", lead.message],
-    ["Download", lead.resource],
-    ["Legal business name", d.legalName],
-    ["Agreement signer", d.signer],
-    ["Business type", d.clinicType],
-    ...detailRows(d.details as Record<string, string> | undefined),
-    ["Services offered", d.services],
-    ["Affiliation", d.affiliation],
-    ["Send CPP agreement", lead.type === "cpp-application" ? (d.wantsAgreement ? "Yes, send the agreement" : "No, wants a call first") : ""],
-    ["Newsletter", d.newsletter ? "Yes" : "No"],
-    ["Form", lead.type === "manual" ? "Added by hand" : lead.type],
-    ["Submitted from", lead.page],
-    ["Referrer", lead.referrer],
-    ["Campaign", lead.utm ? Object.entries(lead.utm).map(([k, v]) => `${k}=${v}`).join(" ") : ""],
-    ["Received", fmtDate(lead.created_at) + " ET"],
+  const groups: { title: string; rows: [string, unknown][] }[] = [
+    { title: "About them", rows: [
+      ["Name", [lead.first_name, lead.last_name].filter(Boolean).join(" ")],
+      ["Organization", lead.company],
+      ["Email", lead.email],
+      ["Phone", lead.phone],
+      ["Location", [lead.city, lead.state].filter(Boolean).join(", ")],
+      ["Legal business name", d.legalName],
+      ["Agreement signer", d.signer],
+      ["Business type", d.clinicType],
+      ["Services offered", d.services],
+      ["Affiliation", d.affiliation],
+    ] },
+    { title: "What they need", rows: [
+      ["Segment", segmentLabel(lead.segment)],
+      ["Lead path", isSegment(lead.segment) ? SEGMENT_PATH[lead.segment] : ""],
+      ["Interested in", lead.products],
+      ["Industry", lead.industry],
+      ["Monthly volume", lead.volume],
+      ["Interest level", lead.interest],
+      ["Download", lead.resource],
+      ...detailRows(d.details as Record<string, string> | undefined),
+      ["Send CPP agreement", lead.type === "cpp-application" ? (d.wantsAgreement ? "Yes, send the agreement" : "No, wants a call first") : ""],
+    ] },
+    { title: "Where it came from", rows: [
+      ["Form", lead.type === "manual" ? "Added by hand" : lead.type.replace(/-/g, " ")],
+      ["Submitted from", lead.page],
+      ["Referrer", lead.referrer],
+      ["Campaign", lead.utm ? Object.entries(lead.utm).map(([k, v]) => `${k}=${v}`).join(" ") : ""],
+      ["Newsletter", d.newsletter ? "Yes" : "No"],
+      ["Received", fmtDate(lead.created_at) + " ET"],
+    ] },
   ];
+  const shown = (v: unknown) => v !== undefined && v !== null && v !== "";
+
+  // What to do next, shown in the header.
+  const now = new Date();
+  const upcoming = sales.filter((g) => g.status === "booked" && new Date(g.ends_at) > now).sort((x, y) => +new Date(x.starts_at) - +new Date(y.starts_at))[0];
+  const needsOutcome = sales.find((g) => g.status === "booked" && new Date(g.ends_at) <= now);
+  const nextStep: { text: React.ReactNode; tab?: Tab } =
+    needsOutcome ? { text: <>Record how the <strong>{kindInfo(needsOutcome.kind).label.toLowerCase()}</strong> on {fmtWhen(needsOutcome.starts_at)} went.</>, tab: "meetings" }
+    : upcoming ? { text: <><strong>{kindInfo(upcoming.kind).label}</strong> {fmtWhen(upcoming.starts_at)} with {upcoming.host_name}. <a href={upcoming.room_url} target="_blank" rel="noreferrer">Join video</a></>, tab: "meetings" }
+    : lead.status === "existing-client" || lead.status === "won" || lead.status === "lost" || lead.status === "not-qualified" ? { text: <>No next step. This lead is marked <strong>{statusLabel(lead.status)}</strong>.</> }
+    : lead.owner === "partner" ? { text: lead.accepted_at ? <>With <strong>{lead.partner_clinic || lead.partner_name}</strong>. They accepted it {fmtDate(lead.accepted_at)}.</> : <>Waiting for <strong>{lead.partner_clinic || lead.partner_name}</strong> to accept it.</> }
+    : !lead.accepted_at && !sales.length ? { text: <>Keep it at Labb and send a booking link, schedule the initial discussion, or pass it to a CPP member.</> }
+    : { text: <>Schedule the <strong>{kindInfo(next).label.toLowerCase()}</strong>.</>, tab: "meetings" };
+  const tabHref = (t: Tab) => `/admin/leads/${lead.id}${t === "overview" ? "" : `?tab=${t}`}`;
+  const counts: Partial<Record<Tab, number>> = { meetings: sales.length, visits: visits.length, history: events.length };
 
   const post = (action: string, children: React.ReactNode) => (
     <form action="/api/admin/leads" method="post">
       <input type="hidden" name="id" value={lead.id} />
       <input type="hidden" name="action" value={action} />
+      {tab !== "overview" && <input type="hidden" name="back" value={tabHref(tab)} />}
       {children}
     </form>
   );
@@ -131,18 +157,45 @@ export default async function AdminLead({ params }: { params: Promise<{ id: stri
   return (
     <>
       <AdminBar title="Lead detail" current="/admin/leads" />
-      <section className="section" style={{ paddingTop: 32 }}>
+      <section className="section lp" style={{ paddingTop: 24 }}>
         <div className="wrap">
-          <p style={{ marginTop: 0 }}><Link href="/admin/leads">← All leads</Link></p>
+          <p style={{ margin: "0 0 12px" }}><Link href="/admin/leads">← All leads</Link></p>
           <Flash flash={flash} />
-          <h1 style={{ fontSize: "1.8rem", marginBottom: 6 }}>{leadName(lead)}</h1>
-          <p className="fine" style={{ textAlign: "left", margin: "0 0 10px" }}><Link href={`/admin/crm/p/${encodeURIComponent(lead.email.toLowerCase())}`}>Open CRM record</Link> for notes, tasks and everything else on file for this person.</p>
-          <p style={{ marginTop: 0 }}>
-            <span className={`status s-${lead.status}`}>{statusLabel(lead.status)}</span>{" "}
-            <span className="tag plain">{lead.owner === "partner" ? `Passed to ${lead.partner_clinic || lead.partner_name}` : "Labb owned"}</span>{" "}
-            {lead.archived && <span className="tag plain">Archived</span>}{" "}
-            {lead.existing_client && lead.status !== "existing-client" && <span className="tag plain client-tag">Existing client</span>}
-          </p>
+
+          <header className="lp-head">
+            <div className="lp-id">
+              <span className="lp-eyebrow">Lead #{lead.id} · {segmentLabel(lead.segment)} · received {fmtDate(lead.created_at)} ET</span>
+              <h1>{leadName(lead)}</h1>
+              {(lead.company || lead.city || lead.state) && lead.company !== leadName(lead) && <p className="lp-org">{[lead.company, [lead.city, lead.state].filter(Boolean).join(", ")].filter(Boolean).join(" · ")}</p>}
+              <p className="lp-contact">
+                <a href={`mailto:${lead.email}`}>{lead.email}</a>
+                {lead.phone && <a href={`tel:${lead.phone.replace(/[^\d+]/g, "")}`}>{lead.phone}</a>}
+                <Link href={`/admin/crm/p/${encodeURIComponent(lead.email.toLowerCase())}`}>CRM record</Link>
+              </p>
+              <p className="lp-chips">
+                <span className={`status s-${lead.status}`}>{statusLabel(lead.status)}</span>
+                <span className="tag plain">{lead.owner === "partner" ? `CPP: ${lead.partner_clinic || lead.partner_name}` : lead.accepted_at ? `Labb${hostName ? `: ${hostName}` : ""}` : "Labb, not yet accepted"}</span>
+                {lead.existing_client && lead.status !== "existing-client" && <span className="tag plain client-tag">Existing client</span>}
+                {lead.archived && <span className="tag plain">Archived</span>}
+                {blocked && <span className="tag plain lp-dns">Do not send</span>}
+              </p>
+            </div>
+            <div className="lp-side">
+              <div className="lp-next">
+                <span>Next step</span>
+                <p>{nextStep.text}</p>
+                {nextStep.tab && tab !== nextStep.tab && <Link href={tabHref(nextStep.tab)} className="fine">Go to {TABS.find(([k]) => k === nextStep.tab)![1]} →</Link>}
+              </div>
+              {post("status", <div className="lp-status">
+                <label htmlFor="l-status">Status</label>
+                <select id="l-status" name="status" defaultValue={lead.status}>
+                  {LEAD_STATUSES.map((s) => <option key={s.value} value={s.value}>{s.label}</option>)}
+                </select>
+                <button className="btn btn-outline-dark btn-sm" type="submit">Save</button>
+              </div>)}
+            </div>
+          </header>
+
           {flags.length > 0 && (
             <div className="dup-flag">
               <strong>Possible duplicate.</strong>{" "}
@@ -150,18 +203,40 @@ export default async function AdminLead({ params }: { params: Promise<{ id: stri
               {" · "}<Link href="/admin/leads/duplicates">Review and merge</Link>
             </div>
           )}
+              {dups.length > 0 && (
+                <details className="dup-flag dup-card">
+                  <summary><strong>{dups.length === 1 ? "1 other submission" : `${dups.length} other submissions`} from this person</strong> (same email or phone). Review and merge</summary>
+                  {post("merge", <>
+                    
+                    <p className="fine" style={{ margin: "8px 0 0", textAlign: "left" }}>Merging keeps this lead and moves their history, meetings, quotes and website visits here. Blank fields here are filled from the others, messages are kept, and the others are removed.</p>
+                    <ul className="dup-list">
+                      {dups.map((d) => (
+                        <li key={d.id}>
+                          <label>
+                            <input type="checkbox" name="dup" value={d.id} defaultChecked={!(d.owner === "partner" && d.partner_id !== lead.partner_id)} disabled={d.owner === "partner" && d.partner_id !== lead.partner_id} />
+                            <span>
+                              <strong>#{d.id} · {d.type.replace(/-/g, " ")}</strong> · {fmtDate(d.created_at)} ET · {statusLabel(d.status as never)}{d.archived ? " · archived" : ""}
+                              {d.email.toLowerCase() !== lead.email.toLowerCase() && <><br /><span className="fine">{d.email} (matched by phone)</span></>}
+                              {d.owner === "partner" && d.partner_id !== lead.partner_id && <><br /><span className="fine" style={{ color: "#b42318" }}>With a CPP member. Pass it back to Labb to merge it.</span></>}
+                              {d.message && <><br /><span className="fine">&ldquo;{d.message.slice(0, 140)}{d.message.length > 140 ? "..." : ""}&rdquo;</span></>}
+                            </span>
+                          </label>
+                          <Link href={`/admin/leads/${d.id}`} className="fine">Open</Link>
+                        </li>
+                      ))}
+                    </ul>
+                    {dups.some((d) => !(d.owner === "partner" && d.partner_id !== lead.partner_id)) && <button className="btn btn-primary" type="submit">Merge into this lead</button>}
+                  </>)}
+                </details>
+              )}
 
-          <div className="hero-card sales-mtgs">
-            <div className="sm-head">
-              <h2>Sales meetings</h2>
-              <span className="fine">Invites go to {lead.email} with a calendar file. Times are Eastern.</span>
-            </div>
+          <div className="sales-mtgs lp-pipe">
             <ol className="sm-steps">
               {MEETING_KINDS.map((k) => {
                 const { cur, count } = step(k.value);
                 const st = cur ? (cur.status === "booked" && new Date(cur.ends_at) < new Date() ? "past" : cur.status) : "none";
                 return (
-                  <li key={k.value} className={`sm-step sm-${st}`}>
+                  <li key={k.value} className={`sm-step sm-${st}`}><Link href={tabHref("meetings")} className="sm-link">
                     <span className="sm-num">{k.step}</span>
                     <div>
                       <strong>{k.label}</strong>
@@ -172,10 +247,66 @@ export default async function AdminLead({ params }: { params: Promise<{ id: stri
                         </>
                       )}
                     </div>
-                  </li>
+                  </Link></li>
                 );
               })}
             </ol>
+          </div>
+
+          <nav className="lp-tabs" aria-label="Lead sections">
+            {TABS.map(([k, label]) => (
+              <Link key={k} href={tabHref(k)} aria-current={tab === k ? "page" : undefined}>{label}{counts[k] ? <span>{counts[k]}</span> : null}</Link>
+            ))}
+          </nav>
+
+          <div className="lp-body">
+            <div className="lp-main">
+              {tab === "overview" && (
+                <>
+                  {lead.message && (
+                    <div className="hero-card lp-message">
+                      <h2>Their message</h2>
+                      <p>{lead.message}</p>
+                    </div>
+                  )}
+                  <div className="lp-facts">
+                    {groups.map((g) => {
+                      const rows = g.rows.filter(([, v]) => shown(v));
+                      if (!rows.length) return null;
+                      return (
+                        <div key={g.title} className="hero-card">
+                          <h2>{g.title}</h2>
+                          <dl>
+                            {rows.map(([k, v]) => (
+                              <div key={k}><dt>{k}</dt><dd>{k === "Email" ? <a href={`mailto:${v}`}>{String(v)}</a> : k === "Phone" ? <a href={`tel:${String(v).replace(/[^\d+]/g, "")}`}>{String(v)}</a> : String(v)}</dd></div>
+                            ))}
+                          </dl>
+                        </div>
+                      );
+                    })}
+                  </div>
+                  <div className="hero-card">
+                    <div className="lp-cardhead"><h2>Recent activity</h2>{events.length > 6 && <Link href={tabHref("history")} className="fine">All {events.length} →</Link>}</div>
+                    {post("note", <div className="lp-note">
+                      <label className="sr-only" htmlFor="l-note">Add a note</label>
+                      <textarea id="l-note" name="note" required maxLength={4000} rows={2} placeholder="Add a note: a call, what they said, the next step" />
+                      <button className="btn btn-outline-dark btn-sm" type="submit">Save note</button>
+                    </div>)}
+                    <ul className="history lp-history">
+                      {events.slice(0, 6).map((e) => (
+                        <li key={e.id}><strong>{EVENT_LABEL[e.event] || e.event}</strong>{e.detail ? `: ${e.event === "emailed" ? e.detail.split("\n")[0] : e.detail}` : ""}<span className="when">{fmtDate(e.created_at)} ET · {e.actor_name || "System"}</span></li>
+                      ))}
+                    </ul>
+                  </div>
+                </>
+              )}
+
+              {tab === "meetings" && (
+                <div className="hero-card sales-mtgs">
+                  <div className="sm-head">
+                    <h2>Sales meetings</h2>
+                    <span className="fine">Invites go to {lead.email} with a calendar file. Times are Eastern.</span>
+                  </div>
             {sales.length > 0 && (
               <ul className="sm-list">
                 {sales.map((g) => {
@@ -244,63 +375,12 @@ export default async function AdminLead({ params }: { params: Promise<{ id: stri
                 <div className="sm-wide"><button className="btn btn-primary" type="submit">Schedule and send invite</button></div>
               </div>)}
             </details>
-          </div>
-
-          <div className="lead-grid">
-            <div className="hero-card">
-              <table className="lead-facts">
-                <tbody>
-                  {facts.filter(([, v]) => v !== undefined && v !== null && v !== "").map(([k, v]) => (
-                    <tr key={k}><th scope="row">{k}</th><td>{k === "Email" ? <a href={`mailto:${v}`}>{String(v)}</a> : k === "Phone" ? <a href={`tel:${String(v).replace(/[^\d+]/g, "")}`}>{String(v)}</a> : String(v)}</td></tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-
-            <div className="lead-actions">
-              <div className="hero-card">
-                {post("client", <>
-                  <h3>Existing client</h3>
-                  <p className="fine" style={{ margin: 0, textAlign: "left" }}>{lead.existing_client ? "Tagged as an existing client. It's left out of the lead list and shows under the Existing clients filter." : "Already a Labb client? Tag it to take it out of the lead list. It stays searchable under the Existing clients filter."}</p>
-                  <input type="hidden" name="on" value={lead.existing_client ? "0" : "1"} />
-                  <button className={lead.existing_client ? "btn btn-outline-dark" : "btn btn-primary"} type="submit">{lead.existing_client ? "Remove existing client tag" : "Tag as existing client"}</button>
-                </>)}
-              </div>
-              {dups.length > 0 && (
-                <div className="hero-card dup-card">
-                  {post("merge", <>
-                    <h3>{dups.length === 1 ? "1 other submission" : `${dups.length} other submissions`} from this person</h3>
-                    <p className="fine" style={{ margin: 0, textAlign: "left" }}>Same email{dups.some((d) => d.email.toLowerCase() !== lead.email.toLowerCase()) ? " or phone" : ""}. Merging keeps this lead and moves their history, meetings, quotes and website visits here. Blank fields here are filled from the others, messages are kept, and the others are removed.</p>
-                    <ul className="dup-list">
-                      {dups.map((d) => (
-                        <li key={d.id}>
-                          <label>
-                            <input type="checkbox" name="dup" value={d.id} defaultChecked={!(d.owner === "partner" && d.partner_id !== lead.partner_id)} disabled={d.owner === "partner" && d.partner_id !== lead.partner_id} />
-                            <span>
-                              <strong>#{d.id} · {d.type.replace(/-/g, " ")}</strong> · {fmtDate(d.created_at)} ET · {statusLabel(d.status as never)}{d.archived ? " · archived" : ""}
-                              {d.email.toLowerCase() !== lead.email.toLowerCase() && <><br /><span className="fine">{d.email} (matched by phone)</span></>}
-                              {d.owner === "partner" && d.partner_id !== lead.partner_id && <><br /><span className="fine" style={{ color: "#b42318" }}>With a CPP member. Pass it back to Labb to merge it.</span></>}
-                              {d.message && <><br /><span className="fine">&ldquo;{d.message.slice(0, 140)}{d.message.length > 140 ? "..." : ""}&rdquo;</span></>}
-                            </span>
-                          </label>
-                          <Link href={`/admin/leads/${d.id}`} className="fine">Open</Link>
-                        </li>
-                      ))}
-                    </ul>
-                    {dups.some((d) => !(d.owner === "partner" && d.partner_id !== lead.partner_id)) && <button className="btn btn-primary" type="submit">Merge into this lead</button>}
-                  </>)}
                 </div>
               )}
-              <div className="hero-card">
-                {post("merge-other", <>
-                  <h3><label htmlFor="l-other">Merge another lead into this one</label></h3>
-                  <p className="fine" style={{ margin: 0, textAlign: "left" }}>Same person under a different email or spelling. Enter the other lead&apos;s number or email. Its history, meetings and visits move here and it&apos;s removed.</p>
-                  <input id="l-other" name="other" required maxLength={254} placeholder="Lead # or email" />
-                  <button className="btn btn-outline-dark" type="submit">Merge into this lead</button>
-                </>)}
-              </div>
 
-              <div className="hero-card">
+              {tab === "emails" && (
+                <>
+                  <div className="hero-card lp-form">
                 {post("email", <>
                   <h3><label htmlFor="l-subj">Send an email</label></h3>
                   <p className="fine" style={{ margin: 0, textAlign: "left" }}>To {lead.email}. Sent from {me.name} at Labb, and replies come to {me.email}.</p>
@@ -310,18 +390,91 @@ export default async function AdminLead({ params }: { params: Promise<{ id: stri
                   <button className="btn btn-primary" type="submit">Send email</button>
                   <p className="fine" style={{ margin: 0, textAlign: "left" }}>The full message is saved to this lead&apos;s history.</p>
                 </>)}
-              </div>
 
-              <div className="hero-card">
-                {post("status", <>
-                  <h3><label htmlFor="l-status">Status</label></h3>
-                  <select id="l-status" name="status" defaultValue={lead.status}>
-                    {LEAD_STATUSES.map((s) => <option key={s.value} value={s.value}>{s.label}</option>)}
+                  </div>
+                  <div className="hero-card lp-form">
+                {post("sequence", <>
+                  <h3><label htmlFor="l-seq">Guidebook emails</label></h3>
+                  <select id="l-seq" name="sequence" required defaultValue="">
+                    <option value="" disabled>Choose a guidebook</option>
+                    <optgroup label="Employers (CPP members can send these)">
+                      {SEQUENCES.filter((q) => q.audience === "employer").map((q) => <option key={q.id} value={q.id}>{q.name}</option>)}
+                    </optgroup>
+                    <optgroup label="Clinics">
+                      {SEQUENCES.filter((q) => q.audience === "clinic").map((q) => <option key={q.id} value={q.id}>{q.name}</option>)}
+                    </optgroup>
                   </select>
-                  <button className="btn btn-outline-dark" type="submit">Update status</button>
+                  <button className="btn btn-primary" type="submit">Start sequence</button>
+                  <p className="fine" style={{ margin: 0 }}>{STEP_DAYS.length} emails over {STEP_DAYS[STEP_DAYS.length - 1]} days: the guidebook, three articles and a follow-up. <Link href="/admin/sequences">Preview</Link></p>
                 </>)}
-              </div>
+                {runs.length > 0 && (
+                  <ul className="seq-runs">
+                    {runs.map((r) => (
+                      <li key={r.id}>
+                        <span><strong>{sequenceName(r.sequence)}</strong> <span className={`status s-${r.status === "active" ? "contacted" : r.status === "completed" ? "won" : "lost"}`}>{r.status}</span></span>
+                        <span className="fine">{r.sent} of {STEP_DAYS.length} sent{r.next_due ? ` · next ${fmtDate(r.next_due)}` : ""} · {r.partner_id ? "by CPP member " : ""}{r.starter_name || "System"}, {fmtDate(r.created_at)}</span>
+                        {r.status === "active" && post("sequence-stop", <><input type="hidden" name="run" value={r.id} /><button className="linkish" type="submit">Stop</button></>)}
+                      </li>
+                    ))}
+                  </ul>
+                )}
 
+                  </div>
+                </>
+              )}
+
+              {tab === "visits" && (
+                <div className="hero-card">
+                  <h2>Website visits</h2>
+          {!views.length ? (
+            <p className="fine" style={{ textAlign: "left" }}>No visits linked yet. Visits are linked when this person submits a form or clicks a link in a Labb email from their browser.</p>
+          ) : (
+            <>
+              <p className="fine" style={{ textAlign: "left" }}>{visits.length} {visits.length === 1 ? "visit" : "visits"} · {views.length} pages · first seen {fmtDate(views[views.length - 1].ts)} ET{orgSeen ? ` · network: ${orgSeen}` : ""}</p>
+              <div className="lead-visits">
+                {visits.slice(0, 15).map((sid) => {
+                  const pv = views.filter((v) => v.session === sid).reverse();
+                  const first = pv[0];
+                  const src = first.utm_source ? `${first.utm_source}${first.utm_campaign ? ` / ${first.utm_campaign}` : ""}` : first.referrer || "Direct";
+                  return (
+                    <details key={sid} className="hero-card">
+                      <summary><strong>{fmtDate(first.ts)} ET</strong> <span className="fine">· {pv.length} {pv.length === 1 ? "page" : "pages"} · from {src}{first.device ? ` · ${first.device}` : ""}</span></summary>
+                      <ol>
+                        {pv.map((v, i) => <li key={i}><a href={v.path} target="_blank" rel="noreferrer">{v.title?.replace(/ \| Labb$/, "") || v.path}</a> <span className="fine">{v.path}{v.duration_ms ? ` · ${Math.round(v.duration_ms / 1000)}s` : ""}</span></li>)}
+                      </ol>
+                    </details>
+                  );
+                })}
+              </div>
+            </>
+          )}
+
+                </div>
+              )}
+
+              {tab === "history" && (
+                <div className="hero-card">
+                  <h2>History</h2>
+                  {post("note", <div className="lp-note">
+                    <label className="sr-only" htmlFor="l-note2">Add a note</label>
+                    <textarea id="l-note2" name="note" required maxLength={4000} rows={2} placeholder="Add a note" />
+                    <button className="btn btn-outline-dark btn-sm" type="submit">Save note</button>
+                  </div>)}
+          <ul className="history">
+            {events.map((e) => (
+              <li key={e.id}>
+                {e.event === "emailed" && e.detail ? (
+                  <details><summary><strong>Email sent</strong>: {e.detail.split("\n")[0]}</summary><div style={{ whiteSpace: "pre-wrap", margin: "8px 0" }}>{e.detail.split("\n").slice(2).join("\n")}</div></details>
+                ) : <><strong>{EVENT_LABEL[e.event] || e.event}</strong>{e.detail ? `: ${e.detail}` : ""}</>}
+                <span className="when">{fmtDate(e.created_at)} ET · {e.actor_name || "System"}</span>
+              </li>
+            ))}
+          </ul>
+                </div>
+              )}
+            </div>
+
+            <aside className="lp-aside">
               {lead.owner === "labb" ? (
                 <div className="hero-card">
                   <h3><label htmlFor="l-host">{lead.accepted_at ? "Labb call" : "Keep at Labb and book a call"}</label></h3>
@@ -379,92 +532,36 @@ export default async function AdminLead({ params }: { params: Promise<{ id: stri
                 </>)}
               </div>
 
-              <div className="hero-card">
-                {post("sequence", <>
-                  <h3><label htmlFor="l-seq">Guidebook emails</label></h3>
-                  <select id="l-seq" name="sequence" required defaultValue="">
-                    <option value="" disabled>Choose a guidebook</option>
-                    <optgroup label="Employers (CPP members can send these)">
-                      {SEQUENCES.filter((q) => q.audience === "employer").map((q) => <option key={q.id} value={q.id}>{q.name}</option>)}
-                    </optgroup>
-                    <optgroup label="Clinics">
-                      {SEQUENCES.filter((q) => q.audience === "clinic").map((q) => <option key={q.id} value={q.id}>{q.name}</option>)}
-                    </optgroup>
-                  </select>
-                  <button className="btn btn-primary" type="submit">Start sequence</button>
-                  <p className="fine" style={{ margin: 0 }}>{STEP_DAYS.length} emails over {STEP_DAYS[STEP_DAYS.length - 1]} days: the guidebook, three articles and a follow-up. <Link href="/admin/sequences">Preview</Link></p>
-                </>)}
-                {runs.length > 0 && (
-                  <ul className="seq-runs">
-                    {runs.map((r) => (
-                      <li key={r.id}>
-                        <span><strong>{sequenceName(r.sequence)}</strong> <span className={`status s-${r.status === "active" ? "contacted" : r.status === "completed" ? "won" : "lost"}`}>{r.status}</span></span>
-                        <span className="fine">{r.sent} of {STEP_DAYS.length} sent{r.next_due ? ` · next ${fmtDate(r.next_due)}` : ""} · {r.partner_id ? "by CPP member " : ""}{r.starter_name || "System"}, {fmtDate(r.created_at)}</span>
-                        {r.status === "active" && post("sequence-stop", <><input type="hidden" name="run" value={r.id} /><button className="linkish" type="submit">Stop</button></>)}
-                      </li>
-                    ))}
-                  </ul>
-                )}
-              </div>
 
               <div className="hero-card">
-                {post("note", <>
-                  <h3><label htmlFor="l-note">Add a note</label></h3>
-                  <textarea id="l-note" name="note" required maxLength={4000} />
-                  <button className="btn btn-outline-dark" type="submit">Save note</button>
-                </>)}
-              </div>
-
-              <div className="hero-card">
-                {post("segment", <>
-                  <h3><label htmlFor="l-seg">Segment</label></h3>
+                <h3>Lead settings</h3>
+                {post("client", <div className="lp-row">
+                  <input type="hidden" name="on" value={lead.existing_client ? "0" : "1"} />
+                  <span className="fine">{lead.existing_client ? "Existing client. Hidden from the lead list." : "Already a Labb client?"}</span>
+                  <button className="btn btn-outline-dark btn-sm" type="submit">{lead.existing_client ? "Remove tag" : "Tag as existing client"}</button>
+                </div>)}
+                {post("segment", <div className="lp-row">
+                  <label className="sr-only" htmlFor="l-seg">Segment</label>
                   <select id="l-seg" name="segment" defaultValue={lead.segment}>
                     {SEGMENTS.map((s) => <option key={s.value} value={s.value}>{s.short}</option>)}
                   </select>
-                  <button className="btn btn-outline-dark" type="submit">Change segment</button>
+                  <button className="btn btn-outline-dark btn-sm" type="submit">Change segment</button>
+                </div>)}
+                <details className="lp-more">
+                  <summary>Merge another lead into this one</summary>
+                {post("merge-other", <>
+                                    <p className="fine" style={{ margin: 0, textAlign: "left" }}>Same person under a different email or spelling. Enter the other lead&apos;s number or email. Its history, meetings and visits move here and it&apos;s removed.</p>
+                  <input id="l-other" name="other" required maxLength={254} placeholder="Lead # or email" />
+                  <button className="btn btn-outline-dark" type="submit">Merge into this lead</button>
                 </>)}
-                <div style={{ marginTop: 14 }}>
+
+                </details>
+                <div style={{ marginTop: 12 }}>
                   {post(lead.archived ? "unarchive" : "archive", <button className="linkish" type="submit">{lead.archived ? "Restore from archive" : "Archive this lead"}</button>)}
                 </div>
               </div>
-            </div>
+            </aside>
           </div>
-
-          <h2 style={{ fontSize: "1.3rem", marginTop: 40 }}>Website activity</h2>
-          {!views.length ? (
-            <p className="fine" style={{ textAlign: "left" }}>No visits linked yet. Visits are linked when this person submits a form or clicks a link in a Labb email from their browser.</p>
-          ) : (
-            <>
-              <p className="fine" style={{ textAlign: "left" }}>{visits.length} {visits.length === 1 ? "visit" : "visits"} · {views.length} pages · first seen {fmtDate(views[views.length - 1].ts)} ET{orgSeen ? ` · network: ${orgSeen}` : ""}</p>
-              <div className="lead-visits">
-                {visits.slice(0, 15).map((sid) => {
-                  const pv = views.filter((v) => v.session === sid).reverse();
-                  const first = pv[0];
-                  const src = first.utm_source ? `${first.utm_source}${first.utm_campaign ? ` / ${first.utm_campaign}` : ""}` : first.referrer || "Direct";
-                  return (
-                    <details key={sid} className="hero-card">
-                      <summary><strong>{fmtDate(first.ts)} ET</strong> <span className="fine">· {pv.length} {pv.length === 1 ? "page" : "pages"} · from {src}{first.device ? ` · ${first.device}` : ""}</span></summary>
-                      <ol>
-                        {pv.map((v, i) => <li key={i}><a href={v.path} target="_blank" rel="noreferrer">{v.title?.replace(/ \| Labb$/, "") || v.path}</a> <span className="fine">{v.path}{v.duration_ms ? ` · ${Math.round(v.duration_ms / 1000)}s` : ""}</span></li>)}
-                      </ol>
-                    </details>
-                  );
-                })}
-              </div>
-            </>
-          )}
-
-          <h2 style={{ fontSize: "1.3rem", marginTop: 40 }}>History</h2>
-          <ul className="history">
-            {events.map((e) => (
-              <li key={e.id}>
-                {e.event === "emailed" && e.detail ? (
-                  <details><summary><strong>Email sent</strong>: {e.detail.split("\n")[0]}</summary><div style={{ whiteSpace: "pre-wrap", margin: "8px 0" }}>{e.detail.split("\n").slice(2).join("\n")}</div></details>
-                ) : <><strong>{EVENT_LABEL[e.event] || e.event}</strong>{e.detail ? `: ${e.detail}` : ""}</>}
-                <span className="when">{fmtDate(e.created_at)} ET · {e.actor_name || "System"}</span>
-              </li>
-            ))}
-          </ul>
         </div>
       </section>
     </>
