@@ -17,4 +17,8 @@ export async function register() {
   const { runDupeJobs } = await import("@/lib/dupes");
   setTimeout(() => runDupeJobs(), 25_000);
   setInterval(() => runDupeJobs(), 60 * 60_000);
+  // Outlook busy times for each team member's booking page, every 10 minutes.
+  const { runCalendarSync } = await import("@/lib/calsync");
+  setTimeout(() => runCalendarSync(), 20_000);
+  setInterval(() => runCalendarSync(), 10 * 60_000);
 }

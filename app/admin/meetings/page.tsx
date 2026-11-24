@@ -23,6 +23,8 @@ export default async function Meetings({ searchParams }: { searchParams: Promise
   const [{ superadmin }] = await db<{ superadmin: boolean }[]>`select superadmin from members where id = ${me.id}`;
   const editId = superadmin && who && hosts.some((h) => h.id === who) ? who : me.id;
   const editing = hosts.find((h) => h.id === editId)!;
+  const [[cal]] = await Promise.all([db<{ busy_ics_url: string | null; busy_synced_at: Date | null; busy_error: string | null; n: number }[]>`
+    select busy_ics_url, busy_synced_at, busy_error, (select count(*)::int from host_busy b where b.host_id = m.id and b.ends_at > now()) as n from members m where id = ${editId}`]);
   const [hours, toAssign, upcoming, waiting, pipe, outcome] = await Promise.all([
     hoursFor(editId),
     db<LeadRow[]>`select * from leads where owner = 'labb' and not archived and not existing_client and accepted_at is null and status not in ('won', 'lost', 'not-qualified', 'existing-client') and type not in ('newsletter', 'quick-test')
@@ -183,7 +185,7 @@ export default async function Meetings({ searchParams }: { searchParams: Promise
           )}
           <form action="/api/admin/meetings" method="post" className="hero-card" style={{ maxWidth: 720 }}>
             <input type="hidden" name="who" value={editId} />
-            <p className="fine" style={{ textAlign: "left", marginTop: 0 }}>Eastern time. Prospects can book any open {30} minute time inside these hours, at least 4 hours ahead and up to 3 weeks out.</p>
+            <p className="fine" style={{ textAlign: "left", marginTop: 0 }}>Eastern time. Prospects can book any open {30} minute time inside these hours, up to 3 weeks out. Today and the next two business days are always closed to prospects (book on Tuesday and the earliest day offered is Friday); you can still schedule those days yourself from a lead. 15 minutes stay free before and after every meeting and Outlook appointment.</p>
             <div className="hours-grid">
               {DAYS.map((d, i) => {
                 const r = dayRange(i);
@@ -207,7 +209,30 @@ export default async function Meetings({ searchParams }: { searchParams: Promise
               <input id="mu" name="meeting_url" type="url" maxLength={300} defaultValue={editing.meeting_url || ""} placeholder="Your Zoom, Microsoft Teams or Google Meet room link" style={{ width: "100%", minHeight: 44, border: "1px solid var(--gray)", borderRadius: 8, padding: "8px 12px" }} />
               <span className="fine" style={{ textAlign: "left", display: "block" }}>Leave blank and each call gets its own private video room link automatically.</span>
             </div>
-            <button className="btn btn-primary" type="submit" style={{ marginTop: 16 }}>Save meeting hours</button>
+            <div className="field outlook-sync" style={{ marginTop: 18 }}>
+              <label htmlFor="ics">Outlook calendar link (blocks your Outlook appointments)</label>
+              <input id="ics" name="busy_ics_url" type="url" maxLength={1000} defaultValue={cal?.busy_ics_url || ""} placeholder="https://outlook.office365.com/owa/calendar/.../calendar.ics" />
+              <span className="fine" style={{ textAlign: "left", display: "block" }}>
+                {cal?.busy_ics_url
+                  ? cal.busy_error ? <strong style={{ color: "#9a3412" }}>Last sync failed: {cal.busy_error}</strong>
+                  : <>Synced {cal.busy_synced_at ? fmtDate(cal.busy_synced_at) + " ET" : "soon"}. {cal.n} upcoming Outlook busy {cal.n === 1 ? "time" : "times"} blocked. Syncs every 10 minutes.</>
+                  : "Not connected. Prospects only see the hours above minus Labb meetings."}
+              </span>
+              <details className="outlook-how">
+                <summary>How to get your Outlook calendar link</summary>
+                <ol>
+                  <li>Open Outlook on the web (outlook.office.com) and click the gear icon for <strong>Settings</strong>.</li>
+                  <li>Go to <strong>Calendar</strong>, then <strong>Shared calendars</strong>.</li>
+                  <li>Under <strong>Publish a calendar</strong>, choose <strong>Calendar</strong> and <strong>Can view when I&apos;m busy</strong>, then click <strong>Publish</strong>.</li>
+                  <li>Copy the <strong>ICS</strong> link (it ends in .ics), paste it here and save.</li>
+                </ol>
+                <p className="fine" style={{ textAlign: "left" }}>&ldquo;Can view when I&apos;m busy&rdquo; shares only busy times, never meeting titles or attendees. Labb stores only the start and end times. Desktop Outlook uses the same calendar, so it all comes through. Keep the link private.</p>
+              </details>
+            </div>
+            <div style={{ display: "flex", gap: 14, alignItems: "center", marginTop: 16, flexWrap: "wrap" }}>
+              <button className="btn btn-primary" type="submit">Save meeting hours</button>
+              {cal?.busy_ics_url && <button className="linkish" type="submit" name="action" value="sync" formNoValidate>Sync Outlook now</button>}
+            </div>
           </form>
         </div>
       </section>

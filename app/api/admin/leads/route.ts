@@ -6,6 +6,7 @@ import { esc, sendMail } from "@/lib/mail";
 import { linkToken, tagLinks } from "@/lib/visitors";
 import { emailBookingInvite, emailCancelled, etToUtc, finishMeeting, isKind, newToken, scheduleSalesMeeting, testLead, testToken } from "@/lib/meetings";
 import { upsertPerson } from "@/lib/crm";
+import { outlookConflicts } from "@/lib/calsync";
 import { emailPartner, logLeadEvent, mergeLeads, type LeadRow } from "@/lib/leads";
 import { isSegment, isStatus, segmentLabel, statusLabel } from "@/lib/segments";
 import { sequenceName, startSequence, stopSequence } from "@/lib/sequences";
@@ -172,7 +173,10 @@ export async function POST(req: Request) {
         kind, start, minutes, hostId: field(fd, "host", 40) || admin.id, room: field(fd, "room", 300),
         agenda: String(fd.get("agenda") ?? "").slice(0, 2000).trim(), by: actor, replace: field(fd, "replace", 20) || undefined,
       });
-      await flash(r.sent ? `${r.updated ? "Meeting moved" : "Meeting scheduled"}. The calendar invite was emailed to ${lead.email} and the host.` : "Meeting saved, but the invite email didn't send. Check email settings.", r.sent ? "ok" : "error");
+      const hostId = field(fd, "host", 40) || admin.id;
+      const clash = await outlookConflicts(hostId, start, new Date(start.getTime() + minutes * 60000));
+      const warn = clash.length ? ` Heads up: this is within 15 minutes of ${clash.length === 1 ? "an Outlook appointment" : `${clash.length} Outlook appointments`} on that calendar.` : "";
+      await flash((r.sent ? `${r.updated ? "Meeting moved" : "Meeting scheduled"}. The calendar invite was emailed to ${lead.email} and the host.` : "Meeting saved, but the invite email didn't send. Check email settings.") + warn, r.sent && !warn ? "ok" : "error");
     } catch (e) {
       await flash(e instanceof Error ? e.message : "The meeting wasn't scheduled.", "error");
     }

@@ -2166,3 +2166,7 @@ td.acts { white-space: nowrap; }
 .lp-head .lp-chips .status { margin: 0; }
 .lp-aside .fine, .lp-main .fine { text-align: left; }
 .lp-row .fine { margin: 0; }
+.outlook-sync input { width: 100%; min-height: 44px; border: 1px solid var(--gray); border-radius: 8px; padding: 8px 12px; }
+.outlook-how { margin-top: 8px; text-align: left; }
+.outlook-how summary { cursor: pointer; font-weight: 600; font-size: .9rem; }
+.outlook-how ol { padding-left: 20px; display: grid; gap: 6px; font-size: .9rem; }

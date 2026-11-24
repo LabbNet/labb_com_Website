@@ -11,7 +11,9 @@ import { leadName, logLeadEvent, type LeadRow } from "@/lib/leads";
 
 export const TZ = "America/New_York";
 export const SLOT_MIN = 30;
-const NOTICE_HOURS = 4;
+// Prospects book no sooner than the day after the next two business days (today and the next two business days are closed).
+export const BUSINESS_DAYS_CLOSED = 2;
+export const BUFFER_MIN = 15; // kept free before and after every meeting and Outlook appointment
 const WINDOW_DAYS = 21;
 export const DAYS = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
 
@@ -59,6 +61,18 @@ export type HourRow = { dow: number; start_min: number; end_min: number };
 export const hoursFor = (memberId: string) =>
   sql()<HourRow[]>`select dow, start_min, end_min from meeting_hours where member_id = ${memberId} order by dow, start_min`;
 
+// Today plus the next two business days are closed; the first bookable day is the one after.
+export function firstBookableDate(today: string) {
+  let d = today;
+  let n = 0;
+  while (n < BUSINESS_DAYS_CLOSED) {
+    d = addDays(d, 1);
+    const dow = new Date(`${d}T12:00:00Z`).getUTCDay();
+    if (dow !== 0 && dow !== 6) n++;
+  }
+  return addDays(d, 1);
+}
+
 // Open 30 minute slots for one host, or for every host with hours when hostId is null.
 export async function openSlots(hostId: string | null): Promise<{ start: Date; hostId: string }[]> {
   const db = sql();
@@ -70,7 +84,12 @@ export async function openSlots(hostId: string | null): Promise<{ start: Date; h
   const busy = await db<{ host_id: string; starts_at: Date; ends_at: Date }[]>`
     select host_id, starts_at, ends_at from lead_meetings where status = 'booked' and ends_at > now()
       and starts_at < now() + ${`${WINDOW_DAYS + 1} days`}::interval`;
+  // Outlook busy times (see lib/calsync.ts).
+  const outlook = await db<{ host_id: string; starts_at: Date; ends_at: Date }[]>`
+    select host_id, starts_at, ends_at from host_busy where ends_at > now() and starts_at < now() + ${`${WINDOW_DAYS + 1} days`}::interval`.catch(() => []);
+  const blocks = [...busy, ...outlook].map((b) => ({ host: b.host_id, s: new Date(b.starts_at).getTime() - BUFFER_MIN * 60000, e: new Date(b.ends_at).getTime() + BUFFER_MIN * 60000 }));
   const today = etDate(new Date());
+  const first = firstBookableDate(today);
   const out: { start: Date; hostId: string }[] = [];
   for (let i = 0; i <= WINDOW_DAYS; i++) {
     const date = addDays(today, i);
@@ -78,9 +97,9 @@ export async function openSlots(hostId: string | null): Promise<{ start: Date; h
     for (const h of hours.filter((x) => x.dow === dow)) {
       for (let m = h.start_min; m + SLOT_MIN <= h.end_min; m += SLOT_MIN) {
         const start = etToUtc(date, m);
-        if (start.getTime() < now + NOTICE_HOURS * 3600_000) continue;
+        if (date < first || start.getTime() < now) continue;
         const end = start.getTime() + SLOT_MIN * 60000;
-        if (busy.some((b) => b.host_id === h.member_id && new Date(b.starts_at).getTime() < end && new Date(b.ends_at).getTime() > start.getTime())) continue;
+        if (blocks.some((b) => b.host === h.member_id && b.s < end && b.e > start.getTime())) continue;
         out.push({ start, hostId: h.member_id });
       }
     }
