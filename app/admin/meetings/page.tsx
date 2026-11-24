@@ -6,6 +6,7 @@ import { sql } from "@/lib/db";
 import { leadName, type LeadRow } from "@/lib/leads";
 import { DAYS, fmtWhen, hostSlug, hoursFor, kindInfo, MEETING_KINDS, meetingHosts, minToClock, pipeline } from "@/lib/meetings";
 import { absoluteUrl } from "@/lib/site";
+import { graphOn } from "@/lib/msgraph";
 import { segmentLabel } from "@/lib/segments";
 
 export const metadata: Metadata = { title: "Lead meetings", robots: { index: false, follow: false } };
@@ -124,7 +125,7 @@ export default async function Meetings({ searchParams }: { searchParams: Promise
                       <td>{kindInfo(g.kind).label}</td>
                       <td><Link href={`/admin/leads/${g.lead_id}`}>{[g.first_name, g.last_name].filter(Boolean).join(" ") || g.email}</Link>{g.company ? <span className="fine">, {g.company}</span> : null}</td>
                       <td>{g.host_name}</td>
-                      <td><a href={g.room_url} target="_blank" rel="noreferrer">Join</a></td>
+                      <td>{g.room_url ? <a href={g.room_url} target="_blank" rel="noreferrer">Join</a> : <span className="fine">No link yet</span>}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -204,12 +205,18 @@ export default async function Meetings({ searchParams }: { searchParams: Promise
                 );
               })}
             </div>
-            <div className="field" style={{ marginTop: 18 }}>
-              <label htmlFor="mu">Personal video meeting link (optional)</label>
-              <input id="mu" name="meeting_url" type="url" maxLength={300} defaultValue={editing.meeting_url || ""} placeholder="Your Zoom, Microsoft Teams or Google Meet room link" style={{ width: "100%", minHeight: 44, border: "1px solid var(--gray)", borderRadius: 8, padding: "8px 12px" }} />
-              <span className="fine" style={{ textAlign: "left", display: "block" }}>Leave blank and each call gets its own private video room link automatically.</span>
+            <div className={`teams-status ${graphOn() ? "on" : ""}`}>
+              <strong>Microsoft Teams</strong>
+              {graphOn()
+                ? <p>Connected to Microsoft 365. Every meeting is created in your Outlook calendar as its own Teams meeting, Outlook sends the prospect the invitation, and your Outlook busy times are blocked automatically.</p>
+                : <p>Not connected to Microsoft 365 yet. Until it is, meetings use the Teams link below. Once connected, each meeting gets its own Teams meeting in your Outlook calendar.</p>}
             </div>
-            <div className="field outlook-sync" style={{ marginTop: 18 }}>
+            <div className="field" style={{ marginTop: 14 }}>
+              <label htmlFor="mu">Your Microsoft Teams meeting link{graphOn() ? " (backup)" : ""}</label>
+              <input id="mu" name="meeting_url" type="url" maxLength={300} defaultValue={editing.meeting_url || ""} placeholder="https://teams.microsoft.com/l/meetup-join/..." style={{ width: "100%", minHeight: 44, border: "1px solid var(--gray)", borderRadius: 8, padding: "8px 12px" }} />
+              <span className="fine" style={{ textAlign: "left", display: "block" }}>{graphOn() ? "Used only if Microsoft 365 can't create a meeting." : "In Teams, open Calendar, create a meeting (for example \"Labb meetings\", repeating with no end), and copy its join link here. Every invite uses this link."}</span>
+            </div>
+            {!graphOn() && <div className="field outlook-sync" style={{ marginTop: 18 }}>
               <label htmlFor="ics">Outlook calendar link (blocks your Outlook appointments)</label>
               <input id="ics" name="busy_ics_url" type="url" maxLength={1000} defaultValue={cal?.busy_ics_url || ""} placeholder="https://outlook.office365.com/owa/calendar/.../calendar.ics" />
               <span className="fine" style={{ textAlign: "left", display: "block" }}>
@@ -228,7 +235,7 @@ export default async function Meetings({ searchParams }: { searchParams: Promise
                 </ol>
                 <p className="fine" style={{ textAlign: "left" }}>&ldquo;Can view when I&apos;m busy&rdquo; shares only busy times, never meeting titles or attendees. Labb stores only the start and end times. Desktop Outlook uses the same calendar, so it all comes through. Keep the link private.</p>
               </details>
-            </div>
+            </div>}
             <div style={{ display: "flex", gap: 14, alignItems: "center", marginTop: 16, flexWrap: "wrap" }}>
               <button className="btn btn-primary" type="submit">Save meeting hours</button>
               {cal?.busy_ics_url && <button className="linkish" type="submit" name="action" value="sync" formNoValidate>Sync Outlook now</button>}

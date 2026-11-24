@@ -2,6 +2,7 @@ import "server-only";
 import { createHmac, randomBytes, timingSafeEqual } from "node:crypto";
 import { sql } from "@/lib/db";
 import { emailLayout, esc, sendMail } from "@/lib/mail";
+import { cancelTeamsMeeting, createTeamsMeeting, graphOn, moveTeamsMeeting } from "@/lib/msgraph";
 import { absoluteUrl } from "@/lib/site";
 import { linkToken, tagLinks } from "@/lib/visitors";
 import { leadName, logLeadEvent, type LeadRow } from "@/lib/leads";
@@ -141,8 +142,35 @@ export async function testLead(adminId: string): Promise<(LeadRow & { meeting_ho
 }
 
 export const newToken = () => randomBytes(18).toString("base64url");
-export const roomFor = (host: { meeting_url: string | null }) =>
-  host.meeting_url || `https://meet.jit.si/Labb-${randomBytes(9).toString("base64url").replace(/[-_]/g, "x")}`;
+// The host's own Microsoft Teams link, until a Teams meeting is created for this meeting (see attachTeams).
+export const roomFor = (host: { meeting_url: string | null }) => host.meeting_url || "";
+
+// Join button and link lines for emails. A meeting can briefly have no link if Microsoft 365 isn't connected.
+const joinCta = (url: string) => (url ? { href: url, label: /teams\.(microsoft|live)\.com/i.test(url) ? "Join the Microsoft Teams meeting" : "Join the video meeting" } : undefined);
+const joinLine = (url: string) => (url ? `Meeting link: <a href="${esc(url)}" style="color:#CF743C">${esc(url)}</a>` : "Your Microsoft Teams link will be emailed before the meeting.");
+const joinText = (url: string) => (url ? `Join: ${url}` : "Your Microsoft Teams link will be emailed before the meeting.");
+
+// With Microsoft 365 connected: create a Teams meeting in the host's Outlook calendar. Outlook sends the
+// invitation to the prospect, and the meeting is saved with its Teams link.
+export async function attachTeams(m: { id: string | number; starts_at: Date; ends_at: Date; room_url: string }, host: { email: string }, lead: LeadRow, subject: string, html: string): Promise<boolean> {
+  if (!graphOn() || String(m.id).startsWith("test")) return false;
+  try {
+    const r = await createTeamsMeeting(host.email, { subject, start: m.starts_at, end: m.ends_at, html, attendee: { email: lead.email, name: leadName(lead) } });
+    m.room_url = r.joinUrl || m.room_url;
+    await sql()`update lead_meetings set graph_event_id = ${r.eventId}, graph_mailbox = ${host.email}, room_url = ${m.room_url} where id = ${m.id}`;
+    return true;
+  } catch (e) {
+    console.error("[teams] create failed", e instanceof Error ? e.message : e);
+    return false;
+  }
+}
+
+// Cancel the Outlook/Teams meeting behind a Labb meeting, if there is one. Outlook tells the prospect.
+export async function cancelTeams(meetingId: string | number, comment = "This meeting has been cancelled.") {
+  const [g] = await sql()<{ graph_event_id: string | null; graph_mailbox: string | null }[]>`select graph_event_id, graph_mailbox from lead_meetings where id = ${meetingId}`.catch(() => []);
+  if (!g?.graph_event_id || !g.graph_mailbox || !graphOn()) return false;
+  try { await cancelTeamsMeeting(g.graph_mailbox, g.graph_event_id, comment); return true; } catch (e) { console.error("[teams] cancel failed", e instanceof Error ? e.message : e); return false; }
+}
 
 // ---- Calendar invite ----
 const icsTime = (d: Date) => new Date(d).toISOString().replace(/[-:]/g, "").replace(/\.\d{3}/, "");
@@ -197,7 +225,7 @@ export async function emailBookingInvite(lead: LeadRow, host: { name: string; em
 
 type Mtg = { id: string; starts_at: Date; ends_at: Date; room_url: string };
 
-export async function emailBooked(lead: LeadRow, m: Mtg, host: { name: string; email: string }, token: string, test = false) {
+export async function emailBooked(lead: LeadRow, m: Mtg, host: { name: string; email: string }, token: string, test = false, outlook = false) {
   const when = fmtWhen(m.starts_at);
   const manage = absoluteUrl(`/meet/${token}`);
   const invite = ics(m, "Call with Labb", `Video meeting: ${m.room_url}\nWith ${host.name}, Labb.\nNeed to change the time? ${manage}`, { name: `${host.name}, Labb`, email: host.email }, lead.email);
@@ -206,17 +234,17 @@ export async function emailBooked(lead: LeadRow, m: Mtg, host: { name: string; e
     `<p>Hi ${first(lead)},</p>
      <p>You're booked for a ${SLOT_MIN} minute video call with <strong>${esc(host.name)}</strong> from Labb.</p>
      <p style="font-size:17px"><strong>${esc(when)}</strong></p>
-     <p>At the scheduled time, use the button below to join the video meeting from your computer or phone. No download is required for most browsers. A calendar invite is attached.</p>
-     <p style="font-size:13px">Meeting link: <a href="${esc(m.room_url)}" style="color:#CF743C">${esc(m.room_url)}</a><br>Need a different time? <a href="${manage}" style="color:#CF743C">Reschedule or cancel</a>.</p>`,
-    { href: m.room_url, label: "Join the video meeting" },
+     <p>At the scheduled time, use the button below to join the Microsoft Teams meeting from your computer or phone. You can join from a web browser; no download is needed. ${outlook ? `A calendar invitation from ${esc(host.name)} is on its way separately.` : "A calendar invite is attached."}</p>
+     <p style="font-size:13px">${joinLine(m.room_url)}<br>Need a different time? <a href="${manage}" style="color:#CF743C">Reschedule or cancel</a>.</p>`,
+    joinCta(m.room_url),
   );
-  const text = `Hi ${lead.first_name || "there"},\n\nYou're booked for a ${SLOT_MIN} minute video call with ${host.name} from Labb.\n\n${when}\n\nJoin the video meeting: ${m.room_url}\n\nNeed a different time? ${manage}\n\nThe Labb team\n\n${footer}`;
+  const text = `Hi ${lead.first_name || "there"},\n\nYou're booked for a ${SLOT_MIN} minute video call with ${host.name} from Labb.\n\n${when}\n\n${joinText(m.room_url)}\n\nNeed a different time? ${manage}\n\nThe Labb team\n\n${footer}`;
   return sendMail(lead.email, `${test ? "[Test] " : ""}Confirmed: your call with Labb, ${when}`, html, text, {
-    replyTo: host.email, attachments: [{ filename: "labb-meeting.ics", content: invite, type: "text/calendar; method=REQUEST" }],
+    replyTo: host.email, attachments: outlook ? [] : [{ filename: "labb-meeting.ics", content: invite, type: "text/calendar; method=REQUEST" }],
   });
 }
 
-export async function emailHostBooked(lead: LeadRow, m: Mtg, host: { name: string; email: string }, notes: string | null) {
+export async function emailHostBooked(lead: LeadRow, m: Mtg, host: { name: string; email: string }, notes: string | null, outlook = false) {
   const when = fmtWhen(m.starts_at);
   const rec = absoluteUrl(`/admin/leads/${lead.id}`);
   const invite = ics(m, `Labb call: ${leadName(lead)}`, `Video meeting: ${m.room_url}\nLead: ${rec}`, { name: "Labb", email: "info@labb.com" }, host.email);
@@ -226,28 +254,30 @@ export async function emailHostBooked(lead: LeadRow, m: Mtg, host: { name: strin
      <p style="font-size:17px"><strong>${esc(when)}</strong></p>
      <p>${esc(lead.email)}${lead.phone ? ` · ${esc(lead.phone)}` : ""}</p>
      ${notes ? `<p><strong>Their note:</strong> ${esc(notes)}</p>` : ""}
-     <p>Video meeting: <a href="${esc(m.room_url)}" style="color:#CF743C">${esc(m.room_url)}</a></p>`,
+     <p>${outlook ? "The Teams meeting is on your Outlook calendar. " : ""}${joinLine(m.room_url)}</p>`,
     { href: rec, label: "Open the lead" },
   );
   const text = `${leadName(lead)}${lead.company ? `, ${lead.company}` : ""} booked a call with you.\n\n${when}\n${lead.email}${lead.phone ? ` · ${lead.phone}` : ""}\n${notes ? `Their note: ${notes}\n` : ""}\nVideo meeting: ${m.room_url}\nLead: ${rec}`;
   return sendMail(host.email, `Meeting booked: ${leadName(lead)}, ${when}`, html, text, {
-    replyTo: lead.email, attachments: [{ filename: "labb-meeting.ics", content: invite, type: "text/calendar; method=REQUEST" }],
+    replyTo: lead.email, attachments: outlook ? [] : [{ filename: "labb-meeting.ics", content: invite, type: "text/calendar; method=REQUEST" }],
   });
 }
 
 export async function emailCancelled(lead: LeadRow, m: Mtg, host: { name: string; email: string }, byProspect: boolean, token: string | null) {
   const when = fmtWhen(m.starts_at);
+  // A Teams meeting in Outlook: cancelling it there updates both calendars, so no calendar file is attached.
+  const outlook = await cancelTeams(m.id, byProspect ? "The prospect cancelled this meeting." : "This meeting has been cancelled.");
   const cancelIcs = (to: string) => ics(m, "Call with Labb", "Cancelled", { name: `${host.name}, Labb`, email: host.email }, to, true, Math.floor(Date.now() / 1000) - 1_700_000_000);
   if (byProspect) {
     await sendMail(host.email, `Meeting cancelled: ${leadName(lead)}, ${when}`,
       emailLayout("Meeting cancelled", `<p>${esc(leadName(lead))} cancelled the call set for ${esc(when)}.</p>`, { href: absoluteUrl(`/admin/leads/${lead.id}`), label: "Open the lead" }),
-      `${leadName(lead)} cancelled the call set for ${when}.`, { attachments: [{ filename: "labb-meeting.ics", content: cancelIcs(host.email), type: "text/calendar; method=CANCEL" }] });
+      `${leadName(lead)} cancelled the call set for ${when}.`, { attachments: outlook ? [] : [{ filename: "labb-meeting.ics", content: cancelIcs(host.email), type: "text/calendar; method=CANCEL" }] });
   } else {
     const link = token ? absoluteUrl(`/meet/${token}`) : null;
     await sendMail(lead.email, `Cancelled: your call with Labb, ${when}`,
       emailLayout("Your call has been cancelled", `<p>Hi ${first(lead)},</p><p>Your call with Labb set for ${esc(when)} has been cancelled. We're sorry for the change.${link ? " Please choose another time that works for you." : ""}</p>`, link ? { href: link, label: "Choose a new time" } : undefined),
       `Hi ${lead.first_name || "there"},\n\nYour call with Labb set for ${when} has been cancelled.${link ? ` Choose another time: ${link}` : ""}\n\n${footer}`,
-      { replyTo: host.email, attachments: [{ filename: "labb-meeting.ics", content: cancelIcs(lead.email), type: "text/calendar; method=CANCEL" }] });
+      { replyTo: host.email, attachments: outlook ? [] : [{ filename: "labb-meeting.ics", content: cancelIcs(lead.email), type: "text/calendar; method=CANCEL" }] });
   }
 }
 
@@ -279,8 +309,10 @@ export async function bookMeeting(lead: LeadRow, token: string, startIso: string
   if (phone && phone !== lead.phone) await db`update leads set phone = ${phone}, updated_at = now() where id = ${lead.id}`;
   await db`update leads set status = case when status in ('new', 'contacted') then 'qualified' else status end, updated_at = now() where id = ${lead.id}`;
   const fresh = { ...lead, phone: phone || lead.phone };
-  const sent = await emailBooked(fresh, mt, host, token);
-  await emailHostBooked(fresh, mt, host, notes);
+  const outlook = await attachTeams(mt, host, fresh, `Labb: call with ${host.name}`,
+    `<p>Video call with ${esc(host.name)} from Labb.</p>${notes ? `<p>Note: ${esc(notes)}</p>` : ""}<p>Need a different time? <a href="${absoluteUrl(`/meet/${token}`)}">Reschedule or cancel</a>.</p>`);
+  const sent = await emailBooked(fresh, mt, host, token, false, outlook);
+  await emailHostBooked(fresh, mt, host, notes, outlook);
   await logLeadEvent(lead.id, "meeting", `${old ? "Rescheduled to" : "Booked"} ${fmtWhen(mt.starts_at)} with ${host.name}${sent ? "; confirmation and video link emailed" : "; confirmation email did not send"}${notes ? `. Note: ${notes}` : ""}`, null);
   return "booked";
 }
@@ -307,11 +339,11 @@ export async function runMeetingJobs() {
       if (!lead) continue;
       const when = fmtClock(g.starts_at) + " ET";
       await sendMail(lead.email, `Reminder: your call with Labb at ${when}`,
-        emailLayout("Your call with Labb starts soon", `<p>Hi ${first(lead)},</p><p>This is a reminder that your video call with ${esc(g.host_name)} from Labb starts at <strong>${esc(when)}</strong>.</p>`, { href: g.room_url, label: "Join the video meeting" }),
-        `Hi ${lead.first_name || "there"},\n\nYour video call with ${g.host_name} from Labb starts at ${when}.\n\nJoin: ${g.room_url}\n\n${footer}`, { replyTo: g.host_email });
+        emailLayout("Your call with Labb starts soon", `<p>Hi ${first(lead)},</p><p>This is a reminder that your video call with ${esc(g.host_name)} from Labb starts at <strong>${esc(when)}</strong>.</p>`, joinCta(g.room_url)),
+        `Hi ${lead.first_name || "there"},\n\nYour video call with ${g.host_name} from Labb starts at ${when}.\n\n${joinText(g.room_url)}\n\n${footer}`, { replyTo: g.host_email });
       await sendMail(g.host_email, `Reminder: call with ${leadName(lead)} at ${when}`,
-        emailLayout("Meeting starts soon", `<p>Your call with ${esc(leadName(lead))}${lead.company ? `, ${esc(lead.company)}` : ""} starts at <strong>${esc(when)}</strong>.</p><p><a href="${absoluteUrl(`/admin/leads/${lead.id}`)}" style="color:#CF743C">Open the lead</a></p>`, { href: g.room_url, label: "Join the video meeting" }),
-        `Your call with ${leadName(lead)} starts at ${when}. Join: ${g.room_url}`);
+        emailLayout("Meeting starts soon", `<p>Your call with ${esc(leadName(lead))}${lead.company ? `, ${esc(lead.company)}` : ""} starts at <strong>${esc(when)}</strong>.</p><p><a href="${absoluteUrl(`/admin/leads/${lead.id}`)}" style="color:#CF743C">Open the lead</a></p>`, joinCta(g.room_url)),
+        `Your call with ${leadName(lead)} starts at ${when}. ${joinText(g.room_url)}`);
     }
   } catch (e) {
     console.error("[meetings] job failed", e);
@@ -344,7 +376,7 @@ type Host2 = { id: string; name: string; email: string; meeting_url: string | nu
 type SalesMtg = Mtg & { kind: string; agenda: string | null };
 const seqNow = () => Math.floor(Date.now() / 1000) - 1_700_000_000;
 
-function inviteEmail(lead: LeadRow, m: SalesMtg, host: Host2, updated: boolean) {
+function inviteEmail(lead: LeadRow, m: SalesMtg, host: Host2, updated: boolean, outlook: boolean) {
   const k = kindInfo(m.kind);
   const when = fmtWhen(m.starts_at);
   const mins = Math.round((new Date(m.ends_at).getTime() - new Date(m.starts_at).getTime()) / 60000);
@@ -356,11 +388,11 @@ function inviteEmail(lead: LeadRow, m: SalesMtg, host: Host2, updated: boolean) 
      <p style="margin-top:0">${esc(k.title)} with ${esc(host.name)}</p>
      <p>${esc(k.blurb)}</p>
      ${m.agenda ? `<p><strong>Agenda:</strong><br>${esc(m.agenda).replace(/\n/g, "<br>")}</p>` : ""}
-     <p>A calendar invite is attached. At the meeting time, use the button below to join from your computer or phone.</p>
-     <p style="font-size:13px">Meeting link: <a href="${esc(m.room_url)}" style="color:#CF743C">${esc(m.room_url)}</a><br>Need a different time? Just reply to this email.</p>`,
-    { href: m.room_url, label: "Join the video meeting" },
+     <p>${outlook ? `${updated ? "An updated" : "A"} calendar invitation from ${esc(host.name)} is on its way separately.` : "A calendar invite is attached."} At the meeting time, use the button below to join from your computer or phone.</p>
+     <p style="font-size:13px">${joinLine(m.room_url)}<br>Need a different time? Just reply to this email.</p>`,
+    joinCta(m.room_url),
   );
-  const text = `Hi ${lead.first_name || "there"},\n\n${updated ? "The time for our meeting has changed." : `${host.name} from Labb has scheduled a ${mins} minute video meeting with you.`}\n\n${k.title}\n${when}\n\n${k.blurb}\n${m.agenda ? `\nAgenda:\n${m.agenda}\n` : ""}\nJoin: ${m.room_url}\n\nNeed a different time? Reply to this email.\n\n${host.name}\nLabb\n\n${footer}`;
+  const text = `Hi ${lead.first_name || "there"},\n\n${updated ? "The time for our meeting has changed." : `${host.name} from Labb has scheduled a ${mins} minute video meeting with you.`}\n\n${k.title}\n${when}\n\n${k.blurb}\n${m.agenda ? `\nAgenda:\n${m.agenda}\n` : ""}\n${joinText(m.room_url)}\n\nNeed a different time? Reply to this email.\n\n${host.name}\nLabb\n\n${footer}`;
   return { html, text, subject: `${updated ? "Updated invitation" : "Invitation"}: ${k.title}, ${when}` };
 }
 
@@ -373,6 +405,9 @@ export async function scheduleSalesMeeting(lead: LeadRow, o: { kind: MeetingKind
   const room = o.room && /^https:\/\/\S+$/.test(o.room) ? o.room : roomFor(host);
   let m: SalesMtg | undefined;
   let updated = false;
+  const [prev] = o.replace && /^\d+$/.test(o.replace)
+    ? await db<{ graph_event_id: string | null; graph_mailbox: string | null }[]>`select graph_event_id, graph_mailbox from lead_meetings where id = ${o.replace} and lead_id = ${lead.id} and status = 'booked'`
+    : [];
   try {
     if (o.replace && /^\d+$/.test(o.replace)) {
       [m] = await db<SalesMtg[]>`update lead_meetings set starts_at = ${o.start}, ends_at = ${end}, host_id = ${host.id}, kind = ${o.kind}, room_url = ${room},
@@ -391,16 +426,28 @@ export async function scheduleSalesMeeting(lead: LeadRow, o: { kind: MeetingKind
   if (!m) throw new Error("The meeting wasn't saved.");
   const k = kindInfo(m.kind);
   const seq = updated ? seqNow() : 0;
-  const e = inviteEmail(lead, m, host, updated);
+  // Microsoft Teams: move the existing Outlook meeting, or create one (a new host gets a new meeting).
+  let outlook = false;
+  if (graphOn()) {
+    if (updated && prev?.graph_event_id && prev.graph_mailbox?.toLowerCase() === host.email.toLowerCase()) {
+      try { await moveTeamsMeeting(host.email, prev.graph_event_id, m.starts_at, m.ends_at, `${k.title}`); outlook = true; }
+      catch (err) { console.error("[teams] move failed", err instanceof Error ? err.message : err); }
+    } else {
+      if (updated && prev?.graph_event_id) await cancelTeams(m.id, "This meeting has moved to a new invitation.");
+      outlook = await attachTeams(m, host, lead, k.title,
+        `<p>${esc(k.blurb)}</p>${m.agenda ? `<p><strong>Agenda:</strong><br>${esc(m.agenda).replace(/\n/g, "<br>")}</p>` : ""}<p>${esc(host.name)}, Labb</p>`);
+    }
+  }
+  const e = inviteEmail(lead, m, host, updated, outlook);
   const sent = await sendMail(lead.email, e.subject, e.html, e.text, {
     replyTo: host.email, track: { lead_meeting: String(m.id) },
-    attachments: [{ filename: "labb-meeting.ics", content: ics(m, k.title, `${k.blurb}\n${m.agenda ? `\nAgenda:\n${m.agenda}\n` : ""}\nVideo meeting: ${m.room_url}`, { name: `${host.name}, Labb`, email: host.email }, lead.email, false, seq), type: "text/calendar; method=REQUEST" }],
+    attachments: outlook ? [] : [{ filename: "labb-meeting.ics", content: ics(m, k.title, `${k.blurb}\n${m.agenda ? `\nAgenda:\n${m.agenda}\n` : ""}\nVideo meeting: ${m.room_url}`, { name: `${host.name}, Labb`, email: host.email }, lead.email, false, seq), type: "text/calendar; method=REQUEST" }],
   });
   const rec = absoluteUrl(`/admin/leads/${lead.id}`);
   await sendMail(host.email, `${updated ? "Updated" : "Scheduled"}: ${k.label} with ${leadName(lead)}, ${fmtWhen(m.starts_at)}`,
-    emailLayout(`${k.label} ${updated ? "updated" : "scheduled"}`, `<p>${esc(k.label)} with <strong>${esc(leadName(lead))}</strong>${lead.company ? `, ${esc(lead.company)}` : ""}.</p><p style="font-size:17px"><strong>${esc(fmtWhen(m.starts_at))}</strong></p><p>${esc(lead.email)}${lead.phone ? ` · ${esc(lead.phone)}` : ""}</p>${m.agenda ? `<p><strong>Agenda:</strong> ${esc(m.agenda)}</p>` : ""}<p>Video meeting: <a href="${esc(m.room_url)}" style="color:#CF743C">${esc(m.room_url)}</a></p>`, { href: rec, label: "Open the lead" }),
-    `${k.label} with ${leadName(lead)}: ${fmtWhen(m.starts_at)}\nVideo: ${m.room_url}\nLead: ${rec}`,
-    { replyTo: lead.email, attachments: [{ filename: "labb-meeting.ics", content: ics(m, `${k.label}: ${leadName(lead)}`, `Video meeting: ${m.room_url}\nLead: ${rec}`, { name: "Labb", email: "info@labb.com" }, host.email, false, seq), type: "text/calendar; method=REQUEST" }] });
+    emailLayout(`${k.label} ${updated ? "updated" : "scheduled"}`, `<p>${esc(k.label)} with <strong>${esc(leadName(lead))}</strong>${lead.company ? `, ${esc(lead.company)}` : ""}.</p><p style="font-size:17px"><strong>${esc(fmtWhen(m.starts_at))}</strong></p><p>${esc(lead.email)}${lead.phone ? ` · ${esc(lead.phone)}` : ""}</p>${m.agenda ? `<p><strong>Agenda:</strong> ${esc(m.agenda)}</p>` : ""}<p>${outlook ? "The Teams meeting is on your Outlook calendar. " : ""}${joinLine(m.room_url)}</p>`, { href: rec, label: "Open the lead" }),
+    `${k.label} with ${leadName(lead)}: ${fmtWhen(m.starts_at)}\n${joinText(m.room_url)}\nLead: ${rec}`,
+    { replyTo: lead.email, attachments: outlook ? [] : [{ filename: "labb-meeting.ics", content: ics(m, `${k.label}: ${leadName(lead)}`, `Video meeting: ${m.room_url}\nLead: ${rec}`, { name: "Labb", email: "info@labb.com" }, host.email, false, seq), type: "text/calendar; method=REQUEST" }] });
   await db`update leads set status = case when status = 'new' then 'contacted' else status end, updated_at = now() where id = ${lead.id}`;
   await logLeadEvent(lead.id, "meeting", `${k.label} ${updated ? "moved to" : "scheduled for"} ${fmtWhen(m.starts_at)} with ${host.name}${sent ? "; invite emailed to " + lead.email : "; the invite email did not send"}`, o.by);
   return { sent, updated };

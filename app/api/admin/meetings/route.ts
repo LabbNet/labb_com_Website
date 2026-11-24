@@ -3,8 +3,9 @@ import { setFlash } from "@/lib/admin";
 import { sql } from "@/lib/db";
 import { field, go } from "@/lib/http";
 import { syncHostCalendar } from "@/lib/calsync";
+import { graphOn } from "@/lib/msgraph";
 
-// Save a team member's weekly meeting hours and video room link. Admins edit their own; the superadmin can edit anyone's.
+// Save a team member's weekly meeting hours, Teams link and Outlook calendar link. Admins edit their own; the superadmin can edit anyone's.
 export async function POST(req: Request) {
   const me = await currentMember();
   if (!me || me.role !== "admin") return go(req, "/admin-login");
@@ -55,6 +56,7 @@ export async function POST(req: Request) {
     const r = await syncHostCalendar(target.id);
     synced = r.ok ? ` Outlook synced: ${r.count} busy ${r.count === 1 ? "time" : "times"} blocked.` : ` Outlook sync failed: ${r.error}`;
   } else await syncHostCalendar(target.id);
-  await flash((rows.length ? "Meeting hours saved." : "Meeting hours cleared. Prospects can't book with this person until hours are set.") + synced, synced.includes("failed") ? "error" : "ok");
+  const noLink = rows.length && !url && !graphOn() ? " Add your Microsoft Teams meeting link so invites include a link to join." : "";
+  await flash((rows.length ? "Meeting hours saved." : "Meeting hours cleared. Prospects can't book with this person until hours are set.") + synced + noLink, synced.includes("failed") || noLink ? "error" : "ok");
   return go(req, back);
 }

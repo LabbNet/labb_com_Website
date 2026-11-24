@@ -57,8 +57,12 @@ export default async function Meet({ params, searchParams }: { params: Promise<{
           <div className="hero-card" style={{ marginTop: 16 }}>
             <p style={{ margin: 0, fontSize: "1.15rem" }}><strong>{fmtWhen(booked.starts_at)}</strong></p>
             <p style={{ margin: "6px 0 16px" }}>{SLOT_MIN} minute video call with {booked.host_name}.</p>
-            <a className="btn btn-primary" href={booked.room_url} target="_blank" rel="noreferrer">Join the video meeting</a>
-            <p className="fine" style={{ textAlign: "left", marginTop: 12 }}>Your meeting link: <a href={booked.room_url} target="_blank" rel="noreferrer">{booked.room_url}</a>. It&apos;s also in your confirmation email.</p>
+            {booked.room_url ? (
+              <>
+                <a className="btn btn-primary" href={booked.room_url} target="_blank" rel="noreferrer">Join the Microsoft Teams meeting</a>
+                <p className="fine" style={{ textAlign: "left", marginTop: 12 }}>You can join from a web browser; no download is needed. The link is also in your confirmation email and calendar invitation.</p>
+              </>
+            ) : <p className="fine" style={{ textAlign: "left" }}>Your Microsoft Teams link will be emailed before the meeting.</p>}
             <form action="/api/meet" method="post" style={{ marginTop: 8 }}>
               <input type="hidden" name="token" value={token} />
               <input type="hidden" name="action" value="cancel" />

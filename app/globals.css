@@ -2180,3 +2180,6 @@ td.acts { white-space: nowrap; }
 .form-count { display: inline-flex; align-items: center; justify-content: center; min-width: 22px; height: 22px; padding: 0 6px; margin-left: 8px; border-radius: 999px; background: #d92d20; color: #fff; font-size: .78rem; font-weight: 700; line-height: 1; vertical-align: middle; }
 .form-count.lg { min-width: 30px; height: 30px; font-size: .95rem; margin-left: 12px; }
 .admin-search label.fine input[type=checkbox] { width: 18px; height: 18px; min-height: 0; padding: 0; accent-color: #CF743C; }
+.teams-status { margin-top: 18px; border: 1px solid var(--border); border-left: 4px solid #8a95a0; border-radius: 10px; padding: 10px 14px; text-align: left; }
+.teams-status.on { border-left-color: #CF743C; }
+.teams-status p { margin: 4px 0 0; font-size: .9rem; }

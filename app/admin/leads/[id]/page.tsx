@@ -138,7 +138,7 @@ export default async function AdminLead({ params, searchParams }: { params: Prom
   const needsOutcome = sales.find((g) => g.status === "booked" && new Date(g.ends_at) <= now);
   const nextStep: { text: React.ReactNode; tab?: Tab } =
     needsOutcome ? { text: <>Record how the <strong>{kindInfo(needsOutcome.kind).label.toLowerCase()}</strong> on {fmtWhen(needsOutcome.starts_at)} went.</>, tab: "meetings" }
-    : upcoming ? { text: <><strong>{kindInfo(upcoming.kind).label}</strong> {fmtWhen(upcoming.starts_at)} with {upcoming.host_name}. <a href={upcoming.room_url} target="_blank" rel="noreferrer">Join video</a></>, tab: "meetings" }
+    : upcoming ? { text: <><strong>{kindInfo(upcoming.kind).label}</strong> {fmtWhen(upcoming.starts_at)} with {upcoming.host_name}{upcoming.room_url && <>. <a href={upcoming.room_url} target="_blank" rel="noreferrer">Join Teams</a></>}</>, tab: "meetings" }
     : lead.status === "existing-client" || lead.status === "won" || lead.status === "lost" || lead.status === "not-qualified" ? { text: <>No next step. This lead is marked <strong>{statusLabel(lead.status)}</strong>.</> }
     : lead.owner === "partner" ? { text: lead.accepted_at ? <>With <strong>{lead.partner_clinic || lead.partner_name}</strong>. They accepted it {fmtDate(lead.accepted_at)}.</> : <>Waiting for <strong>{lead.partner_clinic || lead.partner_name}</strong> to accept it.</> }
     : !lead.accepted_at && !sales.length ? { text: <>Keep it at Labb and send a booking link, schedule the initial discussion, or pass it to a CPP member.</> }
@@ -318,7 +318,7 @@ export default async function AdminLead({ params, searchParams }: { params: Prom
                       <div className="sm-row">
                         <span><strong>{k.label}</strong> · {fmtWhen(g.starts_at)} · {g.host_name} <span className={`sm-badge sm-${g.status}`}>{MEETING_STATUS[g.status]}</span>
                           {opened.get(g.id) && <span className="fine"> · invite {opened.get(g.id)!.clicked ? "opened and link clicked" : opened.get(g.id)!.opened ? "opened" : "delivered"}</span>}</span>
-                        {live && <a href={g.room_url} target="_blank" rel="noreferrer" className="fine">Join video</a>}
+                        {live && g.room_url && <a href={g.room_url} target="_blank" rel="noreferrer" className="fine">Join Teams</a>}
                       </div>
                       {g.notes && <p className="fine sm-note">Agenda: {g.notes}</p>}
                       {g.outcome && <p className="fine sm-note">Outcome: {g.outcome}</p>}
@@ -371,7 +371,7 @@ export default async function AdminLead({ params, searchParams }: { params: Prom
                   <select id="sm-min" name="minutes" defaultValue={String(kindInfo(next).minutes)}>{[15, 30, 45, 60, 90].map((n) => <option key={n} value={n}>{n} minutes</option>)}</select></div>
                 <div className="field"><label htmlFor="sm-host">With</label>
                   <select id="sm-host" name="host" defaultValue={lead.meeting_host || me.id}>{hosts.map((h) => <option key={h.id} value={h.id}>{h.id === me.id ? `Me (${h.name})` : h.name}</option>)}</select></div>
-                <div className="field"><label htmlFor="sm-room">Video link (optional)</label><input id="sm-room" name="room" type="url" placeholder="Your usual meeting room" /></div>
+                <div className="field"><label htmlFor="sm-room">Teams link (optional)</label><input id="sm-room" name="room" type="url" placeholder="Leave blank for a new Teams meeting" /></div>
                 <div className="field sm-wide"><label htmlFor="sm-agenda">Agenda (included in the invite)</label><textarea id="sm-agenda" name="agenda" rows={2} maxLength={2000} /></div>
                 <div className="sm-wide"><button className="btn btn-primary" type="submit">Schedule and send invite</button></div>
               </div>)}
@@ -486,7 +486,7 @@ export default async function AdminLead({ params, searchParams }: { params: Prom
                   )}
                   {meetings.filter((g) => g.status === "booked" && new Date(g.starts_at) > new Date(Date.now() - 3600_000)).map((g) => (
                     <div key={g.id} className="accept-lead" style={{ marginTop: 4 }}>
-                      <span className="fine"><strong>Booked:</strong> {fmtWhen(g.starts_at)} with {g.host_name}. <a href={g.room_url} target="_blank" rel="noreferrer">Join video meeting</a></span>
+                      <span className="fine"><strong>Booked:</strong> {fmtWhen(g.starts_at)} with {g.host_name}. {g.room_url && <a href={g.room_url} target="_blank" rel="noreferrer">Join Teams meeting</a>}</span>
                       {post("meeting-cancel", <><input type="hidden" name="meeting" value={g.id} /><button className="linkish" type="submit">Cancel</button></>)}
                     </div>
                   ))}

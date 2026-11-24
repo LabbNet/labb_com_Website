@@ -190,7 +190,7 @@ export default async function Record({ params, searchParams }: { params: Promise
                         <strong>{fmtWhen(nextMeeting.starts_at)}</strong>
                         <span className="fine"> with {nextMeeting.host}</span>
                       </div>
-                      <a className="btn btn-outline-dark tl-pin-btn" href={nextMeeting.room_url} target="_blank" rel="noreferrer">Join</a>
+                      {nextMeeting.room_url && <a className="btn btn-outline-dark tl-pin-btn" href={nextMeeting.room_url} target="_blank" rel="noreferrer">Join</a>}
                     </div>
                   )}
                   {openTasks.map((t) => {
