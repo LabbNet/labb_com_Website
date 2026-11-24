@@ -329,3 +329,63 @@ export function leadFromRow(r: LeadRow): Lead {
     details: (d.details as Record<string, string>) || undefined, submittedAt: new Date(r.created_at).toISOString(),
   };
 }
+
+// ---- Duplicates and merging ----
+// Other leads from the same person: same email (any case), or same phone digits when both have a phone.
+export async function duplicateLeads(lead: LeadRow) {
+  const digits = (lead.phone || "").replace(/\D/g, "").slice(-10);
+  return sql()<(LeadRow & { events: number })[]>`
+    select l.*, (select count(*)::int from lead_events e where e.lead_id = l.id) as events
+    from leads l
+    where l.id <> ${lead.id}
+      and (lower(l.email) = ${lead.email.toLowerCase()}
+        or (${digits.length === 10} and right(regexp_replace(coalesce(l.phone, ''), '\\D', '', 'g'), 10) = ${digits}))
+    order by l.created_at`;
+}
+
+const STATUS_RANK: Record<string, number> = { new: 0, contacted: 1, qualified: 2, won: 3, lost: -1 };
+
+// Fold duplicate leads into one record. History, meetings, quotes, guidebook emails and website visits move
+// to the primary; empty fields on the primary are filled from the duplicates; the duplicates are deleted.
+export async function mergeLeads(primaryId: string, dupIds: string[], actor: { id: string; name: string }) {
+  const db = sql();
+  return db.begin(async (tx) => {
+    const [primary] = await tx<LeadRow[]>`select * from leads where id = ${primaryId} for update`;
+    if (!primary) throw new Error("Lead not found.");
+    const dups = await tx<LeadRow[]>`select * from leads where id = any(${dupIds}) and id <> ${primaryId} order by created_at for update`;
+    if (!dups.length) throw new Error("Choose at least one lead to merge.");
+    const otherPartner = dups.find((d) => d.owner === "partner" && d.partner_id && d.partner_id !== primary.partner_id);
+    if (otherPartner) throw new Error(`Lead #${otherPartner.id} is with a CPP member. Pass it back to Labb before merging.`);
+
+    const all = [primary, ...dups];
+    const pick = <K extends keyof LeadRow>(k: K) => (primary[k] ?? dups.map((d) => d[k]).find((v) => v !== null && v !== "")) ?? null;
+    const products = [...new Set(all.flatMap((l) => String(l.products || "").split(",").map((p) => p.trim()).filter(Boolean)))].join(", ") || null;
+    const messages = all.filter((l) => l.message?.trim()).map((l) => (l === primary ? l.message!.trim() : `[${new Date(l.created_at).toLocaleDateString("en-US", { timeZone: "America/New_York" })}, ${l.type}] ${l.message!.trim()}`));
+    const status = all.filter((l) => l.status !== "lost").sort((a, b) => STATUS_RANK[b.status] - STATUS_RANK[a.status])[0]?.status ?? primary.status;
+    const created = new Date(Math.min(...all.map((l) => new Date(l.created_at).getTime())));
+    const data = { ...Object.assign({}, ...dups.map((d) => d.data || {}).reverse()), ...(primary.data || {}) } as Record<string, unknown>;
+    data.details = { ...Object.assign({}, ...dups.map((d) => (d.data as Record<string, unknown>)?.details || {}).reverse()), ...((primary.data as Record<string, unknown>)?.details as object || {}) };
+    data.merged_from = [...((primary.data as { merged_from?: unknown[] })?.merged_from || []), ...dups.map((d) => ({ id: d.id, type: d.type, created_at: d.created_at, email: d.email }))];
+
+    await tx`update leads set
+      first_name = ${pick("first_name")}, last_name = ${pick("last_name")}, phone = ${pick("phone")}, company = ${pick("company")},
+      city = ${pick("city")}, state = ${pick("state")}, industry = ${pick("industry")}, volume = ${pick("volume")}, interest = ${pick("interest")},
+      products = ${products}, message = ${messages.join("\n\n") || null}, utm = ${pick("utm") as never},
+      accepted_at = ${pick("accepted_at" as keyof LeadRow) as never}, meeting_host = ${pick("meeting_host" as keyof LeadRow) as never},
+      status = ${status}, archived = false, data = ${tx.json(data as never)}, created_at = ${created}, updated_at = now()
+      where id = ${primaryId}`;
+    for (const t of ["lead_events", "lead_meetings", "member_quotes", "sequence_runs", "visitor_links"]) {
+      await tx`update ${tx(t)} set lead_id = ${primaryId} where lead_id = any(${dupIds})`;
+    }
+    // A duplicate's booking link keeps working by moving it to the primary when the primary has none.
+    const token = dups.find((d) => d.book_token)?.book_token;
+    if (!primary.book_token && token) {
+      await tx`update leads set book_token = null where id = any(${dupIds})`;
+      await tx`update leads set book_token = ${token} where id = ${primaryId}`;
+    }
+    await tx`delete from leads where id = any(${dupIds}) and id <> ${primaryId}`;
+    await tx`insert into lead_events (lead_id, actor_id, actor_name, event, detail) values (${primaryId}, ${actor.id}, ${actor.name}, 'merged',
+      ${`Merged ${dups.length === 1 ? "a duplicate submission" : `${dups.length} duplicate submissions`} into this record: ${dups.map((d) => `#${d.id} (${d.type}, ${new Date(d.created_at).toLocaleDateString("en-US", { timeZone: "America/New_York" })})`).join(", ")}`})`;
+    return dups.length;
+  });
+}

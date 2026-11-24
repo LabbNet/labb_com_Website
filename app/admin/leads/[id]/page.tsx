@@ -5,7 +5,7 @@ import { AdminBar, Flash } from "@/components/AdminBar";
 import { fmtDate, readFlash, requireAdmin } from "@/lib/admin";
 import { sql } from "@/lib/db";
 import { partnerOptions } from "@/lib/leadQuery";
-import { detailRows, leadName, type LeadRow } from "@/lib/leads";
+import { detailRows, duplicateLeads, leadName, type LeadRow } from "@/lib/leads";
 import { leadActivity } from "@/lib/analytics";
 import { runsForLeads, SEQUENCES, sequenceName, STEP_DAYS } from "@/lib/sequences";
 import { fmtWhen, meetingHosts } from "@/lib/meetings";
@@ -30,6 +30,7 @@ const EVENT_LABEL: Record<string, string> = {
   partner_emailed: "Partner emailed",
   sequence: "Guidebook emails",
   emailed: "Email sent",
+  merged: "Duplicates merged",
   accepted: "Lead accepted",
   prospect_emailed: "Prospect emailed",
   meeting: "Meeting",
@@ -57,6 +58,7 @@ export default async function AdminLead({ params }: { params: Promise<{ id: stri
       where g.lead_id = ${id} order by g.starts_at desc`,
   ]);
   const hostName = lead.meeting_host ? hosts.find((h) => h.id === lead.meeting_host)?.name : null;
+  const dups = await duplicateLeads(lead);
   const [views, [blocked]] = await Promise.all([
     leadActivity(String(lead.id), lead.email),
     db<{ n: number }[]>`select 1 as n from email_suppressions where lower(email) = ${lead.email.toLowerCase()} and audience = 'all' limit 1`,
@@ -129,6 +131,31 @@ export default async function AdminLead({ params }: { params: Promise<{ id: stri
             </div>
 
             <div className="lead-actions">
+              {dups.length > 0 && (
+                <div className="hero-card dup-card">
+                  {post("merge", <>
+                    <h3>{dups.length === 1 ? "1 other submission" : `${dups.length} other submissions`} from this person</h3>
+                    <p className="fine" style={{ margin: 0, textAlign: "left" }}>Same email{dups.some((d) => d.email.toLowerCase() !== lead.email.toLowerCase()) ? " or phone" : ""}. Merging keeps this lead and moves their history, meetings, quotes and website visits here. Blank fields here are filled from the others, messages are kept, and the others are removed.</p>
+                    <ul className="dup-list">
+                      {dups.map((d) => (
+                        <li key={d.id}>
+                          <label>
+                            <input type="checkbox" name="dup" value={d.id} defaultChecked={!(d.owner === "partner" && d.partner_id !== lead.partner_id)} disabled={d.owner === "partner" && d.partner_id !== lead.partner_id} />
+                            <span>
+                              <strong>#{d.id} · {d.type.replace(/-/g, " ")}</strong> · {fmtDate(d.created_at)} ET · {statusLabel(d.status as never)}{d.archived ? " · archived" : ""}
+                              {d.email.toLowerCase() !== lead.email.toLowerCase() && <><br /><span className="fine">{d.email} (matched by phone)</span></>}
+                              {d.owner === "partner" && d.partner_id !== lead.partner_id && <><br /><span className="fine" style={{ color: "#b42318" }}>With a CPP member. Pass it back to Labb to merge it.</span></>}
+                              {d.message && <><br /><span className="fine">&ldquo;{d.message.slice(0, 140)}{d.message.length > 140 ? "..." : ""}&rdquo;</span></>}
+                            </span>
+                          </label>
+                          <Link href={`/admin/leads/${d.id}`} className="fine">Open</Link>
+                        </li>
+                      ))}
+                    </ul>
+                    {dups.some((d) => !(d.owner === "partner" && d.partner_id !== lead.partner_id)) && <button className="btn btn-primary" type="submit">Merge into this lead</button>}
+                  </>)}
+                </div>
+              )}
               <div className="hero-card">
                 {post("email", <>
                   <h3><label htmlFor="l-subj">Send an email</label></h3>

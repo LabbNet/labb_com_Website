@@ -13,13 +13,18 @@ export const dynamic = "force-dynamic";
 export default async function AdminLeads({ searchParams }: { searchParams: Promise<LeadFilters> }) {
   await requireAdmin("/admin/leads");
   const f = await searchParams;
-  const [rows, partners, counts, flash] = await Promise.all([
+  const [allRows, partners, counts, flash, dupRows] = await Promise.all([
     findLeads(f),
     partnerOptions(),
     sql()<{ segment: string; n: number; fresh: number }[]>`
       select segment, count(*)::int as n, count(*) filter (where status = 'new')::int as fresh from leads where not archived group by segment`,
     readFlash(),
+    sql()<{ email: string; n: number }[]>`select lower(email) as email, count(*)::int as n from leads group by lower(email) having count(*) > 1`,
   ]);
+  // People who filled in a form more than once: flagged in the list and filterable, merged from the lead page.
+  const dupCount = new Map(dupRows.map((d) => [d.email, d.n]));
+  const showDups = (f as Record<string, string | undefined>).dups === "1";
+  const rows = showDups ? allRows.filter((l) => dupCount.has(l.email.toLowerCase())) : allRows;
   const bySeg = Object.fromEntries(counts.map((c) => [c.segment, c]));
   const total = counts.reduce((a, c) => a + c.n, 0);
   const qs = new URLSearchParams(Object.entries(f).filter(([, v]) => v) as [string, string][]).toString();
@@ -64,6 +69,7 @@ export default async function AdminLeads({ searchParams }: { searchParams: Promi
               <option value="yes">Archived</option>
               <option value="all">Open and archived</option>
             </select>
+            <label className="fine" style={{ display: "inline-flex", alignItems: "center", gap: 6 }}><input type="checkbox" name="dups" value="1" defaultChecked={showDups} /> Duplicates only{dupRows.length ? ` (${dupRows.length})` : ""}</label>
             <button className="btn btn-outline-dark" type="submit">Filter</button>
             <a className="btn btn-outline" href={`/api/admin/leads/export${qs ? `?${qs}` : ""}`}>Export CSV</a>
           </form>
@@ -85,6 +91,7 @@ export default async function AdminLeads({ searchParams }: { searchParams: Promi
                     <th scope="row">
                       <Link href={`/admin/leads/${l.id}`}>{leadName(l)}</Link>
                       {l.archived && <span className="tag plain" style={{ marginLeft: 8 }}>Archived</span>}
+                      {dupCount.has(l.email.toLowerCase()) && <span className="dup-badge" title="This person submitted more than once. Open the lead to merge.">{dupCount.get(l.email.toLowerCase())} submissions</span>}
                       <span className="sub">{[l.company, l.email, l.state].filter(Boolean).join(" · ")}</span>
                       {l.products && <span className="sub">Interested in: {l.products}</span>}
                     </th>

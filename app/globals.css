@@ -1938,3 +1938,12 @@ td.acts { white-space: nowrap; }
 .sl-legend .status { min-width: 140px; text-align: center; margin-right: 10px; }
 .sl-table a { color: var(--orange); font-weight: 600; }
 .sl-request .contract-list .status { margin-left: 6px; vertical-align: 1px; }
+
+/* Lead duplicates */
+.dup-card { border: 2px solid var(--orange); background: #fffaf6; }
+.dup-card h3 { margin: 0 0 4px; }
+.dup-list { list-style: none; margin: 10px 0 12px; padding: 0; display: grid; gap: 8px; text-align: left; }
+.dup-list li { display: flex; justify-content: space-between; gap: 10px; align-items: flex-start; padding: 10px 12px; background: #fff; border: 1px solid var(--border); border-radius: 10px; font-size: .9rem; }
+.dup-list label { display: flex; gap: 10px; align-items: flex-start; cursor: pointer; }
+.dup-list input { margin-top: 3px; accent-color: var(--orange); width: 18px; height: 18px; flex: none; }
+.dup-badge { display: inline-block; margin-left: 6px; padding: 1px 8px; border-radius: var(--radius-pill); background: var(--tint-20); color: #9a4b1c; font-size: .72rem; font-weight: 700; white-space: nowrap; }

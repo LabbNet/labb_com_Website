@@ -5,7 +5,7 @@ import { field, go } from "@/lib/http";
 import { esc, sendMail } from "@/lib/mail";
 import { linkToken, tagLinks } from "@/lib/visitors";
 import { emailBookingInvite, emailCancelled, newToken, testLead, testToken } from "@/lib/meetings";
-import { emailPartner, logLeadEvent, type LeadRow } from "@/lib/leads";
+import { emailPartner, logLeadEvent, mergeLeads, type LeadRow } from "@/lib/leads";
 import { isSegment, isStatus, segmentLabel, statusLabel } from "@/lib/segments";
 import { sequenceName, startSequence, stopSequence } from "@/lib/sequences";
 
@@ -155,6 +155,14 @@ export async function POST(req: Request) {
       await emailCancelled(lead, mt, { name: mt.host_name, email: mt.host_email }, false, lead.book_token || null);
       await logLeadEvent(id, "meeting", `Meeting cancelled by Labb; ${lead.email} was emailed${lead.book_token ? " a link to pick a new time" : ""}`, actor);
       await flash("Meeting cancelled and the prospect was emailed.");
+    }
+  } else if (action === "merge") {
+    const ids = fd.getAll("dup").map(String).filter((x) => /^\d+$/.test(x) && x !== id).slice(0, 50);
+    try {
+      const n = await mergeLeads(id, ids, actor);
+      await flash(`Merged ${n} ${n === 1 ? "submission" : "submissions"} into this lead. Their history, meetings and website visits are here now.`);
+    } catch (e) {
+      await flash(e instanceof Error ? e.message : "The merge didn't go through.", "error");
     }
   } else if (action === "archive" || action === "unarchive") {
     const archived = action === "archive";
