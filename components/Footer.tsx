@@ -53,6 +53,7 @@ export function Footer() {
         <div>
           <h2>Resources</h2>
           <ul>
+            <li><Link href="/ask">Ask an Expert</Link></li>
             <li><Link href="/certifications">Get certified</Link></li>
             <li><Link href="/training">Training and guidebooks</Link></li>
             <li><Link href="/drugs">Drug profiles</Link></li>

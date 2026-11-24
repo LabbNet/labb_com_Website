@@ -17,6 +17,7 @@ const SECTIONS = [
   {
     label: "Content",
     links: [
+      { href: "/admin/ask", label: "Ask an Expert" },
       { href: "/admin/articles", label: "Articles" },
       { href: "/admin/email", label: "Email" },
       { href: "/admin/sequences", label: "Sequences" },

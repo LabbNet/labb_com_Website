@@ -5,11 +5,14 @@ import { industries } from "@/lib/industries";
 import { publishedKits } from "@/lib/kits";
 import { resources } from "@/lib/resources";
 import { absoluteUrl } from "@/lib/site";
+import { sql } from "@/lib/db";
 
 export const dynamic = "force-dynamic";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const articles = await listArticles();
+  const answers = await sql()<{ slug: string; updated_at: Date }[]>`
+    select slug, updated_at from ask_questions where status = 'approved' and published and slug is not null order by updated_at desc limit 5000`.catch(() => []);
   const now = new Date();
   const page = (path: string, priority: number, changeFrequency: "weekly" | "monthly" | "yearly" = "monthly") => ({
     url: absoluteUrl(path),
@@ -19,6 +22,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   });
   return [
     page("/", 1, "weekly"),
+    page("/ask", 0.8, "weekly"),
+    ...answers.map((a) => ({ url: absoluteUrl(`/ask/${a.slug}`), lastModified: new Date(a.updated_at), changeFrequency: "monthly" as const, priority: 0.6 })),
     page("/platforms", 0.9),
     page("/labb-station", 0.9),
     page("/labbhr", 0.9),

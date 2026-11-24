@@ -3,6 +3,9 @@
 // can't send duplicates.
 export async function register() {
   if (process.env.NEXT_RUNTIME !== "nodejs" || !process.env.DATABASE_URL) return;
+  // Ask an Expert knowledge base: load guidebook passages, kits and drug profiles when they change.
+  const { syncKb } = await import("@/lib/kb");
+  setTimeout(() => syncKb(), 5_000);
   const { runReadsJobs } = await import("@/lib/readsNotify");
   setTimeout(() => runReadsJobs(), 15_000);
   setInterval(() => runReadsJobs(), 60_000);
