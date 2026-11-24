@@ -67,6 +67,8 @@ export const stationVsHr: { group: string; rows: { feature: string; station: Cel
       { feature: "Flex Testing: custom rapid and lab panels from one kit", station: true, hr: true },
       { feature: "Lab ordering and one-button send to lab", station: true, hr: true },
       { feature: "Electronic chain of custody (eCCF) for rapid and non-regulated lab tests", station: true, hr: true },
+      { feature: "Electronic chain of custody (eCCF) for regulated testing", station: "Coming 2027", hr: "Coming 2027" },
+      { feature: "Background screening", station: "Coming 2027", hr: "Coming 2027" },
     ],
   },
   {
@@ -76,7 +78,6 @@ export const stationVsHr: { group: string; rows: { feature: string; station: Cel
       { feature: "Marketing tools", station: false, hr: true },
       { feature: "Contracting", station: false, hr: true },
       { feature: "Accounting", station: false, hr: true },
-      { feature: "Background checks in the same platform", station: false, hr: true },
     ],
   },
   {

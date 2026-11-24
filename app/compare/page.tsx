@@ -87,6 +87,7 @@ export default function Compare() {
               </tbody>
             </table>
           </div>
+          <p className="fine" style={{ marginTop: 14, textAlign: "left" }}>Coming in 2027 to both Labb Station and LabbHR: eCCF for regulated testing and background screening.</p>
           <p style={{ marginTop: 18 }}><Link href="/find-your-platform" className="btn btn-primary">Check the features you need and get a quote</Link></p>
           <p className="fine" style={{ marginTop: 14 }}>Running a corrections department? See <Link href="/labbpo">LabbPO</Link>.</p>
         </div>
