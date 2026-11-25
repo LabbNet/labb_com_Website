@@ -18,16 +18,19 @@ export const QUOTE_KINDS = [
 export type QuoteKind = (typeof QUOTE_KINDS)[number]["value"];
 export const isQuoteKind = (v: unknown): v is QuoteKind => QUOTE_KINDS.some((k) => k.value === v);
 
+// Labb quote pricing has two tiers by monthly kit volume. Reps adjust individual lines when needed.
+// (CPP prices are CPP members' cost and are never used for Labb quotes.)
 export const PRICE_LEVELS = [
-  { value: "sl1", label: "SL1 (CPP level 1 price)" },
-  { value: "sl3", label: "SL3 (CPP level 3 price)" },
-  { value: "msrp1", label: "MSRP, level 1" },
-  { value: "msrp3", label: "MSRP, level 3" },
-  { value: "online", label: "Online price" },
+  { value: "under100", label: "Under 100 kits per month" },
+  { value: "over100", label: "100+ kits per month" },
 ] as const;
 export type PriceLevel = (typeof PRICE_LEVELS)[number]["value"];
 export const isPriceLevel = (v: unknown): v is PriceLevel => PRICE_LEVELS.some((k) => k.value === v);
-export const defaultLevel = (k: QuoteKind): PriceLevel => (k === "clinic" ? "sl1" : "msrp1");
+export const defaultLevel = (_k: QuoteKind): PriceLevel => "under100";
+export const QUOTE_PRICE_CATEGORIES = [
+  { value: "saas", label: "Software" }, { value: "services", label: "Setup and services" }, { value: "readers", label: "Readers and systems" },
+  { value: "stands", label: "Stands and accessories" }, { value: "rapid-kits", label: "Rapid test kits" }, { value: "lab-mro", label: "Lab tests and MRO (billed as used)" },
+] as const;
 
 export const QUOTE_STATUS: Record<string, string> = {
   draft: "Draft", sent: "Sent", viewed: "Opened", signed: "Signed, awaiting payment", paid: "Accepted and paid", declined: "Declined", expired: "Expired",
@@ -44,29 +47,28 @@ export type QuoteItem = {
   id: string; quote_id: string; price_item_id: string | null; name: string; sku: string | null; category: string | null; description: string | null; unit: string | null;
   unit_cents: number; qty: number; min_qty: number; adjustable: boolean; billing: "once" | "monthly" | "invoiced"; sort: number;
 };
-type PriceRow = { id: string; category: string; name: string; sku: string | null; description: string | null; unit: string | null; sl1_cents: number | null; sl1_msrp_cents: number | null; sl3_cents: number | null; sl3_msrp_cents: number | null; online_cents: number | null; member_cents: number | null; employer_cents: number | null; sort: number };
+export type PriceRow = { id: string; category: string; name: string; sku: string | null; description: string | null; unit: string | null; under100_cents: number | null; over100_cents: number | null; sort: number; active: boolean };
 
 export const money = (c: number) => (c / 100).toLocaleString("en-US", { style: "currency", currency: "USD", minimumFractionDigits: 2 });
 export const quoteUrl = (token: string) => absoluteUrl(`/quote/${token}`);
 export const quoteNumber = (q: { id: string | number; created_at: Date }) => `Q-${new Date(q.created_at).getFullYear()}-${String(q.id).padStart(4, "0")}`;
 const fmtDay = (d: Date | string) => new Date(d).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric", timeZone: "UTC" });
 
-export function priceFor(p: PriceRow, level: PriceLevel) {
-  const pick = { sl1: p.sl1_cents, sl3: p.sl3_cents, msrp1: p.sl1_msrp_cents, msrp3: p.sl3_msrp_cents, online: p.online_cents }[level];
-  return pick ?? p.sl1_msrp_cents ?? p.online_cents ?? p.employer_cents ?? p.sl1_cents ?? p.member_cents ?? 0;
+export function priceFor(p: Pick<PriceRow, "under100_cents" | "over100_cents">, level: PriceLevel) {
+  return (level === "over100" ? p.over100_cents ?? p.under100_cents : p.under100_cents ?? p.over100_cents) ?? 0;
 }
 export const billingFor = (category: string | null): QuoteItem["billing"] => (category === "saas" ? "monthly" : category === "lab-mro" ? "invoiced" : "once");
 
 // Starting line items for each kind of quote, from the active price list (quantities start at 0 for the rep to set).
 async function starterItems(kind: QuoteKind) {
   if (kind === "custom") return [];
-  const rows = await sql()<PriceRow[]>`select * from cpp_price_items where active order by sort, name`;
+  const rows = await sql()<PriceRow[]>`select * from quote_price_items where active order by sort, name`;
   const want = (p: PriceRow) => {
     const n = `${p.name} ${p.sku || ""}`.toLowerCase();
-    if (kind === "clinic") return p.category === "readers" || p.category === "stands" || p.category === "rapid-kits" || p.category === "lab-mro" || (p.category === "saas" && !/labbhr|labbpo|labbmd/.test(n));
-    return p.category === "rapid-kits" || p.category === "lab-mro" || (p.category === "saas" && /labbhr/.test(n));
+    if (kind === "clinic") return p.category !== "saas" || !/labbhr|labbpo|labbmd/.test(n);
+    return p.category === "rapid-kits" || p.category === "lab-mro" || p.category === "services" || (p.category === "saas" && /labbhr/.test(n));
   };
-  const catOrder: Record<string, number> = { saas: 1, readers: 2, stands: 3, "rapid-kits": 4, "lab-mro": 5 };
+  const catOrder: Record<string, number> = { saas: 1, services: 2, readers: 3, stands: 4, "rapid-kits": 5, "lab-mro": 6 };
   return rows.filter(want).sort((a, b) => (catOrder[a.category] ?? 9) - (catOrder[b.category] ?? 9) || a.sort - b.sort).map((p, i) => ({ p, sort: i * 10 }));
 }
 
@@ -200,7 +202,7 @@ function invoicedTable(items: QuoteItem[]) {
     `<tr><td><strong>${esc(i.name)}</strong>${i.description ? `<br><span class="muted">${esc(i.description)}</span>` : ""}</td><td class="num">${money(i.unit_cents)}${i.unit ? ` per ${esc(i.unit.replace(/^per\s+/i, ""))}` : ""}</td></tr>`).join("")}</tbody></table>`;
 }
 
-const CAT_LABEL: Record<string, string> = { saas: "Software", readers: "Hardware", stands: "Hardware", "rapid-kits": "Rapid tests", "lab-mro": "Laboratory testing and MRO" };
+const CAT_LABEL: Record<string, string> = { saas: "Software", services: "Setup and services", readers: "Hardware", stands: "Hardware", "rapid-kits": "Rapid tests", "lab-mro": "Laboratory testing and MRO" };
 // Detailed table with the same columns as the Labb Station proposal (class="price", section rows by category).
 function priceTable(items: QuoteItem[], empty: string) {
   if (!items.length) return `<p class="muted note">${esc(empty)}</p>`;
@@ -211,8 +213,8 @@ function priceTable(items: QuoteItem[], empty: string) {
     const unit = i.unit ? i.unit.replace(/^per\s+/i, "") : "";
     const billing = i.billing === "monthly" ? `Monthly${unit ? `, per ${esc(unit)}` : ""}` : i.billing === "invoiced" ? `Per ${esc(unit || "test")}, billed as used` : `One time${unit ? `, per ${esc(unit)}` : ""}`;
     return `${head}<tr><td><span class="sku">${esc(i.name)}</span>${i.description ? `<br><span class="desc">${esc(i.description)}</span>` : ""}</td><td>${billing}</td>
-      <td class="num">${i.billing === "invoiced" ? "" : i.qty.toLocaleString()}</td><td class="num">${i.unit_cents ? money(i.unit_cents) : "Contact Labb sales"}${i.billing === "monthly" ? "/mo" : ""}</td>
-      <td class="num">${i.billing === "invoiced" ? "As used" : `${money(i.unit_cents * i.qty)}${i.billing === "monthly" ? "/mo" : ""}`}</td></tr>`;
+      <td class="num">${i.billing === "invoiced" ? "" : i.qty ? i.qty.toLocaleString() : "Optional"}</td><td class="num">${i.unit_cents ? `${money(i.unit_cents)}${i.billing === "monthly" ? "/mo" : ""}` : i.billing === "invoiced" ? "Contact Labb sales" : "Included"}</td>
+      <td class="num">${i.billing === "invoiced" ? "As used" : !i.qty ? "" : i.unit_cents ? `${money(i.unit_cents * i.qty)}${i.billing === "monthly" ? "/mo" : ""}` : "Included"}</td></tr>`;
   }).join("");
   return `<table class="price"><thead><tr><th style="width:40%">Item</th><th>Billing</th><th class="num">Qty</th><th class="num">Unit price</th><th class="num">Amount</th></tr></thead><tbody>${rows}</tbody></table>`;
 }
@@ -235,9 +237,9 @@ export function renderQuote(q: SalesQuote, items: QuoteItem[], lead: LeadRow, re
     "{{one_time_total}}": money(t.once), "{{monthly_total}}": money(t.monthly), "{{due_today}}": money(t.dueToday),
     "{{client_phone}}": esc(lead.phone || ""),
     "{{locations}}": String(items.filter((i) => i.billing === "monthly" && i.qty > 0).reduce((m, i) => Math.max(m, i.qty), 0) || ""),
-    "{{price_table}}": priceTable(items.filter((i) => i.billing !== "invoiced" && i.qty > 0), "No items yet."),
-    "{{price_table_software}}": priceTable(items.filter((i) => i.billing !== "invoiced" && i.qty > 0 && i.category !== "rapid-kits"), "No software or hardware in this quote."),
-    "{{price_table_kits}}": priceTable(items.filter((i) => i.billing !== "invoiced" && i.qty > 0 && i.category === "rapid-kits"), "No rapid tests in this quote yet. Add them below."),
+    "{{price_table}}": priceTable(items.filter((i) => i.billing !== "invoiced" && (i.qty > 0 || i.adjustable)), "No items yet."),
+    "{{price_table_software}}": priceTable(items.filter((i) => i.billing !== "invoiced" && (i.qty > 0 || i.adjustable) && i.category !== "rapid-kits"), "No software or hardware in this quote."),
+    "{{price_table_kits}}": priceTable(items.filter((i) => i.billing !== "invoiced" && (i.qty > 0 || i.adjustable) && i.category === "rapid-kits"), "No rapid tests in this quote yet."),
     "{{lab_table}}": priceTable(items.filter((i) => i.billing === "invoiced"), "No lab services in this quote."),
     "{{signature_block}}": signature(q, false), "{{client_signature}}": signature(q, true),
     "{{effective_date}}": q.signed_at ? fmtSigned(q.signed_at) : "Date of acceptance",
@@ -284,7 +286,7 @@ export async function createQuote(lead: LeadRow, kind: QuoteKind, templateId: st
       values (${lead.id}, ${kind}, ${title}, ${t?.id ?? null}, ${html}, ${level}, ${by.id}, ${by.id}, ${randomBytes(24).toString("base64url")}) returning id::text`;
     for (const { p, sort } of starters) {
       await tx`insert into sales_quote_items (quote_id, price_item_id, name, sku, category, description, unit, unit_cents, qty, min_qty, adjustable, billing, sort)
-        values (${q.id}, ${p.id}, ${p.name}, ${p.sku}, ${p.category}, ${p.description}, ${p.unit}, ${priceFor(p, level)}, 0, 0, ${p.category !== "lab-mro"}, ${billingFor(p.category)}, ${sort})`;
+        values (${q.id}, ${p.id}, ${p.name}, ${p.sku}, ${p.category}, ${p.description}, ${p.unit}, ${priceFor(p, level)}, ${p.category === "services" ? 1 : 0}, 0, ${p.category !== "lab-mro" && p.category !== "services"}, ${billingFor(p.category)}, ${sort})`;
     }
     return q.id;
   });

@@ -4,11 +4,10 @@ import type { Metadata } from "next";
 import { AdminBar, Flash } from "@/components/AdminBar";
 import { CopyLink } from "@/components/CopyLink";
 import { fmtDate, readFlash, requireAdmin } from "@/lib/admin";
-import { PRICE_CATEGORIES } from "@/lib/cppPricing";
 import { sql } from "@/lib/db";
 import { leadName, type LeadRow } from "@/lib/leads";
 import {
-  aiReady, BILLING_LABEL, getQuote, money, PRICE_LEVELS, QUOTE_KINDS, QUOTE_STATUS, quoteNumber, quoteUrl, repFor, totals,
+  aiReady, BILLING_LABEL, getQuote, money, PRICE_LEVELS, QUOTE_KINDS, QUOTE_PRICE_CATEGORIES, QUOTE_STATUS, quoteNumber, quoteUrl, repFor, totals,
 } from "@/lib/salesQuotes";
 
 export const metadata: Metadata = { title: "Quote", robots: { index: false, follow: false } };
@@ -27,7 +26,7 @@ export default async function QuoteEditor({ params }: { params: Promise<{ id: st
     repFor(q),
     readFlash(),
     db<{ id: string; name: string }[]>`select id, name from members where role = 'admin' and status <> 'disabled' order by name`,
-    db<{ id: string; category: string; name: string; sku: string | null }[]>`select id, category, name, sku from cpp_price_items where active order by sort, name`,
+    db<{ id: string; category: string; name: string; sku: string | null }[]>`select id, category, name, sku from quote_price_items where active order by sort, name`,
     db<{ id: string; name: string }[]>`select id::text, name from quote_templates where active order by name`,
     db<{ id: string; summary: string | null; prompt: string | null; created_at: Date; by: string | null }[]>`
       select v.id::text, v.summary, v.prompt, v.created_at, m.name as by from sales_quote_versions v left join members m on m.id = v.created_by
@@ -44,7 +43,7 @@ export default async function QuoteEditor({ params }: { params: Promise<{ id: st
       {children}
     </form>
   );
-  const catLabel = (c: string | null) => PRICE_CATEGORIES.find((x) => x.value === c)?.label ?? "Other";
+  const catLabel = (c: string | null) => QUOTE_PRICE_CATEGORIES.find((x) => x.value === c)?.label ?? "Other";
 
   return (
     <>
@@ -94,12 +93,12 @@ export default async function QuoteEditor({ params }: { params: Promise<{ id: st
               )}
               {!locked && (
                 <div className="hero-card">
-                  <h3>Prices</h3>
+                  <h3>Pricing tier</h3>
                   {act("level", <>
-                    <label className="sr-only" htmlFor="q-level">Price level</label>
+                    <label className="sr-only" htmlFor="q-level">Pricing tier</label>
                     <select id="q-level" name="level" defaultValue={q.price_level}>{PRICE_LEVELS.map((l) => <option key={l.value} value={l.value}>{l.label}</option>)}</select>
-                    <button className="btn btn-outline-dark btn-sm" type="submit">Reset prices to this level</button>
-                    <p className="fine" style={{ textAlign: "left", margin: 0 }}>Resets price-list items. Custom items keep their prices.</p>
+                    <button className="btn btn-outline-dark btn-sm" type="submit">Apply tier prices</button>
+                    <p className="fine" style={{ textAlign: "left", margin: 0 }}>Sets every price-list line to this tier. To go off-tier, change the line&apos;s price in Line items. <Link href="/admin/sales-quotes/prices">Quote prices</Link></p>
                   </>)}
                 </div>
               )}
@@ -179,7 +178,7 @@ export default async function QuoteEditor({ params }: { params: Promise<{ id: st
                   {act("add-item", <div className="qb-add">
                     <select name="price_item" aria-label="Product from the price list" defaultValue="">
                       <option value="">Custom item (enter below)</option>
-                      {PRICE_CATEGORIES.map((c) => (
+                      {QUOTE_PRICE_CATEGORIES.map((c) => (
                         <optgroup key={c.value} label={c.label}>
                           {catalog.filter((p) => p.category === c.value).map((p) => <option key={p.id} value={p.id}>{p.name}{p.sku ? ` (${p.sku})` : ""}</option>)}
                         </optgroup>

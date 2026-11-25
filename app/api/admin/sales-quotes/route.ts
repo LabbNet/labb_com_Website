@@ -2,6 +2,7 @@ import { currentMember, sameOrigin } from "@/lib/auth";
 import { setFlash } from "@/lib/admin";
 import { sql } from "@/lib/db";
 import { field, go } from "@/lib/http";
+import type { PriceRow } from "@/lib/salesQuotes";
 import { logLeadEvent, type LeadRow } from "@/lib/leads";
 import {
   aiEdit, billingFor, cleanHtml, createQuote, extractImages, getQuote, isPriceLevel, isQuoteKind, priceFor, quoteNumber, restoreVersion, sendQuote, snapshot,
@@ -18,6 +19,33 @@ export async function POST(req: Request) {
   const by = { id: me.id, name: me.name };
   const db = sql();
   if (!(await sameOrigin())) return go(req, "/admin/sales-quotes");
+
+  // ---- Quote price list (two tiers) ----
+  if (action.startsWith("price-")) {
+    const back = "/admin/sales-quotes/prices";
+    const cents = (v: string) => { const t = v.replace(/[^0-9.]/g, ""); if (!t) return null; const n = Math.round(Number(t) * 100); return Number.isFinite(n) && n >= 0 ? n : null; };
+    const cats = ["saas", "services", "readers", "stands", "rapid-kits", "lab-mro"];
+    if (action === "price-save") {
+      const ids = fd.getAll("ids").map(String).filter((x) => /^\d+$/.test(x));
+      for (const id of ids) {
+        const g = (k: string) => String(fd.get(`${k}_${id}`) ?? "");
+        if (!g("name").trim()) continue;
+        await db`update quote_price_items set name = ${g("name").trim().slice(0, 200)}, sku = ${g("sku").trim().slice(0, 60) || null}, description = ${g("desc").trim().slice(0, 500) || null},
+          unit = ${g("unit").trim().slice(0, 40) || null}, under100_cents = ${cents(g("u100"))}, over100_cents = ${cents(g("o100"))},
+          category = ${cats.includes(g("cat")) ? g("cat") : "services"}, active = ${g("active") === "1"}, updated_at = now(), updated_by = ${me.id} where id = ${id}`;
+      }
+      await flash("Quote prices saved. New quotes use them; quotes already started keep their prices until you reapply a tier.");
+    } else if (action === "price-add") {
+      const name = field(fd, "name", 200);
+      const cat = field(fd, "cat", 20);
+      if (!name || !cats.includes(cat)) { await flash("Enter a name and choose a category.", "error"); return go(req, back); }
+      await db`insert into quote_price_items (category, name, sku, description, unit, under100_cents, over100_cents, sort, updated_by)
+        values (${cat}, ${name}, ${field(fd, "sku", 60) || null}, ${field(fd, "desc", 500) || null}, ${field(fd, "unit", 40) || null}, ${cents(field(fd, "u100", 20))}, ${cents(field(fd, "o100", 20))},
+          ${(await db<{ n: number }[]>`select coalesce(max(sort), 0)::int + 10 as n from quote_price_items`)[0].n}, ${me.id})`;
+      await flash(`Added ${name}.`);
+    }
+    return go(req, back);
+  }
 
   // ---- Templates ----
   if (action.startsWith("template-")) {
@@ -102,9 +130,9 @@ export async function POST(req: Request) {
     const pid = field(fd, "price_item", 20).replace(/\D/g, "");
     const sort = Math.max(0, ...items.map((i) => i.sort)) + 10;
     if (pid) {
-      const [p] = await db`select * from cpp_price_items where id = ${pid}`;
+      const [p] = await db<PriceRow[]>`select * from quote_price_items where id = ${pid}`;
       if (p) await db`insert into sales_quote_items (quote_id, price_item_id, name, sku, category, description, unit, unit_cents, qty, adjustable, billing, sort)
-        values (${q.id}, ${p.id}, ${p.name}, ${p.sku}, ${p.category}, ${p.description}, ${p.unit}, ${priceFor(p as never, q.price_level)}, ${p.category === "lab-mro" ? 0 : 1}, ${p.category !== "lab-mro"}, ${billingFor(p.category)}, ${sort})`;
+        values (${q.id}, ${p.id}, ${p.name}, ${p.sku}, ${p.category}, ${p.description}, ${p.unit}, ${priceFor(p, isPriceLevel(q.price_level) ? q.price_level : "under100")}, ${p.category === "lab-mro" ? 0 : 1}, ${p.category !== "lab-mro" && p.category !== "services"}, ${billingFor(p.category)}, ${sort})`;
     } else {
       const name = field(fd, "custom_name", 200);
       const cents = Math.round(Number(field(fd, "custom_price", 20).replace(/[^0-9.]/g, "")) * 100);
@@ -117,11 +145,12 @@ export async function POST(req: Request) {
   } else if (action === "level") {
     const level = field(fd, "level", 10);
     if (isPriceLevel(level)) {
-      await snapshot(String(q.id), me.id, null, "Before changing price level");
-      const rows = await db`select i.id, p.* from sales_quote_items i join cpp_price_items p on p.id = i.price_item_id where i.quote_id = ${q.id}`;
-      for (const r of rows) await db`update sales_quote_items set unit_cents = ${priceFor(r as never, level)} where id = ${r.id}`;
+      await snapshot(String(q.id), me.id, null, "Before changing the pricing tier");
+      const rows = await db<{ line: string; under100_cents: number | null; over100_cents: number | null }[]>`select i.id::text as line, p.under100_cents, p.over100_cents from sales_quote_items i join quote_price_items p on p.id = i.price_item_id where i.quote_id = ${q.id}`;
+      for (const r of rows) await db`update sales_quote_items set unit_cents = ${priceFor(r, level)} where id = ${r.line}`;
       await db`update sales_quotes set price_level = ${level}, updated_at = now() where id = ${q.id}`;
-      await flash("Prices reset to the chosen price level.");
+      await snapshot(String(q.id), me.id, null, `Pricing tier: ${level === "over100" ? "100+ kits per month" : "under 100 kits per month"}`);
+      await flash(`Prices set to the ${level === "over100" ? "100+ kits per month" : "under 100 kits per month"} tier. Custom lines and lines you priced by hand from other items keep their prices.`);
     }
   } else if (action === "html") {
     await snapshot(String(q.id), me.id, null, "Before HTML edit");

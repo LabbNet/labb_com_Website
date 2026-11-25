@@ -2304,3 +2304,8 @@ td.acts { white-space: nowrap; }
 .qb-view { display: block; text-align: center; margin-top: 10px; background: #CF743C; border-color: #CF743C; }
 .qb-send > a.btn { display: block; text-align: center; }
 .qb-view { padding: 10px 16px; line-height: 1.3; color: #fff !important; }
+.qpl td:first-child { min-width: 280px; }
+.qpl-money { display: inline-flex; align-items: center; gap: 4px; }
+.qpl-add { display: grid; grid-template-columns: 2fr 1.3fr 1fr 1.2fr 1fr 1fr; gap: 8px; }
+.qpl-wide { grid-column: 1 / 6; }
+@media (max-width: 900px) { .qpl-add { grid-template-columns: 1fr; } .qpl-wide { grid-column: auto; } }

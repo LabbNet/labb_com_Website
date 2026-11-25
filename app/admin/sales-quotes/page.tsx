@@ -34,7 +34,7 @@ export default async function SalesQuotes({ searchParams }: { searchParams: Prom
           <Flash flash={flash} />
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", flexWrap: "wrap", gap: 12 }}>
             <h1 style={{ fontSize: "1.8rem", margin: 0 }}>Quotes</h1>
-            <Link href="/admin/sales-quotes/templates" className="btn btn-outline-dark btn-sm">Quote templates</Link>
+            <span style={{ display: "flex", gap: 8 }}><Link href="/admin/sales-quotes/prices" className="btn btn-outline-dark btn-sm">Quote prices</Link><Link href="/admin/sales-quotes/templates" className="btn btn-outline-dark btn-sm">Quote templates</Link></span>
           </div>
           <p style={{ marginTop: 6 }}>Start a quote from a lead&apos;s <strong>Quotes</strong> tab. Leads open it on labb.com, adjust quantities, sign and pay what&apos;s due today.</p>
           <div className="stats" style={{ margin: "16px 0" }}>
