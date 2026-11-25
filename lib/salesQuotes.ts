@@ -260,7 +260,7 @@ export async function getQuoteByToken(token: string) {
   const db = sql();
   const [q] = await db<SalesQuote[]>`select * from sales_quotes where token = ${token}`;
   if (!q) return null;
-  const items = await db<QuoteItem[]>`select * from sales_quote_items where quote_id = ${q.id} order by sort, id`;
+  const items = await db<(QuoteItem & { category: string | null })[]>`select i.*, p.category from sales_quote_items i left join quote_price_items p on p.id = i.price_item_id where i.quote_id = ${q.id} order by i.sort, i.id`;
   const [lead] = await db<LeadRow[]>`select * from leads where id = ${q.lead_id}`;
   const [rep] = q.rep_id ? await db<{ name: string; email: string; phone: string | null }[]>`select name, email, phone from members where id = ${q.rep_id}` : [];
   return lead ? { q, items, lead, rep: rep ?? null } : null;
