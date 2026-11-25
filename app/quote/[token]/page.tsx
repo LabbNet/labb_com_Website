@@ -14,7 +14,7 @@ export const dynamic = "force-dynamic";
 const day = (d: Date) => new Date(d).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric", timeZone: "UTC" });
 
 // A lead's quote: open it, adjust quantities, sign and pay what's due today.
-export default async function QuotePage({ params, searchParams }: { params: Promise<{ token: string }>; searchParams: Promise<{ open?: string; paid?: string; signed?: string; e?: string }> }) {
+export default async function QuotePage({ params, searchParams }: { params: Promise<{ token: string }>; searchParams: Promise<{ open?: string; paid?: string; signed?: string; e?: string; preview?: string }> }) {
   const { token } = await params;
   const sp = await searchParams;
   const data = await getQuoteByToken(token);
@@ -25,14 +25,17 @@ export default async function QuotePage({ params, searchParams }: { params: Prom
   if (q.status === "draft" && !staff) notFound();
   const expired = new Date(q.expires_on) < new Date(new Date().toISOString().slice(0, 10)) && !["signed", "paid"].includes(q.status);
   const t = totals(items);
-  const open = sp.open === "1" || sp.paid === "1" || sp.signed === "1" || q.status === "signed" || q.status === "paid";
-  const editable = ["sent", "viewed"].includes(q.status) && !expired;
+  // Rep preview: exactly what the lead sees after opening, with the order form and signing shown but switched off.
+  const preview = staff && sp.preview === "1" && !["signed", "paid"].includes(q.status);
+  const open = preview || sp.open === "1" || sp.paid === "1" || sp.signed === "1" || q.status === "signed" || q.status === "paid";
+  const editable = (preview || ["sent", "viewed"].includes(q.status)) && !expired;
   const who = lead.company || leadName(lead);
 
   return (
     <section className="section qp">
       <div className="wrap" style={{ maxWidth: 980 }}>
-        {staff && <p className="qp-staff">You&apos;re signed in as Labb staff. Opening this page doesn&apos;t count as the lead opening it.</p>}
+        {preview ? <p className="qp-staff qp-preview"><strong>Preview.</strong> This is exactly what {leadName(lead)} sees after opening the quote. You can try the quantity buttons; nothing is saved, and the signing button is switched off. Opening it here doesn&apos;t count as the lead opening it.</p>
+          : staff && <p className="qp-staff">You&apos;re signed in as Labb staff. Opening this page doesn&apos;t count as the lead opening it.</p>}
         {!open ? (
           <div className="hero-card qp-cover">
             <span className="lp-eyebrow">Quote {quoteNumber(q)}</span>
@@ -72,11 +75,11 @@ export default async function QuotePage({ params, searchParams }: { params: Prom
             <div className="hero-card qp-order">
               <h2>{editable ? "Review and adjust your order" : "Your order"}</h2>
               {editable && <p className="fine" style={{ textAlign: "left", marginTop: -6 }}>Change the number of test kits, readers or other items, then select Update my quote. Totals update as you go.</p>}
-              <QuoteOrder token={token} editable={editable} items={items.map((i) => ({ id: String(i.id), name: i.name, description: i.description, sku: i.sku, unit: i.unit, unit_cents: i.unit_cents, qty: i.qty, min_qty: i.min_qty, adjustable: i.adjustable, billing: i.billing }))} />
+              <QuoteOrder token={token} editable={editable} preview={preview} items={items.map((i) => ({ id: String(i.id), name: i.name, description: i.description, sku: i.sku, unit: i.unit, unit_cents: i.unit_cents, qty: i.qty, min_qty: i.min_qty, adjustable: i.adjustable, billing: i.billing }))} />
             </div>
 
             {editable && (
-              <form id="accept" action="/api/quote" method="post" className="hero-card qp-accept">
+              <form id="accept" action={preview ? undefined : "/api/quote"} method="post" className="hero-card qp-accept">
                 <h2>Accept and sign</h2>
                 <p>Sign to accept quote {quoteNumber(q)} for {who}. {t.dueToday > 0 ? <>You&apos;ll then pay <strong>{money(t.dueToday)}</strong>{stripeEnabled ? " by card or bank on a secure checkout page" : ""} to finalize your order.</> : null}</p>
                 {sp.e === "sign" && <p className="form-error">Type your full name and check both boxes to sign.</p>}
@@ -89,7 +92,7 @@ export default async function QuotePage({ params, searchParams }: { params: Prom
                 <div className="field"><label>Signature (draw with your mouse or finger)</label><SignaturePad /></div>
                 <label className="qp-check"><input type="checkbox" name="agree" value="1" required /> I accept this quote for {who} and confirm I&apos;m authorized to sign for it. Prices and quantities are as shown above{t.monthly > 0 ? "; software bills monthly after the first month" : ""}. Lab and MRO services are billed as used.</label>
                 <label className="qp-check"><input type="checkbox" name="esign" value="1" required /> I agree to sign electronically. My typed name and signature have the same effect as a handwritten signature.</label>
-                <button className="btn btn-primary" type="submit">{t.dueToday > 0 && stripeEnabled ? `Sign and continue to payment (${money(t.dueToday)})` : "Sign and accept"}</button>
+                <button className="btn btn-primary" type={preview ? "button" : "submit"} disabled={preview} title={preview ? "Switched off in preview" : undefined}>{t.dueToday > 0 && stripeEnabled ? `Sign and continue to payment (${money(t.dueToday)})` : "Sign and accept"}</button>
                 <p className="fine" style={{ textAlign: "left" }}>We record your name, the date and time, and your IP address with your signature. Questions first? Email {rep?.email || "info@labb.com"}{rep?.phone ? ` or call ${rep.phone}` : ""}.</p>
               </form>
             )}

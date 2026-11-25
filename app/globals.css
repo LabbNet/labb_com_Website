@@ -2309,3 +2309,4 @@ td.acts { white-space: nowrap; }
 .qpl-add { display: grid; grid-template-columns: 2fr 1.3fr 1fr 1.2fr 1fr 1fr; gap: 8px; }
 .qpl-wide { grid-column: 1 / 6; }
 @media (max-width: 900px) { .qpl-add { grid-template-columns: 1fr; } .qpl-wide { grid-column: auto; } }
+.qp-preview { background: #404951; color: #fff; padding: 10px 14px; }

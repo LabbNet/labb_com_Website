@@ -65,7 +65,7 @@ export default async function QuoteEditor({ params }: { params: Promise<{ id: st
             <div className="qb-due">
               <span>Due at acceptance</span><strong>{money(t.dueToday)}</strong>
               <em>{money(t.once)} one time{t.monthly ? ` + ${money(t.monthly)} first month of software` : ""}</em>
-              <a href={`/quote/${q.token}/print`} target="_blank" rel="noreferrer" className="btn btn-primary btn-sm qb-view">View quote</a>
+              <a href={`/quote/${q.token}?preview=1`} target="_blank" rel="noreferrer" className="btn btn-primary btn-sm qb-view">View quote</a>
               {q.status !== "draft" && <div style={{ marginTop: 8 }}><CopyLink url={quoteUrl(q.token)} label="Copy the lead's quote link" /></div>}
             </div>
           </header>
@@ -86,7 +86,7 @@ export default async function QuoteEditor({ params }: { params: Promise<{ id: st
                 <div className="hero-card qb-send">
                   <h3>{q.status === "draft" ? "Approve and send" : "Send again"}</h3>
                   <p className="fine" style={{ textAlign: "left", margin: 0 }}>{q.status === "draft" ? `Review it with View quote, then send. Emails ${lead.email} a link to this quote on labb.com, and you get an email each time they open it.` : `Emails ${lead.email} the link again with the current quote.`}</p>
-                  <a href={`/quote/${q.token}/print`} target="_blank" rel="noreferrer" className="btn btn-outline-dark">View quote</a>
+                  <a href={`/quote/${q.token}?preview=1`} target="_blank" rel="noreferrer" className="btn btn-outline-dark">View quote</a>
                   {act("send", <button className="btn btn-primary" type="submit">{q.status === "draft" ? "Approve and send" : "Send the link again"}</button>)}
                   {q.status !== "draft" && q.status !== "declined" && act("decline", <button className="linkish" type="submit">Mark as declined</button>)}
                 </div>
