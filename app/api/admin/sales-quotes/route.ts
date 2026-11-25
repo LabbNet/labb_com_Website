@@ -4,7 +4,7 @@ import { sql } from "@/lib/db";
 import { field, go } from "@/lib/http";
 import { logLeadEvent, type LeadRow } from "@/lib/leads";
 import {
-  aiEdit, billingFor, cleanHtml, createQuote, getQuote, isPriceLevel, isQuoteKind, priceFor, quoteNumber, restoreVersion, sendQuote, snapshot,
+  aiEdit, billingFor, cleanHtml, createQuote, extractImages, getQuote, isPriceLevel, isQuoteKind, priceFor, quoteNumber, restoreVersion, sendQuote, snapshot,
 } from "@/lib/salesQuotes";
 
 // Labb admin actions for sales quotes and quote templates.
@@ -29,14 +29,15 @@ export async function POST(req: Request) {
       const file = fd.get("file");
       let html = String(fd.get("html") ?? "");
       if (file && typeof file === "object" && "size" in file && file.size > 0) {
-        if (file.size > 400_000) { await flash("That file is too large (400 KB maximum).", "error"); return go(req, back); }
+        if (file.size > 9_000_000) { await flash("That file is too large (9 MB maximum).", "error"); return go(req, back); }
         html = await file.text();
       }
-      html = cleanHtml(html).trim();
+      const ex = await extractImages(html);
+      html = cleanHtml(ex.html).trim();
       if (html.length < 20) { await flash("Upload an .html file or paste the HTML.", "error"); return go(req, back); }
       if (tid) await db`update quote_templates set name = ${name}, kind = ${kind}, html = ${html}, notes = ${field(fd, "notes", 500) || null}, updated_at = now() where id = ${tid}`;
       else await db`insert into quote_templates (name, kind, html, notes, created_by) values (${name}, ${kind}, ${html}, ${field(fd, "notes", 500) || null}, ${me.id})`;
-      await flash(tid ? "Template saved." : "Template uploaded.");
+      await flash(`${tid ? "Template saved" : "Template uploaded"}${ex.images ? ` with ${ex.images} ${ex.images === 1 ? "image" : "images"}` : ""}.`);
     } else if (action === "template-toggle" && tid) {
       await db`update quote_templates set active = not active, updated_at = now() where id = ${tid}`;
       await flash("Template updated.");
@@ -124,7 +125,7 @@ export async function POST(req: Request) {
     }
   } else if (action === "html") {
     await snapshot(String(q.id), me.id, null, "Before HTML edit");
-    const html = cleanHtml(String(fd.get("html") ?? ""));
+    const html = cleanHtml((await extractImages(String(fd.get("html") ?? ""))).html);
     if (html.length < 20) { await flash("The HTML is empty.", "error"); return go(req, back); }
     await db`update sales_quotes set html = ${html}, updated_at = now() where id = ${q.id}`;
     await snapshot(String(q.id), me.id, null, "HTML edit");

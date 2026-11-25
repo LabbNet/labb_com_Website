@@ -209,7 +209,7 @@ export default async function QuoteEditor({ params }: { params: Promise<{ id: st
               )}
 
               <div className="hero-card">
-                <div className="lp-cardhead"><h2>What the lead sees</h2>{q.status !== "draft" && <a href={`/quote/${q.token}`} target="_blank" rel="noreferrer" className="fine">Open the lead&apos;s page ↗</a>}</div>
+                <div className="lp-cardhead"><h2>What the lead sees</h2><span className="fine"><a href={`/quote/${q.token}/print`} target="_blank" rel="noreferrer">Print or save as PDF ↗</a>{q.status !== "draft" && <> · <a href={`/quote/${q.token}`} target="_blank" rel="noreferrer">Open the lead&apos;s page ↗</a></>}</span></div>
                 <QuoteFrame html={html} title="Quote preview" />
               </div>
             </div>

@@ -25,7 +25,7 @@ const config: NextConfig = {
       // Only labb.com is indexed. The Render address (and any other host) tells search engines to stay
       // out, so the draft never competes with the real site and launch needs no setting change.
       { source: "/:path*", missing: [{ type: "host", value: "(www\\.)?labb\\.com" }], headers: [{ key: "X-Robots-Tag", value: "noindex, nofollow" }] },
-      ...["/kits/:path*", "/graphics/:path*", "/brand/:path*", "/img/:path*", "/news/:path*", "/data-sheets/:path*"].map((source) => ({ source, headers: cache })),
+      ...["/kits/:path*", "/quote-assets/:path*", "/graphics/:path*", "/brand/:path*", "/img/:path*", "/news/:path*", "/data-sheets/:path*"].map((source) => ({ source, headers: cache })),
     ];
   },
 };

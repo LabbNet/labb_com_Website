@@ -85,7 +85,13 @@ export const PLACEHOLDERS: [string, string][] = [
   ["{{client_name}}", "Lead's name"], ["{{client_company}}", "Organization"], ["{{client_email}}", "Lead's email"], ["{{client_location}}", "City and state"],
   ["{{quote_title}}", "Quote title"], ["{{quote_number}}", "Quote number, like Q-2026-0012"], ["{{quote_date}}", "Date sent"], ["{{expires_on}}", "Valid until"],
   ["{{rep_name}}", "Rep's name"], ["{{rep_email}}", "Rep's email"], ["{{rep_phone}}", "Rep's phone"],
-  ["{{items_table}}", "Table of products, readers, kits and SaaS with quantities and prices"], ["{{invoiced_table}}", "Lab and MRO services billed as used"],
+  ["{{client_phone}}", "Lead's phone"], ["{{locations}}", "Number of locations (from the software quantity)"],
+  ["{{items_table}}", "Simple table of everything ordered: software, readers, kits, with quantities and prices"], ["{{invoiced_table}}", "Simple table of lab and MRO services billed as used"],
+  ["{{price_table}}", "Detailed pricing table (class=\"price\") of everything ordered, grouped by category"],
+  ["{{price_table_software}}", "Detailed table: software, readers, stands and other items"], ["{{price_table_kits}}", "Detailed table: rapid test kits"],
+  ["{{lab_table}}", "Detailed table: lab and MRO services billed as used"],
+  ["{{signature_block}}", "The lead's e-signature, name, title and date once signed"], ["{{client_signature}}", "Same, laid out for an agreement's client signature column"],
+  ["{{effective_date}}", "Date the quote was signed (blank line until then)"],
   ["{{one_time_total}}", "One-time total"], ["{{monthly_total}}", "Monthly total"], ["{{due_today}}", "Due at acceptance"],
 ];
 
@@ -148,7 +154,26 @@ export function cleanHtml(html: string) {
     .replace(/<\/?(script|iframe|object|embed|form|input|button|textarea|select)\b[^>]*>/gi, "")
     .replace(/\son[a-z]+\s*=\s*("[^"]*"|'[^']*'|[^\s>]+)/gi, "")
     .replace(/(href|src|action|xlink:href)\s*=\s*("|')\s*(javascript|vbscript|data:text\/html)[^"']*\2/gi, '$1="#"')
-    .slice(0, 400_000);
+    .slice(0, 1_500_000);
+}
+
+// Images built into an uploaded template (data: URLs) are stored once and linked, so templates stay small.
+export async function extractImages(html: string) {
+  const db = sql();
+  const found = new Map<string, string>();
+  const re = /data:image\/(png|jpe?g|gif|webp|svg\+xml);base64,([A-Za-z0-9+/=\s]+)/g;
+  for (const m of html.matchAll(re)) {
+    if (found.has(m[0])) continue;
+    const buf = Buffer.from(m[2].replace(/\s/g, ""), "base64");
+    if (!buf.length || buf.length > 8_000_000) continue;
+    const ext = m[1] === "svg+xml" ? "svg" : m[1] === "jpeg" ? "jpg" : m[1];
+    const id = `${createHash("sha256").update(buf).digest("hex").slice(0, 24)}.${ext}`;
+    await db`insert into quote_assets (id, mime, data) values (${id}, ${`image/${m[1] === "jpg" ? "jpeg" : m[1]}`}, ${buf}) on conflict (id) do nothing`;
+    found.set(m[0], `/api/quote-asset/${id}`);
+  }
+  let out = html;
+  for (const [k, v] of found) out = out.split(k).join(v);
+  return { html: out, images: found.size };
 }
 
 export async function ensureDefaultTemplate() {
@@ -175,6 +200,29 @@ function invoicedTable(items: QuoteItem[]) {
     `<tr><td><strong>${esc(i.name)}</strong>${i.description ? `<br><span class="muted">${esc(i.description)}</span>` : ""}</td><td class="num">${money(i.unit_cents)}${i.unit ? ` per ${esc(i.unit.replace(/^per\s+/i, ""))}` : ""}</td></tr>`).join("")}</tbody></table>`;
 }
 
+const CAT_LABEL: Record<string, string> = { saas: "Software", readers: "Hardware", stands: "Hardware", "rapid-kits": "Rapid tests", "lab-mro": "Laboratory testing and MRO" };
+// Detailed table with the same columns as the Labb Station proposal (class="price", section rows by category).
+function priceTable(items: QuoteItem[], empty: string) {
+  if (!items.length) return `<p class="muted note">${esc(empty)}</p>`;
+  let last = "";
+  const rows = items.map((i) => {
+    const sect = CAT_LABEL[i.category || ""] || "Other";
+    const head = sect !== last ? `<tr class="sect"><td colspan="5">${esc((last = sect))}</td></tr>` : "";
+    const unit = i.unit ? i.unit.replace(/^per\s+/i, "") : "";
+    const billing = i.billing === "monthly" ? `Monthly${unit ? `, per ${esc(unit)}` : ""}` : i.billing === "invoiced" ? `Per ${esc(unit || "test")}, billed as used` : `One time${unit ? `, per ${esc(unit)}` : ""}`;
+    return `${head}<tr><td><span class="sku">${esc(i.name)}</span>${i.description ? `<br><span class="desc">${esc(i.description)}</span>` : ""}</td><td>${billing}</td>
+      <td class="num">${i.billing === "invoiced" ? "" : i.qty.toLocaleString()}</td><td class="num">${i.unit_cents ? money(i.unit_cents) : "Contact Labb sales"}${i.billing === "monthly" ? "/mo" : ""}</td>
+      <td class="num">${i.billing === "invoiced" ? "As used" : `${money(i.unit_cents * i.qty)}${i.billing === "monthly" ? "/mo" : ""}`}</td></tr>`;
+  }).join("");
+  return `<table class="price"><thead><tr><th style="width:40%">Item</th><th>Billing</th><th class="num">Qty</th><th class="num">Unit price</th><th class="num">Amount</th></tr></thead><tbody>${rows}</tbody></table>`;
+}
+const fmtSigned = (d: Date) => new Date(d).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric", timeZone: "America/New_York" });
+function signature(q: SalesQuote, agreement: boolean) {
+  if (!q.signed_at) return `<div class="esig"><div class="pending">${agreement ? "Signed electronically when the client accepts this quote on labb.com." : "Sign electronically on labb.com, below this quote, to accept."}</div></div>`;
+  const img = q.signature_png && /^data:image\/png;base64,[A-Za-z0-9+/=]+$/.test(q.signature_png) ? `<img src="${q.signature_png}" alt="Signature">` : "";
+  return `<div class="esig">${img}<div class="who"><strong>${esc(q.signed_name || "")}</strong>${q.signed_title ? `, ${esc(q.signed_title)}` : ""}<br>Signed electronically ${fmtSigned(q.signed_at)}</div></div>`;
+}
+
 // The quote as the lead sees it: the template with placeholders filled in.
 export function renderQuote(q: SalesQuote, items: QuoteItem[], lead: LeadRow, rep: Rep) {
   const t = totals(items);
@@ -185,6 +233,14 @@ export function renderQuote(q: SalesQuote, items: QuoteItem[], lead: LeadRow, re
     "{{rep_email}}": esc(rep?.email || "info@labb.com"), "{{rep_phone}}": esc(rep?.phone || "(877) 868-9967"),
     "{{items_table}}": itemsTable(items), "{{invoiced_table}}": invoicedTable(items),
     "{{one_time_total}}": money(t.once), "{{monthly_total}}": money(t.monthly), "{{due_today}}": money(t.dueToday),
+    "{{client_phone}}": esc(lead.phone || ""),
+    "{{locations}}": String(items.filter((i) => i.billing === "monthly" && i.qty > 0).reduce((m, i) => Math.max(m, i.qty), 0) || ""),
+    "{{price_table}}": priceTable(items.filter((i) => i.billing !== "invoiced" && i.qty > 0), "No items yet."),
+    "{{price_table_software}}": priceTable(items.filter((i) => i.billing !== "invoiced" && i.qty > 0 && i.category !== "rapid-kits"), "No software or hardware in this quote."),
+    "{{price_table_kits}}": priceTable(items.filter((i) => i.billing !== "invoiced" && i.qty > 0 && i.category === "rapid-kits"), "No rapid tests in this quote yet. Add them below."),
+    "{{lab_table}}": priceTable(items.filter((i) => i.billing === "invoiced"), "No lab services in this quote."),
+    "{{signature_block}}": signature(q, false), "{{client_signature}}": signature(q, true),
+    "{{effective_date}}": q.signed_at ? fmtSigned(q.signed_at) : "Date of acceptance",
   };
   return cleanHtml(q.html).replace(/\{\{\s*[a-z_]+\s*\}\}/g, (m) => vals[m.replace(/\s/g, "")] ?? m);
 }
@@ -215,7 +271,9 @@ export async function repFor(q: SalesQuote): Promise<Rep> {
 
 export async function createQuote(lead: LeadRow, kind: QuoteKind, templateId: string | null, by: { id: string; name: string }) {
   const db = sql();
-  const tid = templateId && /^\d+$/.test(templateId) ? templateId : await ensureDefaultTemplate();
+  await ensureDefaultTemplate();
+  const [byKind] = await db<{ id: string }[]>`select id::text from quote_templates where active and kind = ${kind} order by updated_at desc limit 1`;
+  const tid = templateId && /^\d+$/.test(templateId) ? templateId : byKind?.id ?? (await ensureDefaultTemplate());
   const [t] = await db<{ id: string; html: string }[]>`select id::text, html from quote_templates where id = ${tid}`;
   const html = t?.html || DEFAULT_TEMPLATE;
   const level = defaultLevel(kind);

@@ -64,7 +64,10 @@ export default async function QuotePage({ params, searchParams }: { params: Prom
               <div className="qp-banner">This quote is no longer active. Contact {rep?.email || "info@labb.com"} with any questions.</div>
             ) : null}
 
-            <div className="qp-doc"><QuoteFrame html={renderQuote(q, items, lead, rep)} title={`Quote ${quoteNumber(q)}`} /></div>
+            <div className="qp-doc">
+              <p className="qp-print"><a href={`/quote/${token}/print`} target="_blank" rel="noreferrer">Print or save as PDF</a></p>
+              <QuoteFrame html={renderQuote(q, items, lead, rep)} title={`Quote ${quoteNumber(q)}`} />
+            </div>
 
             <div className="hero-card qp-order">
               <h2>{editable ? "Review and adjust your order" : "Your order"}</h2>

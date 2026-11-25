@@ -2300,3 +2300,4 @@ td.acts { white-space: nowrap; }
 .nq-kind { align-items: flex-start; }
 .nq-kind input { margin-top: 4px; accent-color: #CF743C; }
 .qb .linkish { justify-self: start; text-align: left; }
+.qp-print { text-align: right; margin: 0 0 8px; font-size: .9rem; }
