@@ -2197,8 +2197,10 @@ td.acts { white-space: nowrap; }
 .qb-due strong { display: block; font-size: 2rem; }
 .qb-due em { font-style: normal; font-size: .82rem; color: #d5dade; }
 .qb-due .copy-link { color: #404951; }
-.qb-body { display: grid; grid-template-columns: 1fr 300px; gap: 20px; align-items: start; }
-.qb-main, .qb-aside { display: grid; gap: 16px; min-width: 0; }
+.qb-body { display: grid; grid-template-columns: 1fr; gap: 16px; }
+.qb-tools { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px; margin-bottom: 16px; align-items: start; }
+.qb-extra { display: grid; grid-template-columns: 2fr 1fr; gap: 16px; align-items: start; }
+.qb-main { display: grid; gap: 16px; min-width: 0; }
 .qb-items td { vertical-align: top; }
 .qb-items .qb-desc { margin-top: 4px; font-size: .8rem !important; min-height: 30px !important; }
 .qb-items .qb-num { width: 90px !important; }
@@ -2243,7 +2245,7 @@ td.acts { white-space: nowrap; }
 .nq-kind { display: flex; gap: 10px; border: 1px solid var(--border); border-radius: 10px; padding: 12px; cursor: pointer; }
 .nq-kind:has(input:checked) { border-color: #CF743C; background: #fdf6f1; }
 .nq-kind > span { display: grid; gap: 4px; text-align: left; }
-@media (max-width: 980px) { .qb-head, .qb-body, .qt-grid { grid-template-columns: 1fr; } .qb-add, .nq-kinds { grid-template-columns: 1fr; } }
+@media (max-width: 980px) { .qb-head, .qb-extra, .qt-grid { grid-template-columns: 1fr; } .qb-add, .nq-kinds { grid-template-columns: 1fr; } }
 
 /* Sales quotes: lead's page */
 .qp { padding-top: 32px; }
@@ -2287,3 +2289,14 @@ td.acts { white-space: nowrap; }
 .qb-items select { min-width: 112px; }
 .qb-add { display: grid; gap: 8px; }
 .qb .qb-items input[type=checkbox] { width: 18px; height: 18px; accent-color: #CF743C; }
+
+.qb-items { min-width: 860px; }
+.qb-items th { white-space: nowrap; }
+.qb-items td:first-child { min-width: 280px; }
+.qb-items .qb-num { width: 100px !important; }
+.qb-items .qb-qty { width: 80px !important; }
+.qb-items select { min-width: 130px; }
+.qb-tools .hero-card { height: 100%; }
+.nq-kind { align-items: flex-start; }
+.nq-kind input { margin-top: 4px; accent-color: #CF743C; }
+.qb .linkish { justify-self: start; text-align: left; }

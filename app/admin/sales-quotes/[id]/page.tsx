@@ -83,16 +83,56 @@ export default async function QuoteEditor({ params }: { params: Promise<{ id: st
             </div>
           )}
 
+          <div className="qb-tools">
+              {!locked && (
+                <div className="hero-card qb-send">
+                  <h3>{q.status === "draft" ? "Approve and send" : "Send again"}</h3>
+                  <p className="fine" style={{ textAlign: "left", margin: 0 }}>{q.status === "draft" ? `Emails ${lead.email} a link to this quote on labb.com. You'll get an email each time they open it.` : `Emails ${lead.email} the link again with the current quote.`}</p>
+                  {act("send", <button className="btn btn-primary" type="submit">{q.status === "draft" ? "Approve and send" : "Send the link again"}</button>)}
+                  {q.status !== "draft" && q.status !== "declined" && act("decline", <button className="linkish" type="submit">Mark as declined</button>)}
+                </div>
+              )}
+              {!locked && (
+                <div className="hero-card">
+                  <h3>Prices</h3>
+                  {act("level", <>
+                    <label className="sr-only" htmlFor="q-level">Price level</label>
+                    <select id="q-level" name="level" defaultValue={q.price_level}>{PRICE_LEVELS.map((l) => <option key={l.value} value={l.value}>{l.label}</option>)}</select>
+                    <button className="btn btn-outline-dark btn-sm" type="submit">Reset prices to this level</button>
+                    <p className="fine" style={{ textAlign: "left", margin: 0 }}>Resets price-list items. Custom items keep their prices.</p>
+                  </>)}
+                </div>
+              )}
+              {!locked && (
+                <div className="hero-card">
+                  <h3>Layout</h3>
+                  {act("template", <>
+                    <label className="sr-only" htmlFor="q-tpl">Template</label>
+                    <select id="q-tpl" name="template" defaultValue={q.template_id || ""}>{templates.map((x) => <option key={x.id} value={x.id}>{x.name}</option>)}</select>
+                    <button className="btn btn-outline-dark btn-sm" type="submit">Use this template</button>
+                  </>)}
+                  <details className="lp-more" style={{ marginTop: 10 }}>
+                    <summary>Edit this quote&apos;s HTML</summary>
+                    {act("html", <>
+                      <textarea name="html" rows={14} defaultValue={q.html} spellCheck={false} className="code-area" aria-label="Quote HTML" />
+                      <button className="btn btn-outline-dark btn-sm" type="submit">Save HTML</button>
+                    </>)}
+                  </details>
+                  <p className="fine" style={{ textAlign: "left", margin: "8px 0 0" }}><Link href="/admin/sales-quotes/templates">Manage templates</Link></p>
+                </div>
+              )}
+          </div>
+
           <div className="qb-body">
             <div className="qb-main">
               {act("save", <>
                 <input type="hidden" name="back" value={`/admin/sales-quotes/${q.id}`} />
                 <div className="hero-card">
                   <h2>Line items</h2>
-                  <p className="fine" style={{ textAlign: "left", marginTop: -6 }}>Items with a quantity of 0 don&apos;t show on the quote unless the lead adds them. &ldquo;Lead can change&rdquo; lets the lead adjust the quantity (never below the minimum). Lab and MRO services are billed later, as used.</p>
+                  <p className="fine" style={{ textAlign: "left", marginTop: -6 }}>Items with a quantity of 0 don&apos;t show on the quote unless the lead adds them. &ldquo;Lead edits&rdquo; lets the lead adjust the quantity (never below the minimum). Lab and MRO services are billed later, as used.</p>
                   <div style={{ overflowX: "auto" }}>
                     <table className="meet-table qb-items">
-                      <thead><tr><th>Item</th><th>Billing</th><th>Price</th><th>Qty</th><th>Min</th><th title="Lead can change the quantity">Lead can change</th><th>Total</th><th>Remove</th></tr></thead>
+                      <thead><tr><th>Item</th><th>Billing</th><th>Price</th><th>Qty</th><th>Min</th><th title="The lead can change the quantity">Lead edits</th><th>Total</th><th>Remove</th></tr></thead>
                       <tbody>
                         {!items.length && <tr><td colSpan={8}>No items yet. Add some below.</td></tr>}
                         {items.map((i, n) => (
@@ -174,44 +214,7 @@ export default async function QuoteEditor({ params }: { params: Promise<{ id: st
               </div>
             </div>
 
-            <aside className="qb-aside">
-              {!locked && (
-                <div className="hero-card qb-send">
-                  <h3>{q.status === "draft" ? "Approve and send" : "Send again"}</h3>
-                  <p className="fine" style={{ textAlign: "left", margin: 0 }}>{q.status === "draft" ? `Emails ${lead.email} a link to this quote on labb.com. You'll get an email each time they open it.` : `Emails ${lead.email} the link again with the current quote.`}</p>
-                  {act("send", <button className="btn btn-primary" type="submit">{q.status === "draft" ? "Approve and send" : "Send the link again"}</button>)}
-                  {q.status !== "draft" && q.status !== "declined" && act("decline", <button className="linkish" type="submit">Mark as declined</button>)}
-                </div>
-              )}
-              {!locked && (
-                <div className="hero-card">
-                  <h3>Prices</h3>
-                  {act("level", <>
-                    <label className="sr-only" htmlFor="q-level">Price level</label>
-                    <select id="q-level" name="level" defaultValue={q.price_level}>{PRICE_LEVELS.map((l) => <option key={l.value} value={l.value}>{l.label}</option>)}</select>
-                    <button className="btn btn-outline-dark btn-sm" type="submit">Reset prices to this level</button>
-                    <p className="fine" style={{ textAlign: "left", margin: 0 }}>Resets price-list items. Custom items keep their prices.</p>
-                  </>)}
-                </div>
-              )}
-              {!locked && (
-                <div className="hero-card">
-                  <h3>Layout</h3>
-                  {act("template", <>
-                    <label className="sr-only" htmlFor="q-tpl">Template</label>
-                    <select id="q-tpl" name="template" defaultValue={q.template_id || ""}>{templates.map((x) => <option key={x.id} value={x.id}>{x.name}</option>)}</select>
-                    <button className="btn btn-outline-dark btn-sm" type="submit">Use this template</button>
-                  </>)}
-                  <details className="lp-more" style={{ marginTop: 10 }}>
-                    <summary>Edit this quote&apos;s HTML</summary>
-                    {act("html", <>
-                      <textarea name="html" rows={14} defaultValue={q.html} spellCheck={false} className="code-area" aria-label="Quote HTML" />
-                      <button className="btn btn-outline-dark btn-sm" type="submit">Save HTML</button>
-                    </>)}
-                  </details>
-                  <p className="fine" style={{ textAlign: "left", margin: "8px 0 0" }}><Link href="/admin/sales-quotes/templates">Manage templates</Link></p>
-                </div>
-              )}
+            <div className="qb-extra">
               <div className="hero-card">
                 <h3>Versions</h3>
                 {!versions.length ? <p className="fine" style={{ textAlign: "left", margin: 0 }}>Saved changes show here.</p> : (
@@ -230,7 +233,7 @@ export default async function QuoteEditor({ params }: { params: Promise<{ id: st
                 {act("duplicate", <button className="linkish" type="submit">Duplicate into a new draft</button>)}
                 {q.status === "draft" && act("delete", <button className="linkish" type="submit">Delete this draft</button>)}
               </div>
-            </aside>
+            </div>
           </div>
         </div>
       </section>
