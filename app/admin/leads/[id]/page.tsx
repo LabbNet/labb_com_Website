@@ -10,6 +10,7 @@ import { leadActivity } from "@/lib/analytics";
 import { runsForLeads, SEQUENCES, sequenceName, STEP_DAYS } from "@/lib/sequences";
 import { etDate, fmtWhen, kindInfo, leadMeetings, MEETING_KINDS, MEETING_STATUS, meetingHosts, nextKind } from "@/lib/meetings";
 import { dupesFor } from "@/lib/dupes";
+import { money as qMoney, QUOTE_KINDS, QUOTE_STATUS, quoteNumber, totals as qTotals, type QuoteItem } from "@/lib/salesQuotes";
 import { absoluteUrl } from "@/lib/site";
 import { LEAD_STATUSES, SEGMENT_PATH, SEGMENTS, isSegment, segmentLabel, statusLabel } from "@/lib/segments";
 
@@ -40,7 +41,7 @@ const EVENT_LABEL: Record<string, string> = {
   prospect: "Prospect again",
 };
 
-const TABS = [["overview", "Overview"], ["meetings", "Meetings"], ["emails", "Emails"], ["visits", "Website visits"], ["history", "History"]] as const;
+const TABS = [["overview", "Overview"], ["meetings", "Meetings"], ["quotes", "Quotes"], ["emails", "Emails"], ["visits", "Website visits"], ["history", "History"]] as const;
 type Tab = (typeof TABS)[number][0];
 
 export default async function AdminLead({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Promise<{ tab?: string }> }) {
@@ -77,6 +78,12 @@ export default async function AdminLead({ params, searchParams }: { params: Prom
       from email_events where lead_meeting in (select g.id from lead_meetings g where g.lead_id = ${id}) group by lead_meeting`.catch(() => []),
   ]);
   const opened = new Map(opens.map((o) => [o.m, o]));
+  const [quotes, qItems, qTemplates] = await Promise.all([
+    db<{ id: string; title: string; status: string; kind: string; created_at: Date; sent_at: Date | null; open_count: number; last_opened_at: Date | null; paid_cents: number | null; signed_name: string | null }[]>`
+      select id::text, title, status, kind, created_at, sent_at, open_count, last_opened_at, paid_cents, signed_name from sales_quotes where lead_id = ${id} order by created_at desc`.catch(() => []),
+    db<(QuoteItem & { quote_id: string })[]>`select i.* from sales_quote_items i join sales_quotes q on q.id = i.quote_id where q.lead_id = ${id}`.catch(() => []),
+    db<{ id: string; name: string; kind: string }[]>`select id::text, name, kind from quote_templates where active order by name`.catch(() => []),
+  ]);
   const today = etDate(new Date());
   const times: string[] = [];
   for (let mi = 7 * 60; mi <= 19 * 60; mi += 15) times.push(`${String(Math.floor(mi / 60)).padStart(2, "0")}:${String(mi % 60).padStart(2, "0")}`);
@@ -144,7 +151,7 @@ export default async function AdminLead({ params, searchParams }: { params: Prom
     : !lead.accepted_at && !sales.length ? { text: <>Keep it at Labb and send a booking link, schedule the initial discussion, or pass it to a CPP member.</> }
     : { text: <>Schedule the <strong>{kindInfo(next).label.toLowerCase()}</strong>.</>, tab: "meetings" };
   const tabHref = (t: Tab) => `/admin/leads/${lead.id}${t === "overview" ? "" : `?tab=${t}`}`;
-  const counts: Partial<Record<Tab, number>> = { meetings: sales.length, visits: visits.length, history: events.length };
+  const counts: Partial<Record<Tab, number>> = { meetings: sales.length, quotes: quotes.length, visits: visits.length, history: events.length };
 
   const post = (action: string, children: React.ReactNode) => (
     <form action="/api/admin/leads" method="post">
@@ -377,6 +384,51 @@ export default async function AdminLead({ params, searchParams }: { params: Prom
               </div>)}
             </details>
                 </div>
+              )}
+
+              {tab === "quotes" && (
+                <>
+                  <div className="hero-card">
+                    <h2>Quotes</h2>
+                    {!quotes.length ? <p className="fine" style={{ textAlign: "left", margin: 0 }}>No quotes yet. Start one below.</p> : (
+                      <table className="meet-table">
+                        <thead><tr><th>Quote</th><th>Status</th><th>Due at acceptance</th><th>Opened</th></tr></thead>
+                        <tbody>{quotes.map((qq) => (
+                          <tr key={qq.id}>
+                            <td><Link href={`/admin/sales-quotes/${qq.id}`}><strong>{quoteNumber(qq)}</strong></Link><br /><span className="fine">{qq.title}</span></td>
+                            <td><span className={`qs qs-${qq.status}`}>{QUOTE_STATUS[qq.status]}</span>{qq.signed_name && <><br /><span className="fine">Signed by {qq.signed_name}</span></>}</td>
+                            <td>{qq.paid_cents != null ? <>{qMoney(qq.paid_cents)} <span className="fine">paid</span></> : qMoney(qTotals(qItems.filter((i) => String(i.quote_id) === qq.id)).dueToday)}</td>
+                            <td>{qq.open_count ? <>{qq.open_count}× <span className="fine">· {fmtDate(qq.last_opened_at)}</span></> : <span className="fine">{qq.sent_at ? "Not yet" : "Not sent"}</span>}</td>
+                          </tr>
+                        ))}</tbody>
+                      </table>
+                    )}
+                  </div>
+                  <div className="hero-card">
+                    <h2>Start a quote</h2>
+                    <form action="/api/admin/sales-quotes" method="post" className="nq-form">
+                      <input type="hidden" name="action" value="create" />
+                      <input type="hidden" name="lead" value={lead.id} />
+                      <div className="nq-kinds">
+                        {QUOTE_KINDS.map((k, i) => (
+                          <label key={k.value} className="nq-kind">
+                            <input type="radio" name="kind" value={k.value} defaultChecked={i === (lead.segment === "employer" ? 1 : 0)} required />
+                            <span><strong>{k.label}</strong><span className="fine">{k.blurb}</span></span>
+                          </label>
+                        ))}
+                      </div>
+                      <div className="lp-row">
+                        <label className="sr-only" htmlFor="nq-t">Template</label>
+                        <select id="nq-t" name="template" defaultValue="">
+                          <option value="">Default template</option>
+                          {qTemplates.map((t) => <option key={t.id} value={t.id}>{t.name}</option>)}
+                        </select>
+                        <button className="btn btn-primary" type="submit">Start quote</button>
+                      </div>
+                    </form>
+                    <p className="fine" style={{ textAlign: "left", margin: "6px 0 0" }}><Link href="/admin/sales-quotes/templates">Quote templates</Link></p>
+                  </div>
+                </>
               )}
 
               {tab === "emails" && (

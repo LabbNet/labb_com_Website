@@ -32,6 +32,12 @@ export async function POST(req: Request) {
       if (c) await grantCourse({ email, name: s.metadata.name || "", course: c, source: "purchase", stripeSession: s.id, amountCents: s.amount_total ?? undefined });
     }
 
+    // Sales quote: signed quote paid at checkout -> accepted and finalized.
+    if (s.metadata?.kind === "sales-quote" && s.metadata.quoteId) {
+      const { markPaid } = await import("@/lib/salesQuotes");
+      await markPaid(s.metadata.quoteId, s.amount_total ?? 0, s.id);
+    }
+
     // Quick Test: mark the order paid, record it in the lead history and notify Labb.
     if (s.metadata?.kind === "quick-test" && s.metadata.leadId) {
       const id = s.metadata.leadId;
