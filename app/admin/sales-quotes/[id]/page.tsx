@@ -3,13 +3,12 @@ import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import { AdminBar, Flash } from "@/components/AdminBar";
 import { CopyLink } from "@/components/CopyLink";
-import { QuoteFrame } from "@/components/QuoteFrame";
 import { fmtDate, readFlash, requireAdmin } from "@/lib/admin";
 import { PRICE_CATEGORIES } from "@/lib/cppPricing";
 import { sql } from "@/lib/db";
 import { leadName, type LeadRow } from "@/lib/leads";
 import {
-  aiReady, BILLING_LABEL, getQuote, money, PRICE_LEVELS, QUOTE_KINDS, QUOTE_STATUS, quoteNumber, quoteUrl, renderQuote, repFor, totals,
+  aiReady, BILLING_LABEL, getQuote, money, PRICE_LEVELS, QUOTE_KINDS, QUOTE_STATUS, quoteNumber, quoteUrl, repFor, totals,
 } from "@/lib/salesQuotes";
 
 export const metadata: Metadata = { title: "Quote", robots: { index: false, follow: false } };
@@ -37,7 +36,6 @@ export default async function QuoteEditor({ params }: { params: Promise<{ id: st
   if (!lead) notFound();
   const t = totals(items);
   const locked = q.status === "signed" || q.status === "paid";
-  const html = renderQuote(q, items, lead, rep);
   const kind = QUOTE_KINDS.find((k) => k.value === q.kind)!;
   const expires = new Date(q.expires_on).toISOString().slice(0, 10);
   const act = (action: string, children: React.ReactNode, cls = "") => (
@@ -68,6 +66,7 @@ export default async function QuoteEditor({ params }: { params: Promise<{ id: st
             <div className="qb-due">
               <span>Due at acceptance</span><strong>{money(t.dueToday)}</strong>
               <em>{money(t.once)} one time{t.monthly ? ` + ${money(t.monthly)} first month of software` : ""}</em>
+              <a href={`/quote/${q.token}/print`} target="_blank" rel="noreferrer" className="btn btn-primary btn-sm qb-view">View quote</a>
               {q.status !== "draft" && <div style={{ marginTop: 8 }}><CopyLink url={quoteUrl(q.token)} label="Copy the lead's quote link" /></div>}
             </div>
           </header>
@@ -87,7 +86,8 @@ export default async function QuoteEditor({ params }: { params: Promise<{ id: st
               {!locked && (
                 <div className="hero-card qb-send">
                   <h3>{q.status === "draft" ? "Approve and send" : "Send again"}</h3>
-                  <p className="fine" style={{ textAlign: "left", margin: 0 }}>{q.status === "draft" ? `Emails ${lead.email} a link to this quote on labb.com. You'll get an email each time they open it.` : `Emails ${lead.email} the link again with the current quote.`}</p>
+                  <p className="fine" style={{ textAlign: "left", margin: 0 }}>{q.status === "draft" ? `Review it with View quote, then send. Emails ${lead.email} a link to this quote on labb.com, and you get an email each time they open it.` : `Emails ${lead.email} the link again with the current quote.`}</p>
+                  <a href={`/quote/${q.token}/print`} target="_blank" rel="noreferrer" className="btn btn-outline-dark">View quote</a>
                   {act("send", <button className="btn btn-primary" type="submit">{q.status === "draft" ? "Approve and send" : "Send the link again"}</button>)}
                   {q.status !== "draft" && q.status !== "declined" && act("decline", <button className="linkish" type="submit">Mark as declined</button>)}
                 </div>
@@ -208,10 +208,6 @@ export default async function QuoteEditor({ params }: { params: Promise<{ id: st
                 </div>
               )}
 
-              <div className="hero-card">
-                <div className="lp-cardhead"><h2>What the lead sees</h2><span className="fine"><a href={`/quote/${q.token}/print`} target="_blank" rel="noreferrer">Print or save as PDF ↗</a>{q.status !== "draft" && <> · <a href={`/quote/${q.token}`} target="_blank" rel="noreferrer">Open the lead&apos;s page ↗</a></>}</span></div>
-                <QuoteFrame html={html} title="Quote preview" />
-              </div>
             </div>
 
             <div className="qb-extra">

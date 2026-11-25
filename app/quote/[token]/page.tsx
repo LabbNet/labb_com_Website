@@ -6,7 +6,7 @@ import { SignaturePad } from "@/components/SignaturePad";
 import { currentMember } from "@/lib/auth";
 import { stripeEnabled } from "@/lib/commerce";
 import { leadName } from "@/lib/leads";
-import { getQuoteByToken, money, quoteNumber, renderQuote, totals } from "@/lib/salesQuotes";
+import { getQuoteByToken, money, quoteNumber, totals } from "@/lib/salesQuotes";
 
 export const metadata: Metadata = { title: "Your Labb quote", robots: { index: false, follow: false } };
 export const dynamic = "force-dynamic";
@@ -66,7 +66,7 @@ export default async function QuotePage({ params, searchParams }: { params: Prom
 
             <div className="qp-doc">
               <p className="qp-print"><a href={`/quote/${token}/print`} target="_blank" rel="noreferrer">Print or save as PDF</a></p>
-              <QuoteFrame html={renderQuote(q, items, lead, rep)} title={`Quote ${quoteNumber(q)}`} />
+              <QuoteFrame src={`/quote/${token}/print?v=${new Date(q.updated_at).getTime()}`} title={`Quote ${quoteNumber(q)}`} />
             </div>
 
             <div className="hero-card qp-order">
