@@ -52,6 +52,31 @@ export const isServiceLevel = (v: unknown): v is ServiceLevel => SERVICE_LEVELS.
 // Where staff or the CPP member who owns a quote edit it.
 export const quoteEditPath = (q: { id: string; member_id?: string | null }) => (q.member_id ? `/members/sales-quotes/${q.id}` : `/admin/sales-quotes/${q.id}`);
 
+// CPP members quote employers, treatment centers and corrections agencies. Clinics and collection sites are quoted by Labb only.
+export const CPP_QUOTE_SEGMENTS = ["employer", "treatment", "corrections"] as const;
+export const cppCanQuote = (segment: string | null | undefined) => (CPP_QUOTE_SEGMENTS as readonly string[]).includes(String(segment || ""));
+
+// A CPP member's starting client price for each quote product: the MSRP on the linked CPP price item (never Labb's own price).
+export async function partnerStartPrices(level: ServiceLevel): Promise<Map<string, number | null>> {
+  const rows = await sql()<{ id: string; m1: number | null; m3: number | null }[]>`
+    select q.id::text, c.sl1_msrp_cents as m1, c.sl3_msrp_cents as m3 from quote_price_items q left join cpp_price_items c on c.id = q.cpp_item_id`;
+  return new Map(rows.map((r) => [r.id, level === "sl3" ? r.m3 ?? r.m1 : r.m1 ?? r.m3]));
+}
+// Reprice a CPP member's new quote: every product line starts at its MSRP, or at $0 and removed from the quote when there's no MSRP,
+// so Labb's own pricing never appears on a partner quote. Included set-up items stay as they are.
+export async function partnerReprice(quoteId: string) {
+  const db = sql();
+  const [q] = await db<{ member_id: string | null; service_level: string }[]>`select member_id, service_level from sales_quotes where id = ${quoteId}`;
+  if (!q?.member_id) return;
+  const start = await partnerStartPrices(q.service_level === "sl3" ? "sl3" : "sl1");
+  const lines = await db<{ id: string; price_item_id: string | null; category: string | null }[]>`select id::text, price_item_id::text, category from sales_quote_items where quote_id = ${quoteId}`;
+  for (const l of lines) {
+    if (l.category === "services") continue;
+    const cents = l.price_item_id ? start.get(l.price_item_id) ?? null : null;
+    await db`update sales_quote_items set unit_cents = ${cents ?? 0}, excluded = ${!cents}, adjustable = ${!!cents && l.category !== "saas" && l.category !== "lab-mro"} where id = ${l.id}`;
+  }
+}
+
 // A member's cost per unit for each quote product, from the linked CPP price item at the chosen service level (cents, or null).
 export async function memberCosts(level: ServiceLevel): Promise<Map<string, number | null>> {
   const rows = await sql()<{ id: string; sl1: number | null; sl3: number | null }[]>`
@@ -447,8 +472,9 @@ export async function createQuote(lead: LeadRow, kind: QuoteKind, templateId: st
 // Drafts get missing products shown; quotes already sent get them hidden, so what the client sees doesn't change until the rep says so.
 export async function syncCatalogLines(quoteId: string) {
   const db = sql();
-  const [q] = await db<{ status: string; price_level: string }[]>`select status, price_level from sales_quotes where id = ${quoteId}`;
+  const [q] = await db<{ status: string; price_level: string; member_id: string | null; service_level: string }[]>`select status, price_level, member_id, service_level from sales_quotes where id = ${quoteId}`;
   if (!q || !["draft", "sent", "viewed"].includes(q.status)) return 0;
+  const partner = q.member_id ? await partnerStartPrices(q.service_level === "sl3" ? "sl3" : "sl1") : null;
   const level: PriceLevel = q.price_level === "over100" ? "over100" : "under100";
   const have = await db<{ price_item_id: string | null; name: string; sku: string | null }[]>`select price_item_id::text, name, sku from sales_quote_items where quote_id = ${quoteId}`;
   const norm = (x: string | null | undefined) => (x || "").trim().toLowerCase();
@@ -457,10 +483,12 @@ export async function syncCatalogLines(quoteId: string) {
   let sort = n + 10, added = 0;
   for (const p of list) {
     if (have.some((i) => String(i.price_item_id ?? "") === String(p.id) || norm(i.name) === norm(p.name) || (!!p.sku && norm(i.sku) === norm(p.sku)))) continue;
-    const cents = priceFor(p, level);
+    // Partner quotes start at the CPP MSRP (or $0, removed); Labb's own price list is never used for them.
+    const cents = partner ? (p.category === "services" ? 0 : partner.get(String(p.id)) ?? 0) : priceFor(p, level);
+    const hidden = q.status !== "draft" || (!!partner && p.category !== "services" && !cents);
     await db`insert into sales_quote_items (quote_id, price_item_id, name, sku, category, description, unit, unit_cents, qty, min_qty, adjustable, billing, sort, excluded)
       values (${quoteId}, ${p.id}, ${p.name}, ${p.sku}, ${p.category}, ${p.description}, ${p.unit}, ${cents}, ${p.category === "services" ? 1 : 0}, 0,
-        ${billingFor(p.category) === "once" && cents > 0}, ${billingFor(p.category)}, ${sort}, ${q.status !== "draft"})`;
+        ${billingFor(p.category) === "once" && cents > 0}, ${billingFor(p.category)}, ${sort}, ${hidden})`;
     sort += 10; added++;
   }
   return added;

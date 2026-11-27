@@ -2511,3 +2511,4 @@ td.acts { white-space: nowrap; }
   .leads-table .lt-mobile { display: block; }
   .leads-table thead th:nth-child(5), .leads-table thead th:nth-child(6) { width: 22%; }
 }
+.mq-who { text-align: left; background: #f4f6f7; border-left: 4px solid #CF743C; border-radius: 6px; padding: 10px 14px; color: #1f2a33; }

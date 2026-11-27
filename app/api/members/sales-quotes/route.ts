@@ -5,7 +5,7 @@ import { field, go } from "@/lib/http";
 import { logLeadEvent, type LeadRow } from "@/lib/leads";
 import { isSegment } from "@/lib/segments";
 import {
-  createQuote, getQuote, isPaymentMode, isServiceLevel, sendQuote, snapshot, syncCatalogLines,
+  cppCanQuote, createQuote, getQuote, isPaymentMode, isServiceLevel, partnerReprice, sendQuote, snapshot, syncCatalogLines,
 } from "@/lib/salesQuotes";
 
 // CPP members build, price and send quotes to their own clients. Only quotes they own, for leads assigned to them.
@@ -26,7 +26,7 @@ export async function POST(req: Request) {
       const email = field(fd, "email", 200).toLowerCase(), phone = field(fd, "phone", 30);
       const segment = field(fd, "segment", 40);
       if (!company || !first || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { await flash("Enter the company, a contact name and a valid email.", "error"); return go(req, "/members/quotes"); }
-      if (!isSegment(segment) || segment === "collection-site") { await flash("Choose the client's type. Clinics and collection sites are quoted by Labb.", "error"); return go(req, "/members/quotes"); }
+      if (!isSegment(segment) || !cppCanQuote(segment)) { await flash("CPP members quote employers, treatment centers and corrections agencies. Choose one of those.", "error"); return go(req, "/members/quotes"); }
       const [row] = await db<{ id: string }[]>`insert into leads (type, segment, first_name, last_name, email, phone, company, page, data, owner, partner_id, passed_at, passed_by)
         values ('partner-added', ${segment}, ${first}, ${last || null}, ${email}, ${phone || null}, ${company}, '/members/quotes', ${db.json({ addedBy: m.name, via: "quote" })}, 'partner', ${m.id}, now(), ${m.id}) returning id::text`;
       await logLeadEvent(row.id, "received", `Added by CPP member ${m.name} to send a quote`, { id: m.id, name: m.name });
@@ -35,9 +35,10 @@ export async function POST(req: Request) {
     const [lead] = leadId ? await db<LeadRow[]>`select * from leads where id = ${leadId} and partner_id = ${m.id} and owner = 'partner'` : [];
     if (!lead) { await flash("Pick one of your leads, or add a new client.", "error"); return go(req, "/members/quotes"); }
     // Only Labb quotes clinics and collection sites.
-    if (lead.segment === "collection-site") { await flash("Clinics and collection sites are quoted by Labb. Pass this lead to Labb, or quote a different client.", "error"); return go(req, "/members/quotes"); }
+    if (!cppCanQuote(lead.segment)) { await flash("CPP members quote employers, treatment centers and corrections agencies only. Clinics and collection sites are quoted by Labb.", "error"); return go(req, "/members/quotes"); }
     const kind: "employer" | "custom" = field(fd, "kind", 20) === "custom" ? "custom" : "employer";
     const id = await createQuote(lead, kind, null, { id: m.id, name: m.name }, { memberId: m.id });
+    await partnerReprice(id);
     await syncCatalogLines(id);
     await snapshot(id, m.id, null, "Quote created");
     return go(req, `/members/sales-quotes/${id}`);

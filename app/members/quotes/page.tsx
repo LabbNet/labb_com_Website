@@ -8,7 +8,7 @@ import { sql } from "@/lib/db";
 import { quotesFor, QUOTE_STATUSES } from "@/lib/quotes";
 import { leadName, type LeadRow } from "@/lib/leads";
 import { SEGMENTS } from "@/lib/segments";
-import { QUOTE_KINDS, QUOTE_STATUS, quoteNumber, totals, type QuoteItem } from "@/lib/salesQuotes";
+import { cppCanQuote, QUOTE_KINDS, QUOTE_STATUS, quoteNumber, totals, type QuoteItem } from "@/lib/salesQuotes";
 
 export const metadata: Metadata = { title: "My quotes", robots: { index: false, follow: false } };
 export const dynamic = "force-dynamic";
@@ -27,7 +27,7 @@ export default async function MemberQuotes() {
     db<LeadRow[]>`select * from leads where partner_id = ${m.id} and owner = 'partner' and not archived order by coalesce(company, first_name, email)`,
     db<{ logo_png: string | null; clinic: string | null }[]>`select logo_png, clinic from members where id = ${m.id}`,
   ]);
-  const quotable = myLeads.filter((l) => l.segment !== "collection-site");
+  const quotable = myLeads.filter((l) => cppCanQuote(l.segment));
   const sqItems = sent.length ? await db<(QuoteItem & { quote_id: string })[]>`select i.*, coalesce(i.category, p.category) as category from sales_quote_items i left join quote_price_items p on p.id = i.price_item_id where i.quote_id = any(${sent.map((q) => q.id)}::bigint[])` : [];
   const due = (id: string) => totals(sqItems.filter((i) => String(i.quote_id) === id)).dueToday;
   const leads = quotes.length
@@ -46,7 +46,7 @@ export default async function MemberQuotes() {
         <div className="hero-card mq-new">
           <h2>Send a quote to a client</h2>
           <p className="fine" style={{ textAlign: "left" }}>Build a quote with your prices, your company and your logo next to Labb&apos;s. Your client reviews it, changes quantities, signs and accepts online. You see your cost and margin on every line; your client never does.</p>
-          <p className="fine" style={{ textAlign: "left" }}>Quote any company except clinics and collection sites, which Labb quotes.</p>
+          <p className="mq-who"><strong>You can quote employers, treatment centers and corrections agencies.</strong> Clinics and collection sites are quoted by Labb only. You send the quote as the client&apos;s authorized Labb rep: your name, company and logo are on it, and replies come to you.</p>
           {quotable.length > 0 && (
             <form action="/api/members/sales-quotes" method="post" className="mq-newform">
               <input type="hidden" name="action" value="create" />
@@ -66,7 +66,7 @@ export default async function MemberQuotes() {
               <div className="field"><label htmlFor="nc-seg">Type of client<span className="req">*</span></label>
                 <select id="nc-seg" name="segment" required defaultValue="">
                   <option value="" disabled>Choose one</option>
-                  {SEGMENTS.filter((s) => s.value !== "collection-site" && s.value !== "individual").map((s) => <option key={s.value} value={s.value}>{s.label}</option>)}
+                  {SEGMENTS.filter((s) => cppCanQuote(s.value)).map((s) => <option key={s.value} value={s.value}>{s.label}</option>)}
                 </select></div>
               <div className="field"><label htmlFor="nc-fn">Contact first name<span className="req">*</span></label><input id="nc-fn" name="first_name" required maxLength={80} /></div>
               <div className="field"><label htmlFor="nc-ln">Last name</label><input id="nc-ln" name="last_name" maxLength={80} /></div>

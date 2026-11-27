@@ -27,7 +27,7 @@ function groupOf(i: Item): GroupKey {
 }
 
 // The lead's order: change quantities of the items Labb made adjustable, see totals update, save.
-export function QuoteOrder({ token, items, editable, preview = false }: { token: string; items: Item[]; editable: boolean; preview?: boolean }) {
+export function QuoteOrder({ token, items, editable, preview = false, repLabel = "your Labb rep" }: { token: string; items: Item[]; editable: boolean; preview?: boolean; repLabel?: string }) {
   const router = useRouter();
   const [qty, setQty] = useState<Record<string, number>>(Object.fromEntries(items.map((i) => [i.id, i.qty])));
   const [state, setState] = useState<"idle" | "saving" | "saved" | "error">("idle");
@@ -82,12 +82,12 @@ export function QuoteOrder({ token, items, editable, preview = false }: { token:
               if (g.key === "lab" || (!i.unit_cents && i.billing !== "invoiced")) return (
                 <div key={i.id} className="qo-row qo-simple">
                   <div className="qo-name"><strong>{i.name}</strong>{i.description && <span>{i.description}</span>}{drugs}</div>
-                  <div className={`qo-flat${!i.unit_cents && i.billing !== "invoiced" ? " qo-incl" : ""}`}>{i.billing !== "invoiced" ? "Included" : i.unit_cents ? <>{money(i.unit_cents)}<small> {unitLabel(i.unit) || "per test"}</small></> : "Contact Labb sales"}</div>
+                  <div className={`qo-flat${!i.unit_cents && i.billing !== "invoiced" ? " qo-incl" : ""}`}>{i.billing !== "invoiced" ? "Included" : i.unit_cents ? <>{money(i.unit_cents)}<small> {unitLabel(i.unit) || "per test"}</small></> : repLabel === "your Labb rep" ? "Contact Labb sales" : `Ask ${repLabel}`}</div>
                 </div>
               );
               return (
                 <div key={i.id} className={`qo-row${n === 0 ? " qo-off" : ""}`}>
-                  <div className="qo-name"><strong>{i.name}{n === 0 && <em className="qo-opt">{i.adjustable ? "Optional" : "Not included"}</em>}</strong>{i.description && <span>{i.description}</span>}{drugs}{n === 0 && !i.adjustable && <span>Ask your Labb rep to add it.</span>}</div>
+                  <div className="qo-name"><strong>{i.name}{n === 0 && <em className="qo-opt">{i.adjustable ? "Optional" : "Not included"}</em>}</strong>{i.description && <span>{i.description}</span>}{drugs}{n === 0 && !i.adjustable && <span>Ask {repLabel} to add it.</span>}</div>
                   <div className="qo-price">{packOf(i) > 1 ? <><b>{money(i.unit_cents * BOX)}</b><small>per box of {BOX}</small><small>{money(i.unit_cents)} per test</small></> : <><b>{money(i.unit_cents)}{i.billing === "monthly" ? "/mo" : ""}</b>{i.unit && <small>{unitLabel(i.unit)}</small>}</>}</div>
                   <div className="qo-qty">{qtyCell(i)}{packOf(i) > 1 && <small>{n === 1 ? "box" : "boxes"}{n > 0 ? ` (${(n * BOX).toLocaleString()} tests)` : ""}</small>}{editable && i.adjustable && i.min_qty > 0 && <small>Minimum {i.min_qty}</small>}</div>
                   <div className="qo-total">{n === 0 ? <span className="qo-dash">—</span> : <>{money(n * i.unit_cents * packOf(i))}{i.billing === "monthly" ? "/mo" : ""}</>}</div>

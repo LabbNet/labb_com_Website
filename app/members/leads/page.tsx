@@ -176,7 +176,7 @@ export default async function MemberLeads() {
               <div className="lead-quotes">
                 <h3>Quotes <span className="fine">· send a quote to the client, or record one you gave them yourself for Labb&apos;s pricing reports.</span></h3>
                 <QuoteList quotes={quotes.filter((q) => q.lead_id === String(l.id))} />
-                {l.segment !== "collection-site" && <form action="/api/members/sales-quotes" method="post" style={{ display: "inline-block", marginRight: 10 }}>
+                {["employer", "treatment", "corrections"].includes(l.segment) && <form action="/api/members/sales-quotes" method="post" style={{ display: "inline-block", marginRight: 10 }}>
                   <input type="hidden" name="action" value="create" /><input type="hidden" name="lead" value={l.id} />
                   <button className="btn btn-primary" type="submit">Send a quote to this client</button>
                 </form>}

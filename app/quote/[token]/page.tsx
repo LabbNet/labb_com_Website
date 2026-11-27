@@ -33,6 +33,8 @@ export default async function QuotePage({ params, searchParams }: { params: Prom
   const open = preview || sp.open === "1" || sp.paid === "1" || sp.signed === "1" || q.status === "signed" || q.status === "paid";
   const editable = (preview || ["sent", "viewed"].includes(q.status)) && !expired;
   const who = lead.company || leadName(lead);
+  // On CPP member quotes the member is the client's authorized Labb rep.
+  const repLabel = q.member_id ? `${rep?.name || "your rep"}${rep?.clinic ? ` at ${rep.clinic}` : ""}` : "your Labb rep";
 
   return (
     <section className="section qp">
@@ -43,7 +45,7 @@ export default async function QuotePage({ params, searchParams }: { params: Prom
           <div className="hero-card qp-cover">
             <span className="lp-eyebrow">Quote {quoteNumber(q)}</span>
             <h1>{q.title}</h1>
-            <p>Prepared for {leadName(lead)}{lead.company ? `, ${lead.company}` : ""} by {rep?.name || "the Labb team"}.</p>
+            <p>Prepared for {lead.company || leadName(lead)} by {rep?.name || "the Labb team"}{q.member_id ? `, ${rep?.clinic ? `${rep.clinic}, ` : ""}Labb Authorized Channel Partner` : ""}.</p>
             {expired ? <p className="form-error">This quote expired on {day(q.expires_on)}. Contact {rep?.email || "info@labb.com"} for an updated quote.</p> : (
               <>
                 <p className="qp-due">Due at acceptance: <strong>{money(t.dueToday)}</strong></p>
@@ -77,8 +79,8 @@ export default async function QuotePage({ params, searchParams }: { params: Prom
 
             <div className="hero-card qp-order">
               <h2>{editable ? "Review and adjust your order" : "Your order"}</h2>
-              {editable && <p className="qo-intro">Use the <strong>−</strong> and <strong>+</strong> buttons to change test kits, equipment and other products. Software is set by your Labb rep. Totals update as you go. Select <strong>Update my quote</strong> before you sign.</p>}
-              <QuoteOrder token={token} editable={editable} preview={preview} items={items.map((i) => ({ id: String(i.id), name: i.name, description: shownDescription(i) || null, drugs: drugsFor(i), section: sectionOf(i), sku: i.sku, unit: i.unit, unit_cents: i.unit_cents, qty: i.qty, min_qty: i.min_qty, adjustable: leadCanEdit(i), billing: i.billing, category: i.category ?? null }))} />
+              {editable && <p className="qo-intro">Use the <strong>−</strong> and <strong>+</strong> buttons to change test kits, equipment and other products. Software is set by {repLabel}. Totals update as you go. Select <strong>Update my quote</strong> before you sign.</p>}
+              <QuoteOrder token={token} editable={editable} preview={preview} repLabel={repLabel} items={items.map((i) => ({ id: String(i.id), name: i.name, description: shownDescription(i) || null, drugs: drugsFor(i), section: sectionOf(i), sku: i.sku, unit: i.unit, unit_cents: i.unit_cents, qty: i.qty, min_qty: i.min_qty, adjustable: leadCanEdit(i), billing: i.billing, category: i.category ?? null }))} />
             </div>
 
             {editable && (
