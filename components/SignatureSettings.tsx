@@ -11,11 +11,14 @@ export function SignatureSettings({ back, sig }: { back: string; sig: { signatur
           <strong>{sig.signature_name}</strong>{sig.signature_title && <span>{sig.signature_title}</span>}
         </div>
       ) : <p className="fine" style={{ textAlign: "left" }}>No signature saved yet. Until you add one, agreements on your quotes wait for a countersignature.</p>}
-      <form action="/api/account/signature" method="post" className="sig-form">
+      <form action="/api/account/signature" method="post" className="sig-form" encType="multipart/form-data">
         <input type="hidden" name="back" value={back} />
         <div className="field"><label htmlFor="sig-name">Full name<span className="req">*</span></label><input id="sig-name" name="sig_name" required maxLength={120} defaultValue={sig.signature_name || sig.name} /></div>
         <div className="field"><label htmlFor="sig-title">Title</label><input id="sig-title" name="sig_title" maxLength={120} defaultValue={sig.signature_title || ""} placeholder={sig.clinic ? `Owner, ${sig.clinic}` : "President"} /></div>
         <div className="field sig-wide"><label>{sig.signature_png ? "Draw a new signature (leave blank to keep the current one)" : "Draw your signature"}</label><SignaturePad /></div>
+        <div className="field sig-wide sig-upload"><label htmlFor="sig-file">Or upload a picture of your signature</label>
+          <input id="sig-file" name="sig_file" type="file" accept="image/png,image/jpeg,image/webp" />
+          <span className="fine">Sign in dark ink on white paper and take a clear photo or scan (PNG or JPG, up to 5 MB). We remove the background and crop it. An upload is used instead of anything drawn above.</span></div>
         <div className="sig-wide btn-row" style={{ justifyContent: "flex-start" }}><button className="btn btn-primary" type="submit">Save signature</button></div>
       </form>
       {sig.signature_png && <form action="/api/account/signature" method="post"><input type="hidden" name="back" value={back} /><input type="hidden" name="remove" value="1" /><button className="linkish" type="submit">Remove my signature</button></form>}

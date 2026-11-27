@@ -2479,3 +2479,4 @@ td.acts { white-space: nowrap; }
 .mq-clientform { display: grid; grid-template-columns: 1fr 1fr; gap: 10px 14px; margin-top: 10px; }
 .mq-clientform input, .mq-clientform select { width: 100%; min-height: 42px; border: 1px solid #9aa4ad; border-radius: 8px; padding: 6px 10px; }
 @media (max-width: 640px) { .mq-clientform { grid-template-columns: 1fr; } }
+.sig-upload input[type=file] { min-height: 0; border: 0; padding: 4px 0; }

@@ -265,7 +265,7 @@ export function drugsFor(i: { drugs?: string | null; sku?: string | null; catego
 export const shownDescription = (i: { description: string | null; unit_cents: number }) => (i.description && !(i.unit_cents > 0 && /contact labb sales/i.test(i.description)) ? i.description : "");
 // Detailed table with the same columns as the Labb Station proposal (class="price", section rows by category).
 function priceTable(items: QuoteItem[], empty: string) {
-  if (!items.length) return `<p class="muted note">${esc(empty)}</p>`;
+  if (!items.length) return `<!--empty-section--><p class="muted note">${esc(empty)}</p>`;
   let last = "";
   const single = new Set(items.map((i) => sectionOf(i))).size === 1; // the card title already names the section
   const rows = items.map((i) => {
@@ -378,6 +378,8 @@ export function renderQuote(q: SalesQuote, allItems: QuoteItem[], lead: LeadRow,
   const type = ({ employer: "Workplace", tpa: "Workplace", laboratory: "Workplace", "drug-testing-business": "Workplace", "collection-site": "Clinic", corrections: "Forensic", treatment: "Treatment" } as Record<string, string>)[seg]
     || (q.kind === "employer" ? "Workplace" : q.kind === "clinic" ? "Clinic" : "");
   let out = cleanHtml(q.html).replace(/\{\{\s*[a-z_]+\s*\}\}/g, (m) => vals[m.replace(/\s/g, "")] ?? m);
+  // A pricing section with nothing in it disappears entirely: its card, and the pricing note under it.
+  out = out.replace(/<div class="card pricecard">(?:(?!<div class="card pricecard">)[\s\S])*?<!--empty-section-->[\s\S]*?<\/div>(\s*<div class="banner">\s*<div class="micro">All-inclusive rapid test pricing<\/div>[\s\S]*?<\/div>)?/g, "");
   out = fillLabbSignature(out, q);
   if (q.member_id && rep) out = partnerBrand(out, rep);
   if (type) out = out.replace(new RegExp(`<span class="check"></span>(\\s*)${type}\\b`), `<span class="check" style="background:#CF743C;border-color:#CF743C;box-shadow:inset 0 0 0 1.5pt #fff"></span>$1<b>${type}</b>`);
