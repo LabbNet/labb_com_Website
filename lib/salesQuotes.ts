@@ -74,14 +74,19 @@ async function starterItems(kind: QuoteKind) {
 
 // What the lead can change on their quote: quantities of every priced one-time item (equipment, kits, other products).
 // Never software (SaaS), included items or lab and MRO services billed as used.
+// Rapid tests are sold in boxes of 25: the price is per test, the quantity is boxes.
+export const KIT_BOX = 25;
+export const packOf = (i: { category?: string | null }) => (i.category === "rapid-kits" ? KIT_BOX : 1);
+export const lineCents = (i: { category?: string | null; unit_cents: number; qty: number }) => i.unit_cents * i.qty * packOf(i);
+
 export const leadCanEdit = (i: Pick<QuoteItem, "billing" | "unit_cents">) => i.billing === "once" && i.unit_cents > 0;
 
-export function totals(items: (Pick<QuoteItem, "unit_cents" | "qty" | "billing"> & { excluded?: boolean })[]) {
+export function totals(items: (Pick<QuoteItem, "unit_cents" | "qty" | "billing"> & { excluded?: boolean; category?: string | null })[]) {
   let once = 0, monthly = 0;
   for (const i of items) {
     if (i.excluded) continue;
-    if (i.billing === "once") once += i.unit_cents * i.qty;
-    else if (i.billing === "monthly") monthly += i.unit_cents * i.qty;
+    if (i.billing === "once") once += lineCents(i);
+    else if (i.billing === "monthly") monthly += lineCents(i);
   }
   return { once, monthly, dueToday: once + monthly };
 }
@@ -198,7 +203,7 @@ function itemsTable(items: QuoteItem[]) {
   if (!rows.length) return `<p class="muted">No items yet.</p>`;
   return `<table><thead><tr><th>Item</th><th class="num">Qty</th><th class="num">Price</th><th class="num">Total</th></tr></thead><tbody>${rows.map((i) =>
     `<tr><td><strong>${esc(i.name)}</strong>${i.sku ? ` <span class="muted">${esc(i.sku)}</span>` : ""}${i.description ? `<br><span class="muted">${esc(i.description)}</span>` : ""}</td>
-      <td class="num">${i.qty.toLocaleString()}${i.unit ? ` ${esc(i.unit)}` : ""}</td><td class="num">${money(i.unit_cents)}${i.billing === "monthly" ? "/mo" : ""}</td><td class="num">${money(i.unit_cents * i.qty)}${i.billing === "monthly" ? "/mo" : ""}</td></tr>`).join("")}</tbody></table>`;
+      <td class="num">${packOf(i) > 1 ? `${i.qty.toLocaleString()} ${i.qty === 1 ? "box" : "boxes"}` : `${i.qty.toLocaleString()}${i.unit ? ` ${esc(i.unit)}` : ""}`}</td><td class="num">${packOf(i) > 1 ? `${money(i.unit_cents)} per test<br>${money(i.unit_cents * KIT_BOX)} per box of ${KIT_BOX}` : `${money(i.unit_cents)}${i.billing === "monthly" ? "/mo" : ""}`}</td><td class="num">${money(lineCents(i))}${i.billing === "monthly" ? "/mo" : ""}</td></tr>`).join("")}</tbody></table>`;
 }
 function invoicedTable(items: QuoteItem[]) {
   const rows = items.filter((i) => i.billing === "invoiced");
@@ -216,10 +221,11 @@ function priceTable(items: QuoteItem[], empty: string) {
     const sect = CAT_LABEL[i.category || ""] || "Other";
     const head = sect !== last ? `<tr class="sect"><td colspan="5">${esc((last = sect))}</td></tr>` : "";
     const unit = i.unit ? i.unit.replace(/^per\s+/i, "") : "";
-    const billing = i.billing === "monthly" ? `Monthly${unit ? `, per ${esc(unit)}` : ""}` : i.billing === "invoiced" ? `Per ${esc(unit || "test")}, billed as used` : `One time${unit ? `, per ${esc(unit)}` : ""}`;
+    const box = packOf(i) > 1;
+    const billing = box ? `One time, per box of ${KIT_BOX}` : i.billing === "monthly" ? `Monthly${unit ? `, per ${esc(unit)}` : ""}` : i.billing === "invoiced" ? `Per ${esc(unit || "test")}, billed as used` : `One time${unit ? `, per ${esc(unit)}` : ""}`;
     return `${head}<tr><td><span class="sku">${esc(i.name)}</span>${i.description ? `<br><span class="desc">${esc(i.description)}</span>` : ""}</td><td>${billing}</td>
-      <td class="num">${i.billing === "invoiced" ? "" : i.qty ? i.qty.toLocaleString() : i.billing === "monthly" ? "Not included" : "Optional"}</td><td class="num">${i.unit_cents ? `${money(i.unit_cents)}${i.billing === "monthly" ? "/mo" : ""}` : i.billing === "invoiced" ? "Contact Labb sales" : "Included"}</td>
-      <td class="num">${i.billing === "invoiced" ? "As used" : !i.qty ? "" : i.unit_cents ? `${money(i.unit_cents * i.qty)}${i.billing === "monthly" ? "/mo" : ""}` : "Included"}</td></tr>`;
+      <td class="num">${i.billing === "invoiced" ? "" : i.qty ? `${i.qty.toLocaleString()}${box ? (i.qty === 1 ? " box" : " boxes") : ""}` : i.billing === "monthly" ? "Not included" : "Optional"}</td><td class="num">${box && i.unit_cents ? `${money(i.unit_cents * KIT_BOX)} per box<br><span class="desc">${money(i.unit_cents)} per test</span>` : i.unit_cents ? `${money(i.unit_cents)}${i.billing === "monthly" ? "/mo" : ""}` : i.billing === "invoiced" ? "Contact Labb sales" : "Included"}</td>
+      <td class="num">${i.billing === "invoiced" ? "As used" : !i.qty ? "" : i.unit_cents ? `${money(lineCents(i))}${i.billing === "monthly" ? "/mo" : ""}` : "Included"}</td></tr>`;
   }).join("");
   return `<table class="price"><thead><tr><th style="width:40%">Item</th><th>Billing</th><th class="num">Qty</th><th class="num">Unit price</th><th class="num">Amount</th></tr></thead><tbody>${rows}</tbody></table>`;
 }
@@ -250,7 +256,13 @@ export function renderQuote(q: SalesQuote, allItems: QuoteItem[], lead: LeadRow,
     "{{signature_block}}": signature(q, false), "{{client_signature}}": signature(q, true),
     "{{effective_date}}": q.signed_at ? fmtSigned(q.signed_at) : "Date of acceptance",
   };
-  return cleanHtml(q.html).replace(/\{\{\s*[a-z_]+\s*\}\}/g, (m) => vals[m.replace(/\s/g, "")] ?? m);
+  // Client type check boxes in the template (Workplace, Clinic, Forensic, Treatment), from the lead's segment or the quote kind.
+  const seg = String(lead.segment || "");
+  const type = ({ employer: "Workplace", tpa: "Workplace", laboratory: "Workplace", "drug-testing-business": "Workplace", "collection-site": "Clinic", corrections: "Forensic", treatment: "Treatment" } as Record<string, string>)[seg]
+    || (q.kind === "employer" ? "Workplace" : q.kind === "clinic" ? "Clinic" : "");
+  let out = cleanHtml(q.html).replace(/\{\{\s*[a-z_]+\s*\}\}/g, (m) => vals[m.replace(/\s/g, "")] ?? m);
+  if (type) out = out.replace(new RegExp(`<span class="check"></span>(\\s*)${type}\\b`), `<span class="check" style="background:#CF743C;border-color:#CF743C;box-shadow:inset 0 0 0 1.5pt #fff"></span>$1<b>${type}</b>`);
+  return out;
 }
 
 // ---- Data ----
@@ -463,7 +475,7 @@ export async function quoteCheckout(q: SalesQuote, items: QuoteItem[], lead: Lea
   const { stripe } = await import("@/lib/commerce");
   const lines = items.filter((i) => i.billing !== "invoiced" && i.qty > 0 && i.unit_cents > 0).map((i) => ({
     quantity: i.qty,
-    price_data: { currency: "usd", unit_amount: i.unit_cents, product_data: { name: `${i.name}${i.billing === "monthly" ? " (first month)" : ""}`.slice(0, 250), ...(i.sku ? { description: i.sku } : {}) } },
+    price_data: { currency: "usd", unit_amount: i.unit_cents * packOf(i), product_data: { name: `${i.name}${i.billing === "monthly" ? " (first month)" : packOf(i) > 1 ? ` (box of ${KIT_BOX})` : ""}`.slice(0, 250), ...(i.sku ? { description: i.sku } : {}) } },
   }));
   const session = await stripe().checkout.sessions.create({
     mode: "payment",

@@ -7,7 +7,7 @@ import { fmtDate, readFlash, requireAdmin } from "@/lib/admin";
 import { sql } from "@/lib/db";
 import { leadName, type LeadRow } from "@/lib/leads";
 import {
-  aiReady, BILLING_LABEL, leadCanEdit, billingFor, priceFor, type PriceRow, getQuote, money, PRICE_LEVELS, QUOTE_KINDS, QUOTE_PRICE_CATEGORIES, QUOTE_STATUS, quoteNumber, quoteUrl, repFor, totals,
+  aiReady, BILLING_LABEL, KIT_BOX, leadCanEdit, lineCents, packOf, billingFor, priceFor, type PriceRow, getQuote, money, PRICE_LEVELS, QUOTE_KINDS, QUOTE_PRICE_CATEGORIES, QUOTE_STATUS, quoteNumber, quoteUrl, repFor, totals,
 } from "@/lib/salesQuotes";
 
 export const metadata: Metadata = { title: "Quote", robots: { index: false, follow: false } };
@@ -136,7 +136,7 @@ export default async function QuoteEditor({ params }: { params: Promise<{ id: st
                 <input type="hidden" name="back" value={`/admin/sales-quotes/${q.id}`} />
                 <div className="hero-card">
                   <h2>Line items</h2>
-                  <p className="fine" style={{ textAlign: "left", marginTop: -6 }}>Every product on the quote price list is listed here. Products marked Not in quote are added when you set a quantity (or check Add for lab and MRO) and select Save changes. Every line on the quote is shown to the client with its price, even at a quantity of 0, so they see their pricing for everything you selected. Use Remove from quote to hide a line. The client can change quantities of every priced one-time item (never below the minimum), but not software, included items or lab and MRO services, which are billed later, as used.</p>
+                  <p className="fine" style={{ textAlign: "left", marginTop: -6 }}>Every product on the quote price list is listed here. Products marked Not in quote are added when you set a quantity (or check Add for lab and MRO) and select Save changes. Rapid tests are priced per test and sold in boxes of 25: enter the quantity in boxes. Every line on the quote is shown to the client with its price, even at a quantity of 0, so they see their pricing for everything you selected. Use Remove from quote to hide a line. The client can change quantities of every priced one-time item (never below the minimum), but not software, included items or lab and MRO services, which are billed later, as used.</p>
                   <div style={{ overflowX: "auto" }}>
                     <table className="meet-table qb-items">
                       <thead><tr><th>Item</th><th>Billing</th><th>Price</th><th>Qty</th><th>Min</th><th title="The lead can change the quantity">Lead edits</th><th>Total</th><th title="Takes the line off the quote but keeps it and its price here">Remove from quote</th></tr></thead>
@@ -153,7 +153,7 @@ export default async function QuoteEditor({ params }: { params: Promise<{ id: st
                                 <td><span className="fine">{BILLING_LABEL[billingFor(p.category)]}</span></td>
                                 <td><input name={`newprice_${p.id}`} defaultValue={priced ? (cents / 100).toFixed(2) : ""} placeholder="Set price" inputMode="decimal" aria-label={`Price for ${p.name}`} className="qb-num" disabled={locked} />{p.unit && <span className="fine"> /{p.unit.replace(/^per\s+/i, "")}</span>}</td>
                                 <td>{lab ? <label className="qb-inc"><input type="checkbox" name={`newadd_${p.id}`} value="1" disabled={locked} /> Add</label>
-                                  : <input name={`newqty_${p.id}`} type="number" min={0} defaultValue={0} aria-label={`Quantity of ${p.name}`} className="qb-qty" disabled={locked} />}</td>
+                                  : <><input name={`newqty_${p.id}`} type="number" min={0} defaultValue={0} aria-label={`Quantity of ${p.name}`} className="qb-qty" disabled={locked} />{p.category === "rapid-kits" && <span className="fine" style={{ display: "block" }}>boxes</span>}</>}</td>
                                 <td colSpan={4}><span className="fine">{lab ? "Check Add, then Save changes" : "Set a quantity, then Save changes"}</span></td>
                               </tr>
                             );
@@ -168,10 +168,10 @@ export default async function QuoteEditor({ params }: { params: Promise<{ id: st
                             </td>
                             <td><select name={`billing_${i.id}`} defaultValue={i.billing} aria-label="Billing" disabled={locked}>{Object.entries(BILLING_LABEL).map(([k, v]) => <option key={k} value={k}>{v}</option>)}</select></td>
                             <td><input name={`price_${i.id}`} defaultValue={(i.unit_cents / 100).toFixed(2)} inputMode="decimal" aria-label="Unit price" className="qb-num" disabled={locked} />{i.unit && <span className="fine"> /{i.unit}</span>}</td>
-                            <td><input name={`qty_${i.id}`} type="number" min={0} defaultValue={i.qty} aria-label="Quantity" className="qb-qty" disabled={locked || i.billing === "invoiced"} /></td>
+                            <td><input name={`qty_${i.id}`} type="number" min={0} defaultValue={i.qty} aria-label="Quantity" className="qb-qty" disabled={locked || i.billing === "invoiced"} />{packOf(i) > 1 && <span className="fine" style={{ display: "block" }}>boxes</span>}</td>
                             <td><input name={`min_${i.id}`} type="number" min={0} defaultValue={i.min_qty} aria-label="Minimum quantity" className="qb-qty" disabled={locked || i.billing === "invoiced"} /></td>
                             <td style={{ textAlign: "center" }}><span className="fine">{leadCanEdit(i) ? "Yes" : "No"}</span></td>
-                            <td className="qb-line">{i.excluded ? <span className="fine">Not on quote</span> : i.billing === "invoiced" ? <span className="fine">As used</span> : <>{money(i.unit_cents * i.qty)}{i.billing === "monthly" ? "/mo" : ""}</>}</td>
+                            <td className="qb-line">{i.excluded ? <span className="fine">Not on quote</span> : i.billing === "invoiced" ? <span className="fine">As used</span> : <>{money(lineCents(i))}{i.billing === "monthly" ? "/mo" : ""}{packOf(i) > 1 && <span className="fine" style={{ display: "block" }}>{i.qty} × box of {KIT_BOX}</span>}</>}</td>
                             <td style={{ textAlign: "center" }}><input type="checkbox" name={`del_${i.id}`} value="1" defaultChecked={!!i.excluded} aria-label={`Remove ${i.name} from the quote`} disabled={locked} />{i.excluded && <span className="qb-exctag">Removed</span>}</td>
                           </tr>
                           );
