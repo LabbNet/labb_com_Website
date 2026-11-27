@@ -2512,3 +2512,8 @@ td.acts { white-space: nowrap; }
   .leads-table thead th:nth-child(5), .leads-table thead th:nth-child(6) { width: 22%; }
 }
 .mq-who { text-align: left; background: #f4f6f7; border-left: 4px solid #CF743C; border-radius: 6px; padding: 10px 14px; color: #1f2a33; }
+.sm-pick { display: flex; flex-wrap: wrap; gap: 10px 18px; align-items: center; justify-content: space-between; border: 1px solid #d5dbe0; border-left: 4px solid #CF743C; border-radius: 10px; padding: 12px 14px; margin: 12px 0; text-align: left; }
+.sm-pick strong { display: block; color: #1f2a33; }
+.sm-pick .fine { display: block; text-align: left; max-width: 520px; }
+.sm-pickform { display: flex; gap: 8px; flex-wrap: wrap; }
+.sm-pickform select { min-height: 38px; border: 1px solid #9aa4ad; border-radius: 8px; padding: 4px 8px; }

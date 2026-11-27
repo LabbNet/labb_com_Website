@@ -380,8 +380,23 @@ export default async function AdminLead({ params, searchParams }: { params: Prom
                 })}
               </ul>
             )}
+            {lead.owner === "labb" && (
+              <div className="sm-pick">
+                <div>
+                  <strong>Let {lead.first_name || "the lead"} pick a time</strong>
+                  <span className="fine">Emails a link to the host&apos;s calendar. They choose an open time, and the meeting, invite and reminders follow automatically.{lead.book_token ? " A link was sent before; this sends it again." : ""}</span>
+                </div>
+                {post("accept-labb", <div className="sm-pickform">
+                  <select name="host" aria-label="Whose calendar" defaultValue={lead.meeting_host || me.id}>
+                    {hosts.map((h) => <option key={h.id} value={h.id}>{h.id === me.id ? `My calendar (${h.name})` : `${h.name}'s calendar`}{h.hours ? "" : " (no hours set)"}</option>)}
+                    <option value="any">Anyone available</option>
+                  </select>
+                  <button className="btn btn-outline-dark btn-sm" type="submit">Send my calendar</button>
+                </div>)}
+              </div>
+            )}
             <details className="sm-new" open={!sales.some((g) => g.status === "booked" && new Date(g.ends_at) > new Date())}>
-              <summary>Schedule a meeting</summary>
+              <summary>Schedule a meeting yourself</summary>
               {post("meeting-schedule", <div className="sm-form">
                 <div className="field"><label htmlFor="sm-kind">Meeting</label>
                   <select id="sm-kind" name="kind" defaultValue={next}>
@@ -396,7 +411,8 @@ export default async function AdminLead({ params, searchParams }: { params: Prom
                   <select id="sm-host" name="host" defaultValue={lead.meeting_host || me.id}>{hosts.map((h) => <option key={h.id} value={h.id}>{h.id === me.id ? `Me (${h.name})` : h.name}</option>)}</select></div>
                 <div className="field"><label htmlFor="sm-plat">Where</label>
                   <select id="sm-plat" name="platform" defaultValue="labb">{PLATFORMS.map((p) => <option key={p.value} value={p.value}>{p.label}</option>)}</select></div>
-                <div className="field"><label htmlFor="sm-room">Meeting link (for Other link, or your own Teams link)</label><input id="sm-room" name="room" type="url" placeholder="https://" /></div>
+                <div className="field"><label htmlFor="sm-room">Your meeting link</label><input id="sm-room" name="room" type="url" placeholder="https://" defaultValue={hosts.find((h) => h.id === me.id)?.meeting_url || ""} />
+                  <span className="fine">Used with &ldquo;My own meeting link&rdquo;. Blank uses the host&apos;s saved link.</span></div>
                 <div className="field sm-wide"><label className="sm-check"><input type="checkbox" name="notify" value="1" defaultChecked /> Email the lead the invite now, a reminder 1 hour before and the link 10 minutes before</label>
                   <span className="fine">Uncheck to add a meeting you arranged another way. Nothing is sent to the lead.</span></div>
                 <div className="field sm-wide"><label htmlFor="sm-agenda">Agenda (included in the invite)</label><textarea id="sm-agenda" name="agenda" rows={2} maxLength={2000} /></div>

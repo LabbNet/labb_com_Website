@@ -155,7 +155,7 @@ export const newToken = () => randomBytes(18).toString("base64url");
 export const PLATFORMS = [
   { value: "labb", label: "Labb video room (Jitsi)" },
   { value: "teams", label: "Microsoft Teams" },
-  { value: "link", label: "Other link (Zoom, Google Meet...)" },
+  { value: "link", label: "My own meeting link (Zoom, Google Meet, Teams...)" },
 ] as const;
 export type Platform = (typeof PLATFORMS)[number]["value"];
 export const isPlatform = (v: string): v is Platform => PLATFORMS.some((p) => p.value === v);
@@ -437,8 +437,9 @@ export async function scheduleSalesMeeting(lead: LeadRow, o: { kind: MeetingKind
   const [host] = await db<Host2[]>`select id, name, email, meeting_url from members where id = ${o.hostId} and role = 'admin'`;
   if (!host) throw new Error("Choose who the meeting is with.");
   const end = new Date(o.start.getTime() + o.minutes * 60000);
-  const given = o.room && /^https:\/\/\S+$/.test(o.room) ? o.room : "";
-  if (platform === "link" && !given) throw new Error("Enter the meeting link (it must start with https://).");
+  // "My own link": the link typed on the form, or the host's saved personal meeting link.
+  const given = o.room && /^https:\/\/\S+$/.test(o.room) ? o.room : platform === "link" && host.meeting_url ? host.meeting_url : "";
+  if (platform === "link" && !given) throw new Error("Paste your meeting link (it must start with https://), or save your personal link on the Meetings page.");
   const room = platform === "labb" ? (given && /meet\.jit\.si\//.test(given) ? given : labbRoom()) : given || roomFor(host);
   let m: SalesMtg | undefined;
   let updated = false;
