@@ -157,7 +157,7 @@ export async function POST(req: Request) {
       await flash("Publish or schedule the article first, then send it.", "error");
       return back(id);
     }
-    const message = String(fd.get("message") ?? "").trim().slice(0, 2800) || defaultMessage(a);
+    const message = String(fd.get("message") ?? "").trim().slice(0, 3000) || defaultMessage(a);
     const when = field(fd, "when", 10) === "schedule" ? easternToDate(field(fd, "send_at", 20)) : new Date();
     if (!when) {
       await flash("Choose the date and time to send.", "error");
