@@ -147,7 +147,7 @@ export function totals(items: (Pick<QuoteItem, "unit_cents" | "qty" | "billing">
 export const PLACEHOLDERS: [string, string][] = [
   ["{{client_name}}", "Lead's name"], ["{{client_company}}", "Organization"], ["{{client_email}}", "Lead's email"], ["{{client_location}}", "City and state"],
   ["{{quote_title}}", "Quote title"], ["{{quote_number}}", "Quote number, like Q-2026-0012"], ["{{quote_date}}", "Date sent"], ["{{expires_on}}", "Valid until"],
-  ["{{rep_name}}", "Rep's name (the CPP member on partner quotes)"], ["{{client_type}}", "The client's kind of organization, plural (employers, clinics and collection sites...)"], ["{{partner_company}}", "CPP member's company (partner quotes only)"], ["{{rep_email}}", "Rep's email"], ["{{rep_phone}}", "Rep's phone"],
+  ["{{rep_name}}", "Rep's name (the CPP member on partner quotes)"], ["{{growth_note}}", "Growth paragraph for clinics, collection sites and TPAs (empty for other clients)"], ["{{client_type}}", "The client's kind of organization, plural (employers, clinics and collection sites...)"], ["{{partner_company}}", "CPP member's company (partner quotes only)"], ["{{rep_email}}", "Rep's email"], ["{{rep_phone}}", "Rep's phone"],
   ["{{client_phone}}", "Lead's phone"], ["{{locations}}", "Number of locations (from the software quantity)"],
   ["{{items_table}}", "Simple table of everything ordered: software, readers, kits, with quantities and prices"], ["{{invoiced_table}}", "Simple table of lab and MRO services billed as used"],
   ["{{price_table}}", "Detailed pricing table (class=\"price\") of everything ordered, grouped by category"],
@@ -375,6 +375,13 @@ function partnerBrand(html: string, rep: NonNullable<Rep>) {
   return out;
 }
 
+// Clinics, collection sites and TPAs: Labb's job is to help them grow. Shown in About Labb on their quotes only.
+export function growthNote(segment: string, kind?: string) {
+  const who = segment === "tpa" ? "TPAs" : segment === "collection-site" || (!segment && kind === "clinic") || (segment === "other" && kind === "clinic") ? "clinics and collection sites" : "";
+  if (!who) return "";
+  return `<p style="margin:5pt 0 0"><b>Built to help ${who} grow.</b> Labb gives you more to sell and more ways to win clients: rapid testing read by Labb Station, electronic chain of custody, laboratory testing and MRO review, and LabbHR software you can put in front of your employer clients, all from one partner. Your logo goes on every result form and on a client login page, so each report your clients receive builds your brand, not ours. Through the Labb Channel Partner Program, member clinics also get access to employer leads in their area.</p>`;
+}
+
 // "Drug testing technology built for ___": the client's kind of organization, from the lead's segment or the quote kind.
 export function clientTypePhrase(segment: string, kind?: string) {
   const bySeg: Record<string, string> = {
@@ -393,6 +400,7 @@ export function renderQuote(q: SalesQuote, allItems: QuoteItem[], lead: LeadRow,
     "{{client_location}}": esc([lead.city, lead.state].filter(Boolean).join(", ")), "{{quote_title}}": esc(q.title), "{{quote_number}}": quoteNumber(q),
     "{{quote_date}}": fmtDay(q.sent_at || q.created_at), "{{expires_on}}": fmtDay(q.expires_on), "{{rep_name}}": esc(rep?.name || "The Labb team"),
     "{{client_type}}": esc(clientTypePhrase(String(lead.segment || ""), q.kind)),
+    "{{growth_note}}": growthNote(String(lead.segment || ""), q.kind),
     "{{partner_company}}": esc(q.member_id ? rep?.clinic || rep?.name || "" : ""), "{{rep_email}}": esc(rep?.email || "info@labb.com"), "{{rep_phone}}": esc(rep?.phone || "(877) 868-9967"),
     "{{items_table}}": itemsTable(items), "{{invoiced_table}}": invoicedTable(items),
     "{{one_time_total}}": money(t.once), "{{monthly_total}}": money(t.monthly), "{{due_today}}": money(t.dueToday),
@@ -603,6 +611,7 @@ export async function quoteEmailDraft(quoteId: string) {
   const message = [
     `Hi ${lead.first_name || "there"},`,
     `${rep.name} has prepared your quote: ${q.title} (${quoteNumber(q)}).`,
+    ...(growthNote(String(lead.segment || ""), q.kind) ? [`Labb is built to help ${lead.segment === "tpa" ? "TPAs" : "clinics and collection sites"} grow: more services to offer from one platform, your logo on every result form, and a branded login for your clients.`] : []),
     `Open it to review the details. You can change the number of test kits, readers and other items before you accept, then sign and complete your order online. Due at acceptance: ${money(t.dueToday)}${t.monthly ? ", including the first month of software" : ""}. Lab services are billed later, only as used.`,
     ...(q.member_id ? [`${from} is a Labb Authorized Channel Partner.${rep.phone ? ` Reach ${rep.name} at ${rep.phone}.` : ""}`] : []),
     `This quote is valid until ${fmtDay(expires)}. Questions? Just reply to this email.`,
