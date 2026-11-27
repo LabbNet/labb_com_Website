@@ -105,3 +105,8 @@ export function fitPost(network: SocialNetwork, input: PostInput): FittedPost {
 // LinkedIn link-card fields.
 export const linkedinTitle = (title: string) => fit(plainText(title), LINKEDIN_TITLE_MAX);
 export const linkedinDescription = (summary: string) => fit(plainText(summary), LINKEDIN_DESCRIPTION_MAX);
+
+// LinkedIn's posts API reads text as "little text format", where these characters are markup:
+// | { } @ [ ] ( ) < > # \ * _ ~. Unescaped, they can cut a post short or drop text, so escape them.
+export const escapeLinkedIn = (s: string) => s.replace(/[\\|{}@\[\]()<>#*_~]/g, (c) => `\\${c}`);
+

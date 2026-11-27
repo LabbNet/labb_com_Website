@@ -3,7 +3,7 @@ import { sql } from "@/lib/db";
 import { absoluteUrl } from "@/lib/site";
 import { sendCampaign, type Campaign } from "@/lib/broadcast";
 import { renderBody } from "@/lib/articleFormat";
-import { fitPost, linkedinDescription, linkedinTitle, plainText, type SocialNetwork } from "@/lib/socialFormat";
+import { escapeLinkedIn, fitPost, linkedinDescription, linkedinTitle, plainText, type SocialNetwork } from "@/lib/socialFormat";
 
 // Article distribution. Social platforms go out through one Zapier or Make webhook (SOCIAL_WEBHOOK_URL)
 // that routes to each platform; the newsletter goes through Labb's own email broadcast.
@@ -53,13 +53,13 @@ export function buildSocialPayload(a: Pick<ArticleRow, "id" | "slug" | "title" |
     x: sendTo.includes("x"),
     instagram: sendTo.includes("instagram"),
     // Ready-to-post text per network, already sized to each network's limits.
-    linkedin_text: texts.linkedin ?? null,
+    linkedin_text: texts.linkedin ? escapeLinkedIn(texts.linkedin) : null,
     facebook_text: texts.facebook ?? null,
     x_text: texts.x ?? null,
     instagram_caption: texts.instagram ?? null,
-    // Kept for scenarios mapped before per-network text existed: LinkedIn-sized text.
-    message: linkedin,
-    message_with_link: `${linkedin}\n\n${url}`,
+    // LinkedIn-sized text, escaped for LinkedIn's posts API (Make's LinkedIn module passes it through as is).
+    message: escapeLinkedIn(linkedin),
+    message_with_link: escapeLinkedIn(`${linkedin}\n\n${url}`),
     title: linkedinTitle(a.title),
     summary: linkedinDescription(a.description),
     plain_summary: plainText(a.description),
