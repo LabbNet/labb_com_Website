@@ -8,7 +8,7 @@ import { partnerOptions } from "@/lib/leadQuery";
 import { detailRows, duplicateLeads, leadName, type LeadRow } from "@/lib/leads";
 import { leadActivity } from "@/lib/analytics";
 import { runsForLeads, SEQUENCES, sequenceName, STEP_DAYS } from "@/lib/sequences";
-import { etDate, fmtWhen, kindInfo, leadMeetings, MEETING_KINDS, MEETING_STATUS, meetingHosts, nextKind, PLATFORMS } from "@/lib/meetings";
+import { bookingInviteDraft, etDate, fmtWhen, kindInfo, leadMeetings, MEETING_KINDS, MEETING_STATUS, meetingHosts, nextKind, PLATFORMS, testToken } from "@/lib/meetings";
 import { dupesFor } from "@/lib/dupes";
 import { money as qMoney, QUOTE_KINDS, QUOTE_STATUS, quoteNumber, totals as qTotals, type QuoteItem } from "@/lib/salesQuotes";
 import { absoluteUrl } from "@/lib/site";
@@ -381,19 +381,26 @@ export default async function AdminLead({ params, searchParams }: { params: Prom
               </ul>
             )}
             {lead.owner === "labb" && (
-              <div className="sm-pick">
-                <div>
-                  <strong>Let {lead.first_name || "the lead"} pick a time</strong>
-                  <span className="fine">Emails a link to the host&apos;s calendar. They choose an open time, and the meeting, invite and reminders follow automatically.{lead.book_token ? " A link was sent before; this sends it again." : ""}</span>
-                </div>
+              <details className="sm-pick" open={!sales.some((g) => g.status === "booked" && new Date(g.ends_at) > new Date())}>
+                <summary><strong>Let {lead.first_name || "the lead"} pick a time</strong> <span className="fine">Email a link to your calendar. They choose an open time; the invite and reminders follow automatically.{lead.book_token ? " A link was sent before; this sends it again." : ""}</span></summary>
                 {post("accept-labb", <div className="sm-pickform">
-                  <select name="host" aria-label="Whose calendar" defaultValue={lead.meeting_host || me.id}>
-                    {hosts.map((h) => <option key={h.id} value={h.id}>{h.id === me.id ? `My calendar (${h.name})` : `${h.name}'s calendar`}{h.hours ? "" : " (no hours set)"}</option>)}
-                    <option value="any">Anyone available</option>
-                  </select>
-                  <button className="btn btn-outline-dark btn-sm" type="submit">Send my calendar</button>
+                  <div className="field"><label htmlFor="bk-host">Whose calendar</label>
+                    <select id="bk-host" name="host" defaultValue={lead.meeting_host || me.id}>
+                      {hosts.map((h) => <option key={h.id} value={h.id}>{h.id === me.id ? `My calendar (${h.name})` : `${h.name}'s calendar`}{h.hours ? "" : " (no hours set)"}</option>)}
+                      <option value="any">Anyone available</option>
+                    </select></div>
+                  <div className="field"><label>To</label><input value={lead.email} readOnly className="qe-to" /></div>
+                  <div className="field sm-wide"><label htmlFor="bk-sub">Subject</label><input id="bk-sub" name="subject" defaultValue={bookingInviteDraft(lead, hosts.find((h) => h.id === (lead.meeting_host || me.id)) ?? null).subject} maxLength={200} required /></div>
+                  <div className="field sm-wide"><label htmlFor="bk-msg">Message</label><textarea id="bk-msg" name="message" rows={10} defaultValue={bookingInviteDraft(lead, hosts.find((h) => h.id === (lead.meeting_host || me.id)) ?? null).message} maxLength={5000} required /></div>
+                  <div className="qe-cta sm-wide" aria-hidden="true"><span>Choose a meeting time</span> button with the calendar link goes here</div>
+                  <div className="sm-wide sm-btns">
+                    <button className="btn btn-primary btn-sm" type="submit">Send the calendar link</button>
+                    <button className="btn btn-outline-dark btn-sm" type="submit" name="test" value="1">Send me a test</button>
+                    <a className="btn btn-outline-dark btn-sm" href={`/meet/${testToken(me.id, lead.meeting_host || me.id)}`} target="_blank" rel="noreferrer">Preview the booking page</a>
+                  </div>
+                  <p className="fine sm-wide" style={{ textAlign: "left", margin: 0 }}>Send me a test emails you exactly what {lead.first_name || "the lead"} gets, with a test link. The preview shows the page they pick a time on; booking from it saves nothing.</p>
                 </div>)}
-              </div>
+              </details>
             )}
             <details className="sm-new" open={!sales.some((g) => g.status === "booked" && new Date(g.ends_at) > new Date())}>
               <summary>Schedule a meeting yourself</summary>

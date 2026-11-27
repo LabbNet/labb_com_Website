@@ -127,7 +127,9 @@ export async function POST(req: Request) {
     const [host] = hostField === "any" ? [null] : await db<{ name: string; email: string }[]>`
       select name, email from members where id = ${/^[0-9a-f-]{36}$/i.test(hostField) ? hostField : "00000000-0000-0000-0000-000000000000"} and role = 'admin'`;
     const me = await testLead(admin.id);
-    const sent = me ? await emailBookingInvite(me, host ?? null, testToken(admin.id, host ? hostField : "any"), true) : false;
+    const custom = { subject: field(fd, "subject", 200), message: String(fd.get("message") ?? "").slice(0, 5000) };
+    // The test shows exactly the lead's email (their name and the edited wording), sent to the admin, with a test booking link.
+    const sent = me ? await emailBookingInvite(custom.message ? lead : me, host ?? null, testToken(admin.id, host ? hostField : "any"), true, { ...custom, to: admin.email }) : false;
     await flash(sent ? `Test invite sent to ${admin.email}. Nothing was sent to ${lead.email}. Book a time from the test to get the confirmation and video link.` : "The test email didn't send. Check the email settings.", sent ? "ok" : "error");
   } else if (action === "accept-labb" || action === "resend-invite") {
     // Labb keeps the lead: assign it to a team member (or anyone available) and email the prospect a booking link.
@@ -151,7 +153,7 @@ export async function POST(req: Request) {
       book_token = ${token}, status = case when status = 'new' then 'contacted' else status end, updated_at = now() where id = ${id}`;
     const label = host ? host.name : "any available Labb team member";
     if (action === "accept-labb") await logLeadEvent(id, "accepted", `Kept at Labb and assigned to ${label}`, actor);
-    const sent = await emailBookingInvite(lead, host, token);
+    const sent = await emailBookingInvite(lead, host, token, false, { subject: field(fd, "subject", 200), message: String(fd.get("message") ?? "").slice(0, 5000) });
     await logLeadEvent(id, "prospect_emailed", sent ? `Meeting booking link sent to ${lead.email}` : `Booking link email to ${lead.email} did not send`, actor);
     const noHours = host ? host.hours === 0 : !(await db`select 1 from meeting_hours limit 1`).length;
     await flash(

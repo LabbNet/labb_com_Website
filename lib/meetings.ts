@@ -226,19 +226,24 @@ export async function emailPartnerIntro(lead: LeadRow, partner: { name: string; 
 }
 
 // Labb kept the lead: invite the prospect to book a call.
-export async function emailBookingInvite(lead: LeadRow, host: { name: string; email: string } | null, token: string, test = false) {
+// The booking-link email's default wording, which the rep can edit before it's sent.
+export function bookingInviteDraft(lead: Pick<LeadRow, "first_name">, host: { name: string } | null) {
+  const who = host ? `${host.name.split(" ")[0]} from our team` : "Someone from our team";
+  return {
+    subject: "Schedule a call with Labb",
+    message: `Hi ${lead.first_name || "there"},\n\nThank you for your interest in Labb. ${who} would like to schedule a short video call with you to go over all of Labb's programs and find the right fit for your organization.\n\nChoose a time that works for you with the button below. It takes less than a minute, and you'll get a video meeting link as soon as you book.\n\nBefore we talk, take a look at everything Labb offers: ${absoluteUrl("/welcome")}\n\n${host ? host.name : "The Labb team"}\nLabb`,
+  };
+}
+
+export async function emailBookingInvite(lead: LeadRow, host: { name: string; email: string } | null, token: string, test = false, custom?: { subject?: string; message?: string; to?: string }) {
   const link = absoluteUrl(`/meet/${token}`);
-  const welcome = absoluteUrl("/welcome");
-  const who = host ? `${esc(host.name.split(" ")[0])} from our team` : "Someone from our team";
-  const html = emailLayout(
-    "Let's schedule a call",
-    `<p>Hi ${first(lead)},</p>
-     <p>Thank you for your interest in Labb. ${who} would like to schedule a short video call with you to go over all of Labb's programs and find the right fit for your organization.</p>
-     <p>Choose a time that works for you. It takes less than a minute, and you'll get a video meeting link as soon as you book.</p>`,
-    { href: link, label: "Choose a meeting time" },
-  ).replace(/(<p style="font-size:12px;color:#5f6a74;border-top)/, `<p>Before we talk, take a look at everything Labb offers: <a href="${welcome}" style="color:#CF743C;font-weight:bold">labb.com/welcome</a></p>\n  $1`);
-  const text = `Hi ${lead.first_name || "there"},\n\nThank you for your interest in Labb. ${host ? `${host.name.split(" ")[0]} from our team` : "Someone from our team"} would like to schedule a short video call with you to go over all of Labb's programs and find the right fit for your organization.\n\nChoose a time that works for you: ${link}\n\nYou'll get a video meeting link as soon as you book.\n\nBefore we talk, take a look at everything Labb offers: ${welcome}\n\nThe Labb team\n\n${footer}`;
-  return sendMail(lead.email, `${test ? "[Test] " : ""}Schedule a call with Labb`, tagLinks(html, linkToken(lead.email)), text, { replyTo: host?.email || "info@labb.com" });
+  const d = bookingInviteDraft(lead, host);
+  const subject = (custom?.subject || "").trim().slice(0, 200) || d.subject;
+  const message = (custom?.message || "").trim().slice(0, 5000) || d.message;
+  const paras = message.split(/\n\s*\n/).map((p) => `<p>${esc(p.trim()).replace(/(https:\/\/[^\s<]+)/g, '<a href="$1" style="color:#CF743C;font-weight:bold">$1</a>').replace(/\n/g, "<br>")}</p>`).join("\n");
+  const html = emailLayout("Let's schedule a call", paras, { href: link, label: "Choose a meeting time" });
+  const text = `${message}\n\nChoose a time: ${link}\n\n${footer}`;
+  return sendMail(custom?.to || lead.email, `${test ? "[Test] " : ""}${subject}`, tagLinks(html, linkToken(lead.email)), text, { replyTo: host?.email || "info@labb.com" });
 }
 
 type Mtg = { id: string; starts_at: Date; ends_at: Date; room_url: string };

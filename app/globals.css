@@ -2517,3 +2517,10 @@ td.acts { white-space: nowrap; }
 .sm-pick .fine { display: block; text-align: left; max-width: 520px; }
 .sm-pickform { display: flex; gap: 8px; flex-wrap: wrap; }
 .sm-pickform select { min-height: 38px; border: 1px solid #9aa4ad; border-radius: 8px; padding: 4px 8px; }
+details.sm-pick { display: block; }
+details.sm-pick summary { cursor: pointer; list-style: none; }
+details.sm-pick summary .fine { display: block; }
+details.sm-pick .sm-pickform { display: grid; grid-template-columns: 1fr 1fr; gap: 10px 14px; margin-top: 12px; }
+details.sm-pick .sm-wide { grid-column: 1 / -1; }
+details.sm-pick input, details.sm-pick textarea, details.sm-pick select { width: 100%; border: 1px solid #9aa4ad; border-radius: 8px; padding: 6px 10px; font: 400 .95rem/1.5 Poppins, sans-serif; }
+@media (max-width: 640px) { details.sm-pick .sm-pickform { grid-template-columns: 1fr; } }
