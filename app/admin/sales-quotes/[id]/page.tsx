@@ -7,7 +7,7 @@ import { fmtDate, readFlash, requireAdmin } from "@/lib/admin";
 import { sql } from "@/lib/db";
 import { leadName, type LeadRow } from "@/lib/leads";
 import {
-  aiReady, BILLING_LABEL, KIT_BOX, leadCanEdit, lineCents, packOf, billingFor, priceFor, type PriceRow, getQuote, money, PRICE_LEVELS, QUOTE_KINDS, QUOTE_PRICE_CATEGORIES, QUOTE_STATUS, quoteNumber, quoteUrl, repFor, totals,
+  aiReady, BILLING_LABEL, syncCatalogLines, KIT_BOX, leadCanEdit, lineCents, packOf, billingFor, priceFor, type PriceRow, getQuote, money, PRICE_LEVELS, QUOTE_KINDS, QUOTE_PRICE_CATEGORIES, QUOTE_STATUS, quoteNumber, quoteUrl, repFor, totals,
 } from "@/lib/salesQuotes";
 
 export const metadata: Metadata = { title: "Quote", robots: { index: false, follow: false } };
@@ -17,6 +17,7 @@ export const dynamic = "force-dynamic";
 export default async function QuoteEditor({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   await requireAdmin(`/admin/sales-quotes/${id}`);
+  await syncCatalogLines(id);
   const data = await getQuote(id);
   if (!data) notFound();
   const { q, items } = data;
@@ -34,14 +35,8 @@ export default async function QuoteEditor({ params }: { params: Promise<{ id: st
   ]);
   if (!lead) notFound();
   const t = totals(items);
-  // Every price-list product not already on this quote, shown in Line items so the rep can add it by setting a quantity.
-  const level = q.price_level === "over100" ? "over100" : "under100";
-  const norm = (x: string | null | undefined) => (x || "").trim().toLowerCase();
-  const missing = catalog.filter((p) => !items.some((i) => String(i.price_item_id ?? "") === String(p.id) || norm(i.name) === norm(p.name) || (!!p.sku && norm(i.sku) === norm(p.sku))));
-  const catOrder = (c: string | null) => { const n = QUOTE_PRICE_CATEGORIES.findIndex((x) => x.value === c); return n < 0 ? 99 : n; };
-  type Row = { kind: "item"; i: (typeof items)[number]; cat: string | null } | { kind: "new"; p: (typeof catalog)[number]; cat: string };
-  const rows: Row[] = [...items.map((i) => ({ kind: "item" as const, i, cat: i.category })), ...missing.map((p) => ({ kind: "new" as const, p, cat: p.category }))]
-    .map((r, n) => ({ r, n })).sort((a, b) => catOrder(a.r.cat) - catOrder(b.r.cat) || a.n - b.n).map((x) => x.r);
+  type Row = { kind: "item"; i: (typeof items)[number]; cat: string | null };
+  const rows: Row[] = items.map((i) => ({ kind: "item" as const, i, cat: i.category }));
   const locked = q.status === "signed" || q.status === "paid";
   const kind = QUOTE_KINDS.find((k) => k.value === q.kind)!;
   const expires = new Date(q.expires_on).toISOString().slice(0, 10);
@@ -136,7 +131,7 @@ export default async function QuoteEditor({ params }: { params: Promise<{ id: st
                 <input type="hidden" name="back" value={`/admin/sales-quotes/${q.id}`} />
                 <div className="hero-card">
                   <h2>Line items</h2>
-                  <p className="fine" style={{ textAlign: "left", marginTop: -6 }}>Every product on the quote price list is listed here. Products marked Not in quote are added when you set a quantity (or check Add for lab and MRO) and select Save changes. Rapid tests are priced per test and sold in boxes of 25: enter the quantity in boxes. Every line on the quote is shown to the client with its price, even at a quantity of 0, so they see their pricing for everything you selected. Use Remove from quote to hide a line. The client can change quantities of every priced one-time item (never below the minimum), but not software, included items or lab and MRO services, which are billed later, as used.</p>
+                  <p className="fine" style={{ textAlign: "left", marginTop: -6 }}>Every product on the quote price list is a line here. Check Remove from quote to hide a line from the client; uncheck it to show it again. Rapid tests are priced per test and sold in boxes of 25: enter the quantity in boxes. Every line on the quote is shown to the client with its price, even at a quantity of 0, so they see their pricing for everything you selected. Use Remove from quote to hide a line. The client can change quantities of every priced one-time item (never below the minimum), but not software, included items or lab and MRO services, which are billed later, as used.</p>
                   <div style={{ overflowX: "auto" }}>
                     <table className="meet-table qb-items">
                       <thead><tr><th>Item</th><th>Billing</th><th>Price</th><th>Qty</th><th>Min</th><th title="The lead can change the quantity">Lead edits</th><th>Total</th><th title="Takes the line off the quote but keeps it and its price here">Remove from quote</th></tr></thead>
@@ -144,23 +139,9 @@ export default async function QuoteEditor({ params }: { params: Promise<{ id: st
                         {!rows.length && <tr><td colSpan={8}>No items yet. Add products in Quote prices.</td></tr>}
                         {rows.map((r, n) => {
                           const head = (n === 0 || rows[n - 1].cat !== r.cat) && <span className="qb-cat">{catLabel(r.cat)}</span>;
-                          if (r.kind === "new") {
-                            const p = r.p; const lab = p.category === "lab-mro"; const cents = priceFor(p, level);
-                            const priced = p.under100_cents != null || p.over100_cents != null;
-                            return (
-                              <tr key={`p${p.id}`} className="qb-new">
-                                <td>{head}<div className="qb-newname"><strong>{p.name}</strong><span className="qb-notin">Not in quote</span></div>{p.description && <span className="fine qb-newdesc">{p.description}</span>}</td>
-                                <td><span className="fine">{BILLING_LABEL[billingFor(p.category)]}</span></td>
-                                <td><input name={`newprice_${p.id}`} defaultValue={priced ? (cents / 100).toFixed(2) : ""} placeholder="Set price" inputMode="decimal" aria-label={`Price for ${p.name}`} className="qb-num" disabled={locked} />{p.unit && <span className="fine"> /{p.unit.replace(/^per\s+/i, "")}</span>}</td>
-                                <td>{lab ? <label className="qb-inc"><input type="checkbox" name={`newadd_${p.id}`} value="1" disabled={locked} /> Add</label>
-                                  : <><input name={`newqty_${p.id}`} type="number" min={0} defaultValue={0} aria-label={`Quantity of ${p.name}`} className="qb-qty" disabled={locked} />{p.category === "rapid-kits" && <span className="fine" style={{ display: "block" }}>boxes</span>}</>}</td>
-                                <td colSpan={4}><span className="fine">{lab ? "Check Add, then Save changes" : "Set a quantity, then Save changes"}</span></td>
-                              </tr>
-                            );
-                          }
                           const i = r.i;
                           return (
-                          <tr key={i.id} className={i.excluded ? "qb-excl" : i.qty === 0 && i.billing !== "invoiced" ? "qb-zero" : ""}>
+                          <tr key={i.id} className={i.excluded ? "qb-excl" : ""}>
                             <td>
                               {head}
                               <input name={`name_${i.id}`} defaultValue={i.name} maxLength={200} aria-label="Item name" disabled={locked} />
@@ -168,8 +149,8 @@ export default async function QuoteEditor({ params }: { params: Promise<{ id: st
                             </td>
                             <td><select name={`billing_${i.id}`} defaultValue={i.billing} aria-label="Billing" disabled={locked}>{Object.entries(BILLING_LABEL).map(([k, v]) => <option key={k} value={k}>{v}</option>)}</select></td>
                             <td><input name={`price_${i.id}`} defaultValue={(i.unit_cents / 100).toFixed(2)} inputMode="decimal" aria-label="Unit price" className="qb-num" disabled={locked} />{i.unit && <span className="fine"> /{i.unit}</span>}</td>
-                            <td><input name={`qty_${i.id}`} type="number" min={0} defaultValue={i.qty} aria-label="Quantity" className="qb-qty" disabled={locked || i.billing === "invoiced"} />{packOf(i) > 1 && <span className="fine" style={{ display: "block" }}>boxes</span>}</td>
-                            <td><input name={`min_${i.id}`} type="number" min={0} defaultValue={i.min_qty} aria-label="Minimum quantity" className="qb-qty" disabled={locked || i.billing === "invoiced"} /></td>
+                            <td>{i.billing === "invoiced" ? <><input type="hidden" name={`qty_${i.id}`} value="0" /><span className="fine">n/a</span></> : <input name={`qty_${i.id}`} type="number" min={0} defaultValue={i.qty} aria-label="Quantity" className="qb-qty" disabled={locked} />}{packOf(i) > 1 && <span className="fine" style={{ display: "block" }}>boxes</span>}</td>
+                            <td>{i.billing === "invoiced" ? <><input type="hidden" name={`min_${i.id}`} value="0" /><span className="fine">n/a</span></> : <input name={`min_${i.id}`} type="number" min={0} defaultValue={i.min_qty} aria-label="Minimum quantity" className="qb-qty" disabled={locked} />}</td>
                             <td style={{ textAlign: "center" }}><span className="fine">{leadCanEdit(i) ? "Yes" : "No"}</span></td>
                             <td className="qb-line">{i.excluded ? <span className="fine">Not on quote</span> : i.billing === "invoiced" ? <span className="fine">As used</span> : <>{money(lineCents(i))}{i.billing === "monthly" ? "/mo" : ""}{packOf(i) > 1 && <span className="fine" style={{ display: "block" }}>{i.qty} × box of {KIT_BOX}</span>}</>}</td>
                             <td style={{ textAlign: "center" }}><input type="checkbox" name={`del_${i.id}`} value="1" defaultChecked={!!i.excluded} aria-label={`Remove ${i.name} from the quote`} disabled={locked} />{i.excluded && <span className="qb-exctag">Removed</span>}</td>
@@ -200,38 +181,9 @@ export default async function QuoteEditor({ params }: { params: Promise<{ id: st
 
               {!locked && (
                 <div className="hero-card qb-addp">
-                  <h2>Add products</h2>
-                  <p className="fine" style={{ textAlign: "left", marginTop: -6 }}>Check the products to add from the quote price list, then select Add selected. Prices use this quote&apos;s tier ({PRICE_LEVELS.find((l) => l.value === q.price_level)?.label ?? "Under 100 kits per month"}). To add or change products, use <a href="/admin/sales-quotes/prices">Quote prices</a>.</p>
-                  {act("add-item", <>
-                    <div className="qb-pick">
-                      {QUOTE_PRICE_CATEGORIES.map((c) => {
-                        const list = catalog.filter((p) => p.category === c.value);
-                        return (
-                          <fieldset key={c.value}>
-                            <legend>{c.label}</legend>
-                            {list.length === 0 && <p className="fine">None in the price list yet.</p>}
-                            {list.map((p) => {
-                              const has = items.some((i) => String(i.price_item_id ?? "") === String(p.id));
-                              const cents = priceFor(p, q.price_level === "over100" ? "over100" : "under100");
-                              return (
-                                <label key={p.id} className={has ? "on" : ""}>
-                                  <input type="checkbox" name="pick" value={p.id} disabled={has} />
-                                  <span>{p.name}{has && <em> in quote</em>}</span>
-                                  <b>{cents ? `${money(cents)}${c.value === "saas" ? "/mo" : ""}` : c.value === "lab-mro" ? "Contact sales" : "Included"}</b>
-                                </label>
-                              );
-                            })}
-                          </fieldset>
-                        );
-                      })}
-                    </div>
-                    <div className="qb-pickbar">
-                      <button className="btn btn-primary" type="submit">Add selected</button>
-                      <span className="fine">Lab and MRO lines are added as billed as used. Kits and equipment start at a quantity of 1.</span>
-                    </div>
-                  </>)}
-                  <details className="qb-custom">
-                    <summary>Add a custom item that isn&apos;t on the price list</summary>
+                  <h2>Add a custom item</h2>
+                  <p className="fine" style={{ textAlign: "left", marginTop: -6 }}>Every product on <a href="/admin/sales-quotes/prices">Quote prices</a> is already a line above. Add a custom line here for anything that isn&apos;t on the price list.</p>
+                  <div className="qb-custom">
                     {act("add-item", <div className="qb-add">
                       <input name="custom_name" placeholder="Custom item name" maxLength={200} aria-label="Custom item name" />
                       <input name="custom_price" placeholder="Price" inputMode="decimal" aria-label="Custom item price" className="qb-num" />
@@ -239,7 +191,7 @@ export default async function QuoteEditor({ params }: { params: Promise<{ id: st
                       <select name="custom_billing" aria-label="Billing" defaultValue="once">{Object.entries(BILLING_LABEL).map(([k, v]) => <option key={k} value={k}>{v}</option>)}</select>
                       <button className="btn btn-outline-dark btn-sm" type="submit">Add</button>
                     </div>)}
-                  </details>
+                  </div>
                   {act("remove-empty", <button className="linkish" type="submit" style={{ marginTop: 10 }}>Remove every item with a quantity of 0</button>)}
                 </div>
               )}

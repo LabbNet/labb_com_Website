@@ -311,6 +311,29 @@ export async function createQuote(lead: LeadRow, kind: QuoteKind, templateId: st
   });
 }
 
+// Every active product on the quote price list is a line on every open quote, so the rep shows or hides it with Remove from quote.
+// Drafts get missing products shown; quotes already sent get them hidden, so what the client sees doesn't change until the rep says so.
+export async function syncCatalogLines(quoteId: string) {
+  const db = sql();
+  const [q] = await db<{ status: string; price_level: string }[]>`select status, price_level from sales_quotes where id = ${quoteId}`;
+  if (!q || !["draft", "sent", "viewed"].includes(q.status)) return 0;
+  const level: PriceLevel = q.price_level === "over100" ? "over100" : "under100";
+  const have = await db<{ price_item_id: string | null; name: string; sku: string | null }[]>`select price_item_id::text, name, sku from sales_quote_items where quote_id = ${quoteId}`;
+  const norm = (x: string | null | undefined) => (x || "").trim().toLowerCase();
+  const list = await db<(PriceRow & { id: string })[]>`select * from quote_price_items where active order by sort, name`;
+  const [{ n }] = await db<{ n: number }[]>`select coalesce(max(sort), 0)::int as n from sales_quote_items where quote_id = ${quoteId}`;
+  let sort = n + 10, added = 0;
+  for (const p of list) {
+    if (have.some((i) => String(i.price_item_id ?? "") === String(p.id) || norm(i.name) === norm(p.name) || (!!p.sku && norm(i.sku) === norm(p.sku)))) continue;
+    const cents = priceFor(p, level);
+    await db`insert into sales_quote_items (quote_id, price_item_id, name, sku, category, description, unit, unit_cents, qty, min_qty, adjustable, billing, sort, excluded)
+      values (${quoteId}, ${p.id}, ${p.name}, ${p.sku}, ${p.category}, ${p.description}, ${p.unit}, ${cents}, ${p.category === "services" ? 1 : 0}, 0,
+        ${billingFor(p.category) === "once" && cents > 0}, ${billingFor(p.category)}, ${sort}, ${q.status !== "draft"})`;
+    sort += 10; added++;
+  }
+  return added;
+}
+
 export async function snapshot(quoteId: string, by: string | null, prompt: string | null, summary: string | null) {
   const db = sql();
   const [q] = await db<{ html: string }[]>`select html from sales_quotes where id = ${quoteId}`;
