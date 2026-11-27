@@ -103,7 +103,8 @@ export async function POST(req: Request) {
     const [repOk] = /^[0-9a-f-]{36}$/.test(repIn) ? await db`select id from members where id = ${repIn} and role = 'admin'` : [];
     const rep = repOk ? repIn : q.rep_id;
     await db.begin(async (tx) => {
-      await tx`update sales_quotes set title = ${title}, expires_on = ${/^\d{4}-\d{2}-\d{2}$/.test(expires) ? expires : q.expires_on}, notes = ${String(fd.get("notes") ?? "").slice(0, 4000) || null},
+      await tx`update sales_quotes set title = ${title}, expires_on = ${/^\d{4}-\d{2}-\d{2}$/.test(expires) ? expires : q.expires_on},
+        expires_manual = ${q.expires_manual || (/^\d{4}-\d{2}-\d{2}$/.test(expires) && expires !== new Date(q.expires_on).toISOString().slice(0, 10))}, notes = ${String(fd.get("notes") ?? "").slice(0, 4000) || null},
         rep_id = ${rep},
         status = case when status = 'expired' and ${expires}::text > current_date::text then 'sent' else status end, updated_at = now() where id = ${q.id}`;
       for (const i of items) {

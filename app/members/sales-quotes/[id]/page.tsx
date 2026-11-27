@@ -76,7 +76,7 @@ export default async function MemberSalesQuote({ params }: { params: Promise<{ i
             <h2>Quote settings</h2>
             <div className="qb-fields">
               <div className="field qb-wide"><label htmlFor="mq-title">Title</label><input id="mq-title" name="title" defaultValue={q.title} maxLength={200} disabled={locked} /></div>
-              <div className="field"><label htmlFor="mq-exp">Valid until</label><input id="mq-exp" name="expires" type="date" defaultValue={expires} disabled={locked} /></div>
+              <div className="field"><label htmlFor="mq-exp">Valid until</label><input id="mq-exp" name="expires" type="date" defaultValue={expires} disabled={locked} />{q.status === "draft" && !q.expires_manual && <span className="fine">Becomes 30 days from the send date unless you change it.</span>}</div>
               <div className="field"><label htmlFor="mq-pay">Payment at acceptance</label>
                 <select id="mq-pay" name="payment_mode" defaultValue={q.payment_mode} disabled={locked}>{PAYMENT_MODES.map((p) => <option key={p.value} value={p.value}>{p.label}</option>)}</select></div>
               <div className="field"><label htmlFor="mq-sl">Your cost from</label>

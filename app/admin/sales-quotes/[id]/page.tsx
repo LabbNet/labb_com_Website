@@ -64,13 +64,18 @@ export default async function QuoteEditor({ params }: { params: Promise<{ id: st
               <p className="lp-chips"><span className={`qs qs-${q.status}`}>{QUOTE_STATUS[q.status]}</span>
                 {q.sent_at && <span className="tag plain">Sent {fmtDate(q.sent_at)}</span>}
                 <span className="tag plain">{q.open_count ? `Opened ${q.open_count}× · last ${fmtDate(q.last_opened_at)}` : "Not opened yet"}</span>
-                <span className="tag plain">Valid until {new Date(q.expires_on).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric", timeZone: "UTC" })}</span></p>
+                <span className="tag plain">{q.status === "draft" && !q.expires_manual ? "Valid 30 days from the day it's sent" : `Valid until ${new Date(q.expires_on).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric", timeZone: "UTC" })}`}</span></p>
             </div>
             <div className="qb-due">
               <span>Due at acceptance</span><strong>{money(t.dueToday)}</strong>
               <em>{money(t.once)} one time{t.monthly ? ` + ${money(t.monthly)} first month of software` : ""}</em>
-              <a href={`/quote/${q.token}?preview=1`} target="_blank" rel="noreferrer" className="btn btn-primary btn-sm qb-view">View quote</a>
+              <div className="qb-acts">
+                <a href={`/quote/${q.token}?preview=1`} target="_blank" rel="noreferrer" className="btn btn-outline-light btn-sm">View quote</a>
+                {!locked && act("send", <button className="btn btn-primary btn-sm" type="submit">{q.status === "draft" ? "Approve and send" : "Send again"}</button>)}
+              </div>
+              {!locked && <em className="qb-sendto">{q.status === "draft" ? `Sends ${lead.email} the quote link. You're emailed each time it's opened.` : `Sends ${lead.email} the link again.`}</em>}
               {q.status !== "draft" && <div style={{ marginTop: 8 }}><CopyLink url={quoteUrl(q.token)} label="Copy the lead's quote link" /></div>}
+              {!locked && q.status !== "draft" && q.status !== "declined" && act("decline", <button className="linkish qb-decline" type="submit">Mark as declined</button>)}
             </div>
           </header>
 
@@ -87,12 +92,15 @@ export default async function QuoteEditor({ params }: { params: Promise<{ id: st
 
           <div className="qb-tools">
               {!locked && (
-                <div className="hero-card qb-send">
-                  <h3>{q.status === "draft" ? "Approve and send" : "Send again"}</h3>
-                  <p className="fine" style={{ textAlign: "left", margin: 0 }}>{q.status === "draft" ? `Review it with View quote, then send. Emails ${lead.email} a link to this quote on labb.com, and you get an email each time they open it.` : `Emails ${lead.email} the link again with the current quote.`}</p>
-                  <a href={`/quote/${q.token}?preview=1`} target="_blank" rel="noreferrer" className="btn btn-outline-dark">View quote</a>
-                  {act("send", <button className="btn btn-primary" type="submit">{q.status === "draft" ? "Approve and send" : "Send the link again"}</button>)}
-                  {q.status !== "draft" && q.status !== "declined" && act("decline", <button className="linkish" type="submit">Mark as declined</button>)}
+                <div className="hero-card qb-details">
+                  <h3>Details</h3>
+                  <div className="field"><label htmlFor="q-title">Title</label><input id="q-title" name="title" form="qb-form" defaultValue={q.title} maxLength={200} /></div>
+                  <div className="qb-two">
+                    <div className="field"><label htmlFor="q-exp">Valid until</label><input id="q-exp" name="expires" form="qb-form" type="date" defaultValue={expires} />{q.status === "draft" && !q.expires_manual && <span className="fine">Becomes 30 days from the send date unless you change it.</span>}</div>
+                    <div className="field"><label htmlFor="q-rep">Rep</label>
+                      <select id="q-rep" name="rep" form="qb-form" defaultValue={q.rep_id || ""}>{admins.map((a) => <option key={a.id} value={a.id}>{a.name}</option>)}</select></div>
+                  </div>
+                  <div className="field"><label htmlFor="q-notes">Internal notes</label><textarea id="q-notes" name="notes" form="qb-form" rows={2} defaultValue={q.notes || ""} placeholder="Only the team sees these" /></div>
                 </div>
               )}
               {!locked && (
@@ -128,11 +136,12 @@ export default async function QuoteEditor({ params }: { params: Promise<{ id: st
 
           <div className="qb-body">
             <div className="qb-main">
-              {act("save", <>
+              <form action="/api/admin/sales-quotes" method="post" id="qb-form">
+                <input type="hidden" name="action" value="save" /><input type="hidden" name="quote" value={q.id} />
                 <input type="hidden" name="back" value={`/admin/sales-quotes/${q.id}`} />
                 <div className="hero-card">
                   <h2>Line items</h2>
-                  <p className="fine" style={{ textAlign: "left", marginTop: -6 }}>Every product on the quote price list is a line here. Check Remove from quote to hide a line from the client; uncheck it to show it again. Rapid tests are priced per test and sold in boxes of 25: enter the quantity in boxes. Every line on the quote is shown to the client with its price, even at a quantity of 0, so they see their pricing for everything you selected. Use Remove from quote to hide a line. The client can change quantities of every priced one-time item (never below the minimum), but not software, included items or lab and MRO services, which are billed later, as used.</p>
+                  <details className="qb-help"><summary>How line items work</summary><p className="fine" style={{ textAlign: "left" }}>Every product on the quote price list is a line here. Check Remove from quote to hide a line from the client; uncheck it to show it again. Rapid tests are priced per test and sold in boxes of 25: enter the quantity in boxes. Every line on the quote is shown to the client with its price, even at a quantity of 0, so they see their pricing for everything you selected. Use Remove from quote to hide a line. The client can change quantities of every priced one-time item (never below the minimum), but not software, included items or lab and MRO services, which are billed later, as used.</p></details>
                   <div style={{ overflowX: "auto" }}>
                     <table className="meet-table qb-items">
                       <thead><tr><th>Item</th><th>Billing</th><th>Price</th><th>Qty</th><th>Min</th><th title="The lead can change the quantity">Lead edits</th><th>Total</th><th title="Takes the line off the quote but keeps it and its price here">Remove from quote</th></tr></thead>
@@ -167,18 +176,18 @@ export default async function QuoteEditor({ params }: { params: Promise<{ id: st
                     <span>Due at acceptance: <strong>{money(t.dueToday)}</strong></span>
                   </div>
                 </div>
-                <div className="hero-card">
-                  <h2>Quote details</h2>
-                  <div className="qb-fields">
-                    <div className="field qb-wide"><label htmlFor="q-title">Title</label><input id="q-title" name="title" defaultValue={q.title} maxLength={200} disabled={locked} /></div>
-                    <div className="field"><label htmlFor="q-exp">Valid until</label><input id="q-exp" name="expires" type="date" defaultValue={expires} disabled={locked} /></div>
-                    <div className="field"><label htmlFor="q-rep">Rep (gets the open alerts)</label>
-                      <select id="q-rep" name="rep" defaultValue={q.rep_id || ""} disabled={locked}>{admins.map((a) => <option key={a.id} value={a.id}>{a.name}</option>)}</select></div>
-                    <div className="field qb-wide"><label htmlFor="q-notes">Internal notes (not shown to the lead)</label><textarea id="q-notes" name="notes" rows={2} defaultValue={q.notes || ""} disabled={locked} /></div>
+              </form>
+              {!locked && (
+                <div className="qb-actionbar">
+                  <span className="qb-ab-tot"><span>Due at acceptance</span><strong>{money(t.dueToday)}</strong><em>{money(t.once)} one time{t.monthly ? ` + ${money(t.monthly)}/mo` : ""}</em></span>
+                  <span className="fine qb-ab-note">Save after changing lines or details. Totals update when you save.</span>
+                  <div className="qb-acts">
+                    <a href={`/quote/${q.token}?preview=1`} target="_blank" rel="noreferrer" className="btn btn-outline-dark btn-sm">View quote</a>
+                    <button className="btn btn-primary btn-sm" type="submit" form="qb-form">Save changes</button>
                   </div>
                 </div>
-                {!locked && <div className="qb-savebar"><button className="btn btn-primary" type="submit">Save changes</button><span className="fine">Checked lines in Remove from quote come off the quote when you save. They stay here with their prices; uncheck to bring one back.</span></div>}
-              </>)}
+              )}
+
 
               {!locked && (
                 <div className="hero-card qb-addp">

@@ -65,7 +65,7 @@ export type SalesQuote = {
   open_count: number; signed_at: Date | null; signed_name: string | null; signed_title: string | null; signature_png: string | null; signed_ip: string | null;
   signed_hash: string | null; paid_at: Date | null; paid_cents: number | null; stripe_session: string | null; created_at: Date; updated_at: Date;
   member_id: string | null; payment_mode: PaymentMode; service_level: ServiceLevel;
-  countersigned_at?: Date | null; countersign_png?: string | null; countersign_name?: string | null; countersign_title?: string | null;
+  expires_manual?: boolean; countersigned_at?: Date | null; countersign_png?: string | null; countersign_name?: string | null; countersign_title?: string | null;
 };
 export type QuoteItem = {
   id: string; quote_id: string; price_item_id: string | null; name: string; sku: string | null; category: string | null; description: string | null; unit: string | null;
@@ -556,6 +556,11 @@ export async function sendQuote(quoteId: string, by: { id: string; name: string 
   if (!lead) throw new Error("Lead not found.");
   if (!items.some((i) => i.qty > 0 || i.billing === "invoiced")) throw new Error("Add at least one item with a quantity before sending.");
   const rep = (await repFor(q)) ?? { name: by.name, email: "info@labb.com", phone: null };
+  // First send: valid for 30 days from today, unless the rep set the date by hand.
+  if (q.status === "draft" && !q.expires_manual) {
+    const [r] = await db<{ expires_on: Date }[]>`update sales_quotes set expires_on = (now() at time zone 'America/New_York')::date + 30 where id = ${q.id} returning expires_on`;
+    if (r) q.expires_on = r.expires_on;
+  }
   const url = quoteUrl(q.token);
   const t = totals(items);
   const from = q.member_id ? rep.clinic || rep.name : "Labb";
