@@ -83,7 +83,7 @@ export async function POST(req: Request) {
   if (action === "send") {
     if (locked) return go(req, back);
     try {
-      await sendQuote(String(q.id), { id: m.id, name: m.name });
+      await sendQuote(String(q.id), { id: m.id, name: m.name }, { subject: field(fd, "subject", 200), message: String(fd.get("message") ?? "").slice(0, 5000) });
       await flash("Quote sent. Your client got an email with the link, and you'll get an email each time they open it.");
     } catch (e) { await flash(e instanceof Error ? e.message : "The quote didn't send.", "error"); }
     return go(req, back);

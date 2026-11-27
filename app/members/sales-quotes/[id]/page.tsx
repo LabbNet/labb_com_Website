@@ -3,12 +3,13 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Flash } from "@/components/AdminBar";
 import { MemberQuoteLines } from "@/components/MemberQuoteLines";
+import { QuoteEmailCard } from "@/components/QuoteEmailCard";
 import { readFlash } from "@/lib/admin";
 import { currentMember } from "@/lib/auth";
 import { sql } from "@/lib/db";
 import { leadName, type LeadRow } from "@/lib/leads";
 import {
-  getQuote, memberCosts, QUOTE_SECTIONS, sectionOf, shownDescription, money, PAYMENT_MODES, QUOTE_STATUS, quoteNumber, SERVICE_LEVELS, syncCatalogLines, totals, type ServiceLevel,
+  getQuote, memberCosts, quoteEmailDraft, QUOTE_SECTIONS, sectionOf, shownDescription, money, PAYMENT_MODES, QUOTE_STATUS, quoteNumber, SERVICE_LEVELS, syncCatalogLines, totals, type ServiceLevel,
 } from "@/lib/salesQuotes";
 
 export const metadata: Metadata = { title: "Quote", robots: { index: false, follow: false } };
@@ -33,6 +34,7 @@ export default async function MemberSalesQuote({ params }: { params: Promise<{ i
   ]);
   if (!lead) notFound();
   const t = totals(items);
+  const emailDraft = await quoteEmailDraft(id);
   const locked = ["signed", "paid"].includes(q.status);
   const expires = new Date(q.expires_on).toISOString().slice(0, 10);
   const lines = items.map((i) => ({
@@ -91,17 +93,9 @@ export default async function MemberSalesQuote({ params }: { params: Promise<{ i
           {!locked && <div className="qb-savebar"><button className="btn btn-primary" type="submit">Save changes</button><span className="fine">Save before you view or send the quote.</span></div>}
         </>)}
 
-        {!locked && (
-          <div className="hero-card">
-            <h2>Send to your client</h2>
-            <p className="fine" style={{ textAlign: "left" }}>Your client gets an email from Labb with a link to the quote, showing your company and contact details. Replies go to you. You get an email each time they open it, and when they sign.</p>
-            <div className="btn-row" style={{ justifyContent: "flex-start" }}>
-              <a className="btn btn-outline-dark" href={`/quote/${q.token}?preview=1`} target="_blank" rel="noreferrer">View quote</a>
-              {act("send", <button className="btn btn-primary" type="submit">{q.status === "draft" ? "Send quote" : "Send again"}</button>)}
-              {q.status === "draft" && act("delete", <button className="linkish" type="submit">Delete draft</button>)}
-            </div>
-          </div>
-        )}
+        {!locked && emailDraft && <QuoteEmailCard action="/api/members/sales-quotes" quoteId={q.id} draft={emailDraft} resend={q.status !== "draft"}
+          extra={<><a className="btn btn-outline-dark" href={`/quote/${q.token}?preview=1`} target="_blank" rel="noreferrer">View quote</a></>} />}
+        {!locked && q.status === "draft" && act("delete", <button className="linkish" type="submit">Delete draft</button>)}
       </div>
     </section>
   );

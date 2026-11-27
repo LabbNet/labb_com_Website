@@ -93,13 +93,13 @@ export default async function AdminLeads({ searchParams }: { searchParams: Promi
           <input type="hidden" name="back" value={`/admin/leads${qs ? `?${qs}` : ""}`} />
           <MergeBar />
           <div className="compare-wrap" style={{ marginTop: 12 }}>
-            <table className="compare admin-table">
+            <table className="compare admin-table leads-table">
               <thead>
                 <tr>
                   <th scope="col" className="mg-col"><span className="visually-hidden">Select to merge</span></th>
                   <th scope="col" style={{ textAlign: "left" }}>Lead</th>
-                  <th scope="col">Segment</th>
-                  <th scope="col">Owner</th>
+                  <th scope="col" className="lt-seg">Segment</th>
+                  <th scope="col" className="lt-own">Owner</th>
                   <th scope="col">Status</th>
                   <th scope="col">Received</th>
                 </tr>
@@ -116,9 +116,10 @@ export default async function AdminLeads({ searchParams }: { searchParams: Promi
                       {dupCount.has(l.email.toLowerCase()) && <span className="dup-badge" title="This person has another lead with the same email. Check both and merge.">{dupCount.get(l.email.toLowerCase())} leads, same email</span>}
                       <span className="sub">{[l.company, l.email, l.state].filter(Boolean).join(" · ")}</span>
                       {l.products && <span className="sub">Interested in: {l.products}</span>}
+                      <span className="sub lt-mobile">{segmentLabel(l.segment)} · {l.owner === "partner" ? (l.partner_clinic || l.partner_name || "Partner") : "Labb"}</span>
                     </th>
-                    <td>{segmentLabel(l.segment)}</td>
-                    <td>{l.owner === "partner" ? (l.partner_clinic || l.partner_name || "Partner") : "Labb"}</td>
+                    <td className="lt-seg">{segmentLabel(l.segment)}</td>
+                    <td className="lt-own">{l.owner === "partner" ? (l.partner_clinic || l.partner_name || "Partner") : "Labb"}</td>
                     <td><span className={`status s-${l.status}`}>{statusLabel(l.status)}</span></td>
                     <td>{fmtDate(l.created_at)}</td>
                   </tr>

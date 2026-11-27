@@ -2,12 +2,13 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import { AdminBar, Flash } from "@/components/AdminBar";
+import { QuoteEmailCard } from "@/components/QuoteEmailCard";
 import { CopyLink } from "@/components/CopyLink";
 import { fmtDate, readFlash, requireAdmin } from "@/lib/admin";
 import { sql } from "@/lib/db";
 import { leadName, type LeadRow } from "@/lib/leads";
 import {
-  aiReady, BILLING_LABEL, QUOTE_SECTIONS, sectionOf, syncCatalogLines, KIT_BOX, leadCanEdit, lineCents, packOf, billingFor, priceFor, type PriceRow, getQuote, money, PRICE_LEVELS, QUOTE_KINDS, QUOTE_PRICE_CATEGORIES, QUOTE_STATUS, quoteNumber, quoteUrl, repFor, totals,
+  aiReady, BILLING_LABEL, quoteEmailDraft, QUOTE_SECTIONS, sectionOf, syncCatalogLines, KIT_BOX, leadCanEdit, lineCents, packOf, billingFor, priceFor, type PriceRow, getQuote, money, PRICE_LEVELS, QUOTE_KINDS, QUOTE_PRICE_CATEGORIES, QUOTE_STATUS, quoteNumber, quoteUrl, repFor, totals,
 } from "@/lib/salesQuotes";
 
 export const metadata: Metadata = { title: "Quote", robots: { index: false, follow: false } };
@@ -35,6 +36,7 @@ export default async function QuoteEditor({ params }: { params: Promise<{ id: st
   ]);
   if (!lead) notFound();
   const t = totals(items);
+  const emailDraft = await quoteEmailDraft(String(q.id));
   type Row = { kind: "item"; i: (typeof items)[number]; cat: string | null };
   const secOrder = (k: string) => QUOTE_SECTIONS.findIndex((x) => x.key === k);
   const rows: Row[] = items.map((i, n) => ({ kind: "item" as const, i, cat: sectionOf(i) as string, n })).sort((a, b) => secOrder(a.cat) - secOrder(b.cat) || a.n - b.n);
@@ -71,9 +73,9 @@ export default async function QuoteEditor({ params }: { params: Promise<{ id: st
               <em>{money(t.once)} one time{t.monthly ? ` + ${money(t.monthly)} first month of software` : ""}</em>
               <div className="qb-acts">
                 <a href={`/quote/${q.token}?preview=1`} target="_blank" rel="noreferrer" className="btn btn-outline-light btn-sm">View quote</a>
-                {!locked && act("send", <button className="btn btn-primary btn-sm" type="submit">{q.status === "draft" ? "Approve and send" : "Send again"}</button>)}
+                {!locked && <a href="#send" className="btn btn-primary btn-sm">{q.status === "draft" ? "Review email and send" : "Send again"}</a>}
               </div>
-              {!locked && <em className="qb-sendto">{q.status === "draft" ? `Sends ${lead.email} the quote link. You're emailed each time it's opened.` : `Sends ${lead.email} the link again.`}</em>}
+              {!locked && <em className="qb-sendto">{`Goes to ${lead.email}. You see and can edit the email before it's sent.`}</em>}
               {q.status !== "draft" && <div style={{ marginTop: 8 }}><CopyLink url={quoteUrl(q.token)} label="Copy the lead's quote link" /></div>}
               {!locked && q.status !== "draft" && q.status !== "declined" && act("decline", <button className="linkish qb-decline" type="submit">Mark as declined</button>)}
             </div>
@@ -187,6 +189,7 @@ export default async function QuoteEditor({ params }: { params: Promise<{ id: st
                   </div>
                 </div>
               )}
+              {!locked && emailDraft && <QuoteEmailCard action="/api/admin/sales-quotes" quoteId={q.id} draft={emailDraft} resend={q.status !== "draft"} />}
 
 
               {!locked && (

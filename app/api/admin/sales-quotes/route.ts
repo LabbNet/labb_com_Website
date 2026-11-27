@@ -210,7 +210,7 @@ export async function POST(req: Request) {
     await flash(ok ? "Earlier version restored." : "That version wasn't found.", ok ? "ok" : "error");
   } else if (action === "send") {
     try {
-      const to = await sendQuote(String(q.id), by);
+      const to = await sendQuote(String(q.id), by, { subject: field(fd, "subject", 200), message: String(fd.get("message") ?? "").slice(0, 5000) });
       await flash(`Quote approved and emailed to ${to}. You'll get an email when they open it.`);
     } catch (e) {
       await flash(e instanceof Error ? e.message : "The quote wasn't sent.", "error");

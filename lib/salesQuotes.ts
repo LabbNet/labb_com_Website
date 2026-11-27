@@ -550,7 +550,31 @@ Reply with JSON only, no other text:
 }
 
 // ---- Sending, opening, signing ----
-export async function sendQuote(quoteId: string, by: { id: string; name: string }) {
+// The email that goes with the quote link: the default wording, which the rep can edit before sending.
+export async function quoteEmailDraft(quoteId: string) {
+  const data = await getQuote(quoteId);
+  if (!data) return null;
+  const { q, items } = data;
+  const [lead] = await sql()<LeadRow[]>`select * from leads where id = ${q.lead_id}`;
+  if (!lead) return null;
+  const rep = (await repFor(q)) ?? { name: "The Labb team", email: "info@labb.com", phone: null, clinic: null };
+  const t = totals(items);
+  const from = q.member_id ? rep.clinic || rep.name : "Labb";
+  const expires = q.status === "draft" && !q.expires_manual ? new Date(Date.now() + 30 * 86400000) : new Date(q.expires_on);
+  const subject = q.member_id ? `Your quote from ${from}: ${q.title}` : `Your Labb quote: ${q.title}`;
+  const message = [
+    `Hi ${lead.first_name || "there"},`,
+    `${rep.name} has prepared your quote: ${q.title} (${quoteNumber(q)}).`,
+    `Open it to review the details. You can change the number of test kits, readers and other items before you accept, then sign and complete your order online. Due at acceptance: ${money(t.dueToday)}${t.monthly ? ", including the first month of software" : ""}. Lab services are billed later, only as used.`,
+    ...(q.member_id ? [`${from} is a Labb Authorized Channel Partner.${rep.phone ? ` Reach ${rep.name} at ${rep.phone}.` : ""}`] : []),
+    `This quote is valid until ${fmtDay(expires)}. Questions? Just reply to this email.`,
+    `${rep.name}\n${from}`,
+  ].join("\n\n");
+  return { to: lead.email, subject, message, from };
+}
+const paragraphs = (text: string) => text.trim().split(/\n\s*\n/).map((p) => `<p>${esc(p.trim()).replace(/\n/g, "<br>")}</p>`).join("\n");
+
+export async function sendQuote(quoteId: string, by: { id: string; name: string }, custom?: { subject?: string; message?: string }) {
   const data = await getQuote(quoteId);
   if (!data) throw new Error("Quote not found.");
   const { q, items } = data;
@@ -559,6 +583,7 @@ export async function sendQuote(quoteId: string, by: { id: string; name: string 
   if (!lead) throw new Error("Lead not found.");
   if (!items.some((i) => i.qty > 0 || i.billing === "invoiced")) throw new Error("Add at least one item with a quantity before sending.");
   const rep = (await repFor(q)) ?? { name: by.name, email: "info@labb.com", phone: null };
+  const draft = await quoteEmailDraft(quoteId);
   // First send: valid for 30 days from today, unless the rep set the date by hand.
   if (q.status === "draft" && !q.expires_manual) {
     const [r] = await db<{ expires_on: Date }[]>`update sales_quotes set expires_on = (now() at time zone 'America/New_York')::date + 30 where id = ${q.id} returning expires_on`;
@@ -566,19 +591,16 @@ export async function sendQuote(quoteId: string, by: { id: string; name: string 
   }
   const url = quoteUrl(q.token);
   const t = totals(items);
-  const from = q.member_id ? rep.clinic || rep.name : "Labb";
-  const html = emailLayout(`Your quote from ${from}`,
-    `<p>Hi ${esc(lead.first_name || "there")},</p>
-     <p>${esc(rep.name)} has prepared your quote: <strong>${esc(q.title)}</strong> (${quoteNumber(q)}).</p>
-     <p>Open it to review the details. You can change the number of test kits, readers and other items before you accept, then sign and complete your order online. Due at acceptance: <strong>${money(t.dueToday)}</strong>${t.monthly ? `, including the first month of software` : ""}. Lab services are billed later, only as used.</p>${q.member_id ? `<p>${esc(from)} is a Labb Authorized Channel Partner.${rep.phone ? ` Reach ${esc(rep.name)} at ${esc(rep.phone)}.` : ""}</p>` : ""}
-     <p>This quote is valid until ${fmtDay(q.expires_on)}. Questions? Just reply to this email.</p>`,
-    { href: url, label: "Open your quote" });
-  const text = `Hi ${lead.first_name || "there"},\n\n${rep.name} has prepared your quote: ${q.title} (${quoteNumber(q)}).\n\nOpen it here: ${url}\n\nYou can change quantities, then sign and complete your order online. Due at acceptance: ${money(t.dueToday)}. Valid until ${fmtDay(q.expires_on)}.\n\n${rep.name}\n${from}`;
-  const sent = await sendMail(lead.email, q.member_id ? `Your quote from ${from}: ${q.title}` : `Your Labb quote: ${q.title}`, html, text, { replyTo: rep.email, track: { sales_quote: String(q.id) } });
+  const from = draft?.from || "Labb";
+  const subject = (custom?.subject || "").trim().slice(0, 200) || draft?.subject || `Your Labb quote: ${q.title}`;
+  const message = (custom?.message || "").trim().slice(0, 5000) || draft?.message || "";
+  const html = emailLayout(`Your quote from ${from}`, paragraphs(message), { href: url, label: "Open your quote" });
+  const text = `${message}\n\nOpen your quote: ${url}`;
+  const sent = await sendMail(lead.email, subject, html, text, { replyTo: rep.email, track: { sales_quote: String(q.id) } });
   if (!sent) throw new Error("The email didn't send. Check the email settings.");
   await db`update sales_quotes set status = case when status = 'draft' then 'sent' else status end, sent_at = coalesce(sent_at, now()), approved_by = ${by.id}, updated_at = now() where id = ${q.id}`;
-  // Sending a quote moves the lead to Quote sent, unless it's already further along or closed.
-  await db`update leads set status = 'quote-sent', updated_at = now() where id = ${q.lead_id} and status in ('new', 'contacted', 'qualified', 'quote-requested')`;
+  // Sending a quote moves the lead to Quote sent (a won lead or an existing client keeps its status).
+  await db`update leads set status = 'quote-sent', updated_at = now() where id = ${q.lead_id} and status not in ('won', 'existing-client', 'quote-sent')`;
   await snapshot(String(q.id), by.id, null, "Approved and sent");
   await logLeadEvent(q.lead_id, "quote", `Quote ${quoteNumber(q)} approved and emailed to ${lead.email} (due at acceptance ${money(t.dueToday)})`, by);
   return lead.email;
