@@ -6,6 +6,9 @@ import { library } from "@/lib/resources";
 import { cppEmail, site } from "@/lib/site";
 import { IconGuidebook, IconMarketing, IconReference, IconDataSheet, IconCertification, IconSupport, IconDrugProfile } from "@/components/ResourceIcons";
 import { drugSheets } from "@/lib/drugSheets";
+import { Flash } from "@/components/AdminBar";
+import { readFlash } from "@/lib/admin";
+import { sql } from "@/lib/db";
 
 const groupItems = (name: string) => library.find((g) => g.group === name)?.items ?? [];
 
@@ -38,6 +41,7 @@ export default async function MembersHome({ searchParams }: { searchParams: Prom
   const { welcome, reset } = await searchParams;
   const m = await currentMember();
   if (!m) return null; // layout redirects to sign in
+  const [[row], flash] = await Promise.all([sql()<{ marketing_contact: string | null }[]>`select marketing_contact from members where id = ${m.id}`, readFlash()]);
   return (
     <section className="section" style={{ paddingTop: 40 }}>
       <div className="wrap">
@@ -48,6 +52,7 @@ export default async function MembersHome({ searchParams }: { searchParams: Prom
 
         <nav className="lib-jump" aria-label="Jump to a section">
           <a href="#guidebooks">Guidebooks</a>
+          <a href="#your-details">Your details</a>
           <a href="#marketing">Marketing</a>
           <a href="#data-sheets">Data sheets</a>
           <a href="#drug-profiles">Drug profiles</a>
@@ -65,6 +70,19 @@ export default async function MembersHome({ searchParams }: { searchParams: Prom
           <div className="doc-grid">
             {groupItems("Employer Guidebooks").map((i) => <DocTile key={i.url} title={i.title.includes("Guidebook") ? i.title : `${i.title} Guidebook`} url={i.url} tag="Employer" />)}
           </div>
+        </section>
+
+        <Flash flash={flash} />
+        <section className="lib-section">
+          <SectionHead id="your-details" Icon={IconMarketing} kicker="Your details" title="Your contact details on marketing materials" text="Type your company name, phone and email exactly as you want them printed. They go in the Labb Authorized Channel Partner box on every brochure and booklet you download below." />
+          <form action="/api/members/marketing-contact" method="post" className="hero-card mc-form">
+            <label htmlFor="mc-text">Company name, phone and email (one item per line, up to 6 lines)</label>
+            <textarea id="mc-text" name="marketing_contact" rows={5} maxLength={500} defaultValue={row?.marketing_contact || ""} placeholder={"Acme Drug Testing\n(555) 123-4567\ninfo@acmetesting.com\n123 Main Street, Springfield, VA"} />
+            <div className="mc-bar">
+              <button className="btn btn-primary" type="submit">Save</button>
+              <span className="fine">{row?.marketing_contact ? "Saved. Your details are on the brochures and booklets below." : "Nothing saved yet. Brochures download with an empty partner box."}</span>
+            </div>
+          </form>
         </section>
 
         <section className="lib-section">

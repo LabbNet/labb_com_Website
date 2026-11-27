@@ -2373,3 +2373,7 @@ td.acts { white-space: nowrap; }
 .qb-excl td { background: #f4f6f7; }
 .qb-excl td input:not([type=checkbox]), .qb-excl td select { opacity: .55; }
 .qb-exctag { display: block; font-size: .72rem; font-weight: 600; color: #8f4a1f; margin-top: 3px; }
+.mc-form { text-align: left; display: grid; gap: 10px; max-width: 640px; }
+.mc-form label { font-weight: 600; color: #1f2a33; }
+.mc-form textarea { width: 100%; border: 1px solid #9aa4ad; border-radius: 8px; padding: 10px 12px; font: 400 1rem/1.5 Poppins, sans-serif; color: #1f2a33; resize: vertical; }
+.mc-bar { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
