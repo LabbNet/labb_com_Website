@@ -43,14 +43,14 @@ export async function getCampaign(id: string) {
   return c ?? null;
 }
 
-// Recipients: active CPP members with active accounts, or everyone who signed up for the newsletter. Minus unsubscribes.
+// Recipients: every active CPP member (whether or not they've logged in yet; disabled accounts excluded), or everyone who signed up for the newsletter. Minus unsubscribes.
 export async function recipients(audience: Audience): Promise<{ email: string; name: string | null }[]> {
   const db = sql();
   if (audience === "sequences") return []; // guidebook sequences are sent one lead at a time (lib/sequences.ts)
   if (audience === "cpp") {
     return db<{ email: string; name: string | null }[]>`
       select distinct on (lower(m.email)) lower(m.email) as email, m.name from members m
-      where m.role = 'member' and m.status = 'active' and m.cpp_status = 'active' and m.email like '%@%'
+      where m.role = 'member' and m.status <> 'disabled' and m.cpp_status = 'active' and m.email like '%@%'
         and not exists (select 1 from email_suppressions s where s.email = lower(m.email) and s.audience in ('cpp', 'all'))
       order by lower(m.email)`;
   }

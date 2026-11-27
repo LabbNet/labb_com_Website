@@ -56,7 +56,7 @@ export default async function EmailPage() {
                 ))}
               </ul>
               <div className="email-counts">
-                <p><strong>{counts.cpp}</strong> CPP members (active accounts)</p>
+                <p><strong>{counts.cpp}</strong> CPP members, including those who haven&apos;t logged in yet</p>
                 <p><strong>{counts.employers}</strong> on the employer newsletter</p>
                 <p><strong>{counts.clinics}</strong> on the clinic newsletter</p>
                 <p className="fine">Employers and clinics join by checking the newsletter box on any form or signing up in the footer. Clinics that apply to the CPP join the clinic list.</p>
