@@ -2564,3 +2564,8 @@ details.sm-pick input, details.sm-pick textarea, details.sm-pick select { width:
 .gb-reader-bar span { display: flex; gap: 8px; flex-wrap: wrap; }
 .gb-frame { display: block; width: 100%; height: 80vh; border: 0; }
 @media (max-width: 760px) { .gb-who, .gb-books, .gb-form { grid-template-columns: 1fr; } .gb-step { padding-left: 22px; padding-top: 60px; } }
+.ai-article { text-align: left; margin-bottom: 18px; border-top: 4px solid #CF743C; }
+.ai-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px 14px; }
+.ai-grid .ai-wide { grid-column: 1 / -1; }
+.ai-grid input:not([type=file]), .ai-grid textarea, .ai-grid select { width: 100%; border: 1px solid #9aa4ad; border-radius: 8px; padding: 8px 10px; font: 400 .95rem/1.5 Poppins, sans-serif; }
+@media (max-width: 640px) { .ai-grid { grid-template-columns: 1fr; } }

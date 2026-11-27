@@ -6,6 +6,7 @@ import { SendPanel } from "@/components/SendPanel";
 import { fmtDate, readFlash, requireAdmin } from "@/lib/admin";
 import { sql } from "@/lib/db";
 import { toEasternInput } from "@/lib/imageSize";
+import { articleAiReady } from "@/lib/articleAi";
 import { channelLabel, CHANNELS, defaultMessage, dispatchDue, socialConfigured } from "@/lib/social";
 
 export const metadata: Metadata = { title: "Edit article", robots: { index: false, follow: false } };
@@ -27,6 +28,8 @@ export default async function ArticleEditor({ params }: { params: Promise<{ id: 
       where p.article_id = ${a.id} order by p.scheduled_at desc` : Promise.resolve([]),
     readFlash(),
   ]);
+  const [{ superadmin }] = await db<{ superadmin: boolean }[]>`select superadmin from members where id = ${admin.id}`;
+  const aiOn = articleAiReady();
   const live = !!a && a.status === "published" && !!a.publish_at && a.publish_at.getTime() <= Date.now();
   const scheduled = !!a && a.status === "published" && !!a.publish_at && a.publish_at.getTime() > Date.now();
 
@@ -37,6 +40,34 @@ export default async function ArticleEditor({ params }: { params: Promise<{ id: 
         <div className="wrap">
           <p style={{ marginTop: 0 }}><Link href="/admin/articles">← All articles</Link></p>
           <Flash flash={flash} />
+          {!a && (
+            <form action="/api/admin/articles" method="post" encType="multipart/form-data" className="hero-card ai-article">
+              <input type="hidden" name="action" value="ai-draft" />
+              <h2>Have AI write the first draft</h2>
+              <p className="fine" style={{ textAlign: "left", marginTop: -4 }}>Describe the article and add your notes. AI writes a draft in Labb&apos;s style, saved as a draft you review and edit. Nothing goes live until {superadmin ? "you publish it" : "James publishes it"}. Or skip this and write it yourself below.</p>
+              {!aiOn ? <p className="lp-warn">AI writing turns on once ANTHROPIC_API_KEY is set in Render.</p> : (
+                <div className="ai-grid">
+                  <div className="field ai-wide"><label htmlFor="ai-t">What is the article about?<span className="req">*</span></label><input id="ai-t" name="topic" required maxLength={300} placeholder="Why employers are moving rapid drug testing in-house in 2027" /></div>
+                  <div className="field"><label htmlFor="ai-a">Written for</label><input id="ai-a" name="audience" maxLength={120} placeholder="HR managers at mid-size employers" /></div>
+                  <div className="field"><label htmlFor="ai-l">Length</label><select id="ai-l" name="length" defaultValue="about 900 words"><option>about 500 words</option><option>about 900 words</option><option>about 1,500 words</option></select></div>
+                  <div className="field ai-wide"><label htmlFor="ai-n">Your notes and points to include</label><textarea id="ai-n" name="notes" rows={5} maxLength={4000} placeholder="Facts, examples, Labb products to mention, the call to action..." /></div>
+                  <div className="field"><label htmlFor="ai-c">Cover image (optional)</label><input id="ai-c" name="cover" type="file" accept="image/jpeg,image/png,image/webp" /></div>
+                  <div className="field"><label htmlFor="ai-alt">Image description</label><input id="ai-alt" name="image_alt" maxLength={200} /></div>
+                  <div className="ai-wide"><button className="btn btn-primary" type="submit">Write the draft</button> <span className="fine">Takes up to a minute.</span></div>
+                </div>
+              )}
+            </form>
+          )}
+          {a && a.status !== "published" && aiOn && (
+            <form action="/api/admin/articles" method="post" className="hero-card ai-article">
+              <input type="hidden" name="action" value="ai-revise" /><input type="hidden" name="id" value={a.id} />
+              <h2>Revise with AI</h2>
+              <div className="ai-grid">
+                <div className="field ai-wide"><label htmlFor="ai-i">What should change?</label><textarea id="ai-i" name="instructions" rows={2} maxLength={2000} placeholder="Shorter intro, add a section on oral fluid testing, friendlier tone..." /></div>
+                <div className="ai-wide"><button className="btn btn-outline-dark" type="submit">Revise the draft</button> <span className="fine">Save your own edits first: AI works from the last saved version.</span></div>
+              </div>
+            </form>
+          )}
           <div className="article-editor">
             <form action="/api/admin/articles" method="post" encType="multipart/form-data" className="hero-card">
               <input type="hidden" name="action" value="save" />
@@ -63,8 +94,10 @@ export default async function ArticleEditor({ params }: { params: Promise<{ id: 
                   <legend>Publishing</legend>
                   {a && <label><input type="radio" name="publish" value="keep" defaultChecked /> Keep as is ({live ? "live" : scheduled ? `scheduled for ${fmtDate(a.publish_at!)} ET` : "draft"})</label>}
                   <label><input type="radio" name="publish" value="draft" defaultChecked={!a} /> Save as draft</label>
-                  <label><input type="radio" name="publish" value="now" /> Publish now</label>
-                  <label><input type="radio" name="publish" value="schedule" /> Release on <input type="datetime-local" name="publish_at" defaultValue={toEasternInput(scheduled ? a!.publish_at : null)} aria-label="Release date and time, Eastern" /> <span className="fine">Eastern time</span></label>
+                  {superadmin ? <>
+                    <label><input type="radio" name="publish" value="now" /> Publish now</label>
+                    <label><input type="radio" name="publish" value="schedule" /> Release on <input type="datetime-local" name="publish_at" defaultValue={toEasternInput(scheduled ? a!.publish_at : null)} aria-label="Release date and time, Eastern" /> <span className="fine">Eastern time</span></label>
+                  </> : <label><input type="radio" name="publish" value="review" /> Save and send for review <span className="fine">(only James publishes articles)</span></label>}
                 </fieldset>
               </div>
               <div className="btn-row" style={{ marginTop: 16 }}>
