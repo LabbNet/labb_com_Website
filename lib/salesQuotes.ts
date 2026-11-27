@@ -90,7 +90,7 @@ export type SalesQuote = {
   open_count: number; signed_at: Date | null; signed_name: string | null; signed_title: string | null; signature_png: string | null; signed_ip: string | null;
   signed_hash: string | null; paid_at: Date | null; paid_cents: number | null; stripe_session: string | null; created_at: Date; updated_at: Date;
   member_id: string | null; payment_mode: PaymentMode; service_level: ServiceLevel; saas_term?: SaasTerm;
-  expires_manual?: boolean; countersigned_at?: Date | null; countersign_png?: string | null; countersign_name?: string | null; countersign_title?: string | null;
+  expires_manual?: boolean; countersigned_at?: Date | null; stripe_subscription?: string | null; stripe_customer?: string | null; subscription_status?: string | null; countersign_png?: string | null; countersign_name?: string | null; countersign_title?: string | null;
 };
 export type QuoteItem = {
   id: string; quote_id: string; price_item_id: string | null; name: string; sku: string | null; category: string | null; description: string | null; unit: string | null;
