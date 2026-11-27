@@ -114,7 +114,7 @@ export async function POST(req: Request) {
         const min = Math.max(0, Math.min(qty, parseInt(String(g("min") ?? "0"), 10) || 0));
         const billing = ["once", "monthly", "invoiced"].includes(String(g("billing"))) ? String(g("billing")) : i.billing;
         await tx`update sales_quote_items set name = ${String(g("name")).slice(0, 200) || i.name}, description = ${String(g("desc") ?? "").slice(0, 500) || null},
-          unit_cents = ${Number.isFinite(cents) && cents >= 0 ? cents : i.unit_cents}, qty = ${qty}, min_qty = ${min}, adjustable = ${g("adj") === "1"}, billing = ${billing}, excluded = ${excluded} where id = ${i.id}`;
+          unit_cents = ${Number.isFinite(cents) && cents >= 0 ? cents : i.unit_cents}, qty = ${qty}, min_qty = ${min}, adjustable = ${billing === "once" && (Number.isFinite(cents) && cents >= 0 ? cents : i.unit_cents) > 0}, billing = ${billing}, excluded = ${excluded} where id = ${i.id}`;
       }
       // Price-list products the rep added from Line items (quantity set, or Add checked for lab and MRO).
       let sort = Math.max(0, ...items.map((i) => i.sort)) + 10;

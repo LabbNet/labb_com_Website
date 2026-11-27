@@ -6,7 +6,7 @@ import { SignaturePad } from "@/components/SignaturePad";
 import { currentMember } from "@/lib/auth";
 import { stripeEnabled } from "@/lib/commerce";
 import { leadName } from "@/lib/leads";
-import { getQuoteByToken, money, quoteNumber, totals } from "@/lib/salesQuotes";
+import { getQuoteByToken, leadCanEdit, money, quoteNumber, totals } from "@/lib/salesQuotes";
 
 export const metadata: Metadata = { title: "Your Labb quote", robots: { index: false, follow: false } };
 export const dynamic = "force-dynamic";
@@ -74,8 +74,8 @@ export default async function QuotePage({ params, searchParams }: { params: Prom
 
             <div className="hero-card qp-order">
               <h2>{editable ? "Review and adjust your order" : "Your order"}</h2>
-              {editable && <p className="qo-intro">Use the <strong>−</strong> and <strong>+</strong> buttons to change test kits, equipment or locations. Totals update as you go. Select <strong>Update my quote</strong> before you sign.</p>}
-              <QuoteOrder token={token} editable={editable} preview={preview} items={items.map((i) => ({ id: String(i.id), name: i.name, description: i.description, sku: i.sku, unit: i.unit, unit_cents: i.unit_cents, qty: i.qty, min_qty: i.min_qty, adjustable: i.adjustable, billing: i.billing, category: i.category ?? null }))} />
+              {editable && <p className="qo-intro">Use the <strong>−</strong> and <strong>+</strong> buttons to change test kits, equipment and other products. Software is set by your Labb rep. Totals update as you go. Select <strong>Update my quote</strong> before you sign.</p>}
+              <QuoteOrder token={token} editable={editable} preview={preview} items={items.map((i) => ({ id: String(i.id), name: i.name, description: i.description, sku: i.sku, unit: i.unit, unit_cents: i.unit_cents, qty: i.qty, min_qty: i.min_qty, adjustable: leadCanEdit(i), billing: i.billing, category: i.category ?? null }))} />
             </div>
 
             {editable && (

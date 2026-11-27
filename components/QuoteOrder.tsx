@@ -28,7 +28,8 @@ export function QuoteOrder({ token, items, editable, preview = false }: { token:
   const router = useRouter();
   const [qty, setQty] = useState<Record<string, number>>(Object.fromEntries(items.map((i) => [i.id, i.qty])));
   const [state, setState] = useState<"idle" | "saving" | "saved" | "error">("idle");
-  const visible = items.filter((i) => i.billing === "invoiced" || i.qty > 0 || i.adjustable);
+  // Every line the rep put on the quote is shown, ordered or not, so the client sees their pricing.
+  const visible = items;
   const dirty = items.some((i) => qty[i.id] !== i.qty);
   const t = useMemo(() => {
     let once = 0, monthly = 0;
@@ -80,7 +81,7 @@ export function QuoteOrder({ token, items, editable, preview = false }: { token:
               );
               return (
                 <div key={i.id} className={`qo-row${n === 0 ? " qo-off" : ""}`}>
-                  <div className="qo-name"><strong>{i.name}{n === 0 && <em className="qo-opt">Optional</em>}</strong>{i.description && <span>{i.description}</span>}</div>
+                  <div className="qo-name"><strong>{i.name}{n === 0 && <em className="qo-opt">{i.adjustable ? "Optional" : "Not included"}</em>}</strong>{i.description && <span>{i.description}</span>}{n === 0 && !i.adjustable && <span>Ask your Labb rep to add it.</span>}</div>
                   <div className="qo-price"><b>{money(i.unit_cents)}{i.billing === "monthly" ? "/mo" : ""}</b>{i.unit && <small>{unitLabel(i.unit)}</small>}</div>
                   <div className="qo-qty">{qtyCell(i)}{editable && i.adjustable && i.min_qty > 0 && <small>Minimum {i.min_qty}</small>}</div>
                   <div className="qo-total">{n === 0 ? <span className="qo-dash">—</span> : <>{money(n * i.unit_cents)}{i.billing === "monthly" ? "/mo" : ""}</>}</div>

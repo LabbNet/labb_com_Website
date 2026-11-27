@@ -72,6 +72,10 @@ async function starterItems(kind: QuoteKind) {
   return rows.filter(want).sort((a, b) => (catOrder[a.category] ?? 9) - (catOrder[b.category] ?? 9) || a.sort - b.sort).map((p, i) => ({ p, sort: i * 10 }));
 }
 
+// What the lead can change on their quote: quantities of every priced one-time item (equipment, kits, other products).
+// Never software (SaaS), included items or lab and MRO services billed as used.
+export const leadCanEdit = (i: Pick<QuoteItem, "billing" | "unit_cents">) => i.billing === "once" && i.unit_cents > 0;
+
 export function totals(items: (Pick<QuoteItem, "unit_cents" | "qty" | "billing"> & { excluded?: boolean })[]) {
   let once = 0, monthly = 0;
   for (const i of items) {
@@ -214,7 +218,7 @@ function priceTable(items: QuoteItem[], empty: string) {
     const unit = i.unit ? i.unit.replace(/^per\s+/i, "") : "";
     const billing = i.billing === "monthly" ? `Monthly${unit ? `, per ${esc(unit)}` : ""}` : i.billing === "invoiced" ? `Per ${esc(unit || "test")}, billed as used` : `One time${unit ? `, per ${esc(unit)}` : ""}`;
     return `${head}<tr><td><span class="sku">${esc(i.name)}</span>${i.description ? `<br><span class="desc">${esc(i.description)}</span>` : ""}</td><td>${billing}</td>
-      <td class="num">${i.billing === "invoiced" ? "" : i.qty ? i.qty.toLocaleString() : "Optional"}</td><td class="num">${i.unit_cents ? `${money(i.unit_cents)}${i.billing === "monthly" ? "/mo" : ""}` : i.billing === "invoiced" ? "Contact Labb sales" : "Included"}</td>
+      <td class="num">${i.billing === "invoiced" ? "" : i.qty ? i.qty.toLocaleString() : i.billing === "monthly" ? "Not included" : "Optional"}</td><td class="num">${i.unit_cents ? `${money(i.unit_cents)}${i.billing === "monthly" ? "/mo" : ""}` : i.billing === "invoiced" ? "Contact Labb sales" : "Included"}</td>
       <td class="num">${i.billing === "invoiced" ? "As used" : !i.qty ? "" : i.unit_cents ? `${money(i.unit_cents * i.qty)}${i.billing === "monthly" ? "/mo" : ""}` : "Included"}</td></tr>`;
   }).join("");
   return `<table class="price"><thead><tr><th style="width:40%">Item</th><th>Billing</th><th class="num">Qty</th><th class="num">Unit price</th><th class="num">Amount</th></tr></thead><tbody>${rows}</tbody></table>`;
@@ -239,9 +243,9 @@ export function renderQuote(q: SalesQuote, allItems: QuoteItem[], lead: LeadRow,
     "{{one_time_total}}": money(t.once), "{{monthly_total}}": money(t.monthly), "{{due_today}}": money(t.dueToday),
     "{{client_phone}}": esc(lead.phone || ""),
     "{{locations}}": String(items.filter((i) => i.billing === "monthly" && i.qty > 0).reduce((m, i) => Math.max(m, i.qty), 0) || ""),
-    "{{price_table}}": priceTable(items.filter((i) => i.billing !== "invoiced" && (i.qty > 0 || i.adjustable)), "No items yet."),
-    "{{price_table_software}}": priceTable(items.filter((i) => i.billing !== "invoiced" && (i.qty > 0 || i.adjustable) && i.category !== "rapid-kits"), "No software or hardware in this quote."),
-    "{{price_table_kits}}": priceTable(items.filter((i) => i.billing !== "invoiced" && (i.qty > 0 || i.adjustable) && i.category === "rapid-kits"), "No rapid tests in this quote yet."),
+    "{{price_table}}": priceTable(items.filter((i) => i.billing !== "invoiced"), "No items yet."),
+    "{{price_table_software}}": priceTable(items.filter((i) => i.billing !== "invoiced" && i.category !== "rapid-kits"), "No software or hardware in this quote."),
+    "{{price_table_kits}}": priceTable(items.filter((i) => i.billing !== "invoiced" && i.category === "rapid-kits"), "No rapid tests in this quote yet."),
     "{{lab_table}}": priceTable(items.filter((i) => i.billing === "invoiced"), "No lab services in this quote."),
     "{{signature_block}}": signature(q, false), "{{client_signature}}": signature(q, true),
     "{{effective_date}}": q.signed_at ? fmtSigned(q.signed_at) : "Date of acceptance",
@@ -446,7 +450,7 @@ export async function setQuantities(q: SalesQuote, items: QuoteItem[], qty: Reco
   const db = sql();
   let changed = 0;
   for (const i of items) {
-    if (!i.adjustable || i.billing === "invoiced" || !(String(i.id) in qty)) continue;
+    if (!leadCanEdit(i) || !(String(i.id) in qty)) continue;
     const n = Math.max(i.min_qty, Math.min(100_000, Math.floor(Number(qty[String(i.id)]) || 0)));
     if (n !== i.qty) { await db`update sales_quote_items set qty = ${n} where id = ${i.id} and quote_id = ${q.id}`; changed++; }
   }
