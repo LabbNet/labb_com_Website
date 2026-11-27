@@ -2,27 +2,28 @@
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 
-type Item = { id: string; name: string; description: string | null; sku: string | null; unit: string | null; unit_cents: number; qty: number; min_qty: number; adjustable: boolean; billing: "once" | "monthly" | "invoiced"; category?: string | null };
+type Item = { id: string; name: string; description: string | null; sku: string | null; unit: string | null; unit_cents: number; qty: number; min_qty: number; adjustable: boolean; billing: "once" | "monthly" | "invoiced"; category?: string | null; drugs?: string; section?: GroupKey };
 const money = (c: number) => (c / 100).toLocaleString("en-US", { style: "currency", currency: "USD" });
 const BOX = 25;
 const packOf = (i: Item) => (i.category === "rapid-kits" ? BOX : 1);
 const per = (u: string | null) => (u ? u.replace(/^per\s+/i, "") : "");
 const unitLabel = (u: string | null) => { const x = per(u); return !x ? "" : /^each$/i.test(x) ? "each" : `per ${x}`; };
 
-type GroupKey = "software" | "included" | "equipment" | "kits" | "lab";
+type GroupKey = "mrc" | "nrc" | "urine" | "oral" | "lab";
 const GROUPS: { key: GroupKey; title: string; note: string }[] = [
-  { key: "software", title: "Software", note: "Billed monthly. The first month is due at acceptance." },
-  { key: "included", title: "Included with your account", note: "No charge." },
-  { key: "equipment", title: "Labb Station equipment", note: "One-time purchase." },
-  { key: "kits", title: "Rapid test kits", note: "One-time purchase. Sold in boxes of 25 tests: set the number of boxes for your first order." },
-  { key: "lab", title: "Lab and MRO services", note: "Nothing is charged today. These are invoiced later, only for tests you order." },
+  { key: "mrc", title: "Set-up and MRC: Monthly Recurring Fees", note: "Software bills monthly; the first month is due at acceptance. Set-up items are one time." },
+  { key: "nrc", title: "Hardware and NRC", note: "One-time purchase." },
+  { key: "urine", title: "Rapid Urine Tests (Bundled with Confirmation and MRO)", note: "Sold in boxes of 25 tests. Set the number of boxes for your first order." },
+  { key: "oral", title: "Rapid Oral Fluid Tests (Bundled with Confirmation and MRO)", note: "Sold in boxes of 25 tests. Set the number of boxes for your first order." },
+  { key: "lab", title: "Laboratory and MRO Services", note: "Nothing is charged today. These are invoiced later, only for tests you order." },
 ];
+const BUNDLE = "All-inclusive rapid test pricing. One price per test: each rapid test price includes the rapid test, laboratory confirmation of non-negative results and MRO review, at a capped positive rate of 6%.";
 function groupOf(i: Item): GroupKey {
+  if (i.section) return i.section;
   if (i.billing === "invoiced") return "lab";
-  if (i.billing === "monthly") return "software";
-  if (!i.unit_cents) return "included";
-  if (i.category === "rapid-kits") return "kits";
-  return "equipment";
+  if (i.category === "rapid-kits") return /^UA/i.test(i.sku || "") ? "urine" : "oral";
+  if (i.billing === "monthly" || !i.unit_cents) return "mrc";
+  return "nrc";
 }
 
 // The lead's order: change quantities of the items Labb made adjustable, see totals update, save.
@@ -70,26 +71,28 @@ export function QuoteOrder({ token, items, editable, preview = false }: { token:
         return (
           <section key={g.key} className={`qo-group qo-${g.key}`}>
             <header className="qo-ghead"><h3>{g.title}</h3><p>{g.note}</p></header>
-            {(g.key === "software" || g.key === "equipment" || g.key === "kits") && (
+            {g.key !== "lab" && (
               <div className="qo-row qo-cols" aria-hidden="true"><span>Item</span><span>Price</span><span>Quantity</span><span>Total</span></div>
             )}
             {rows.map((i) => {
               const n = qty[i.id] ?? 0;
-              if (g.key === "included" || g.key === "lab") return (
+              const drugs = i.drugs ? <span className="qo-drugs">{i.drugs}</span> : null;
+              if (g.key === "lab" || (!i.unit_cents && i.billing !== "invoiced")) return (
                 <div key={i.id} className="qo-row qo-simple">
-                  <div className="qo-name"><strong>{i.name}</strong>{i.description && <span>{i.description}</span>}</div>
-                  <div className="qo-flat">{g.key === "included" ? "Included" : i.unit_cents ? <>{money(i.unit_cents)}<small> {unitLabel(i.unit) || "per test"}</small></> : "Contact Labb sales"}</div>
+                  <div className="qo-name"><strong>{i.name}</strong>{i.description && <span>{i.description}</span>}{drugs}</div>
+                  <div className={`qo-flat${!i.unit_cents && i.billing !== "invoiced" ? " qo-incl" : ""}`}>{i.billing !== "invoiced" ? "Included" : i.unit_cents ? <>{money(i.unit_cents)}<small> {unitLabel(i.unit) || "per test"}</small></> : "Contact Labb sales"}</div>
                 </div>
               );
               return (
                 <div key={i.id} className={`qo-row${n === 0 ? " qo-off" : ""}`}>
-                  <div className="qo-name"><strong>{i.name}{n === 0 && <em className="qo-opt">{i.adjustable ? "Optional" : "Not included"}</em>}</strong>{i.description && <span>{i.description}</span>}{n === 0 && !i.adjustable && <span>Ask your Labb rep to add it.</span>}</div>
+                  <div className="qo-name"><strong>{i.name}{n === 0 && <em className="qo-opt">{i.adjustable ? "Optional" : "Not included"}</em>}</strong>{i.description && <span>{i.description}</span>}{drugs}{n === 0 && !i.adjustable && <span>Ask your Labb rep to add it.</span>}</div>
                   <div className="qo-price">{packOf(i) > 1 ? <><b>{money(i.unit_cents * BOX)}</b><small>per box of {BOX}</small><small>{money(i.unit_cents)} per test</small></> : <><b>{money(i.unit_cents)}{i.billing === "monthly" ? "/mo" : ""}</b>{i.unit && <small>{unitLabel(i.unit)}</small>}</>}</div>
                   <div className="qo-qty">{qtyCell(i)}{packOf(i) > 1 && <small>{n === 1 ? "box" : "boxes"}{n > 0 ? ` (${(n * BOX).toLocaleString()} tests)` : ""}</small>}{editable && i.adjustable && i.min_qty > 0 && <small>Minimum {i.min_qty}</small>}</div>
                   <div className="qo-total">{n === 0 ? <span className="qo-dash">—</span> : <>{money(n * i.unit_cents * packOf(i))}{i.billing === "monthly" ? "/mo" : ""}</>}</div>
                 </div>
               );
             })}
+            {(g.key === "urine" || g.key === "oral") && <p className="qo-bundle"><strong>All-inclusive rapid test pricing.</strong> {BUNDLE.replace("All-inclusive rapid test pricing. ", "")}</p>}
           </section>
         );
       })}

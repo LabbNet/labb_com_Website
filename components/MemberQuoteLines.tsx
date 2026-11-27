@@ -5,7 +5,7 @@ import { useMemo, useState } from "react";
 // Cost and margin are for the member only; the quote the client sees shows client prices.
 export type MemberLine = {
   id: string; name: string; description: string | null; category: string | null; unit: string | null;
-  billing: "once" | "monthly" | "invoiced"; price: number; qty: number; excluded: boolean;
+  billing: "once" | "monthly" | "invoiced"; section?: string; price: number; qty: number; excluded: boolean;
   linkedCost: number | null; ownCost: number | null;
 };
 const BOX = 25;
@@ -43,7 +43,7 @@ export function MemberQuoteLines({ lines, locked }: { lines: MemberLine[]; locke
           <tbody>
             {calc.map((c) => {
               const { l } = c; const s = st[l.id];
-              const cat = CAT[l.category || ""] || "Other";
+              const cat = l.section || CAT[l.category || ""] || "Other";
               const head = cat !== last ? ((last = cat), <span className="qb-cat">{cat}</span>) : null;
               const per = l.category === "rapid-kits" ? "/test" : l.billing === "monthly" ? "/mo" : l.unit ? `/${l.unit.replace(/^per\s+/i, "")}` : "";
               return (

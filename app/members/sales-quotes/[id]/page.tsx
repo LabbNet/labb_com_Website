@@ -8,7 +8,7 @@ import { currentMember } from "@/lib/auth";
 import { sql } from "@/lib/db";
 import { leadName, type LeadRow } from "@/lib/leads";
 import {
-  getQuote, memberCosts, money, PAYMENT_MODES, QUOTE_STATUS, quoteNumber, SERVICE_LEVELS, syncCatalogLines, totals, type ServiceLevel,
+  getQuote, memberCosts, QUOTE_SECTIONS, sectionOf, shownDescription, money, PAYMENT_MODES, QUOTE_STATUS, quoteNumber, SERVICE_LEVELS, syncCatalogLines, totals, type ServiceLevel,
 } from "@/lib/salesQuotes";
 
 export const metadata: Metadata = { title: "Quote", robots: { index: false, follow: false } };
@@ -36,10 +36,10 @@ export default async function MemberSalesQuote({ params }: { params: Promise<{ i
   const locked = ["signed", "paid"].includes(q.status);
   const expires = new Date(q.expires_on).toISOString().slice(0, 10);
   const lines = items.map((i) => ({
-    id: String(i.id), name: i.name, description: i.description, category: i.category, unit: i.unit, billing: i.billing,
+    id: String(i.id), name: i.name, description: shownDescription(i) || null, section: QUOTE_SECTIONS.find((x) => x.key === sectionOf(i))!.title, sectionOrder: QUOTE_SECTIONS.findIndex((x) => x.key === sectionOf(i)), category: i.category, unit: i.unit, billing: i.billing,
     price: i.unit_cents, qty: i.qty, excluded: !!i.excluded,
     linkedCost: i.price_item_id ? costs.get(String(i.price_item_id)) ?? null : null, ownCost: i.cost_cents ?? null,
-  }));
+  })).map((l, n) => ({ ...l, n })).sort((a, b) => a.sectionOrder - b.sectionOrder || a.n - b.n);
   const act = (action: string, children: React.ReactNode) => (
     <form action="/api/members/sales-quotes" method="post"><input type="hidden" name="action" value={action} /><input type="hidden" name="quote" value={q.id} />{children}</form>
   );

@@ -4,6 +4,7 @@ import { sql } from "@/lib/db";
 import { emailLayout, esc, sendMail } from "@/lib/mail";
 import { leadName, logLeadEvent, type LeadRow } from "@/lib/leads";
 import { absoluteUrl } from "@/lib/site";
+import { kits } from "@/lib/kits";
 
 // ---- Labb sales quotes ----
 // A rep builds a quote for a lead (clinic, employer or custom) from an HTML template and the price list,
@@ -67,13 +68,14 @@ export type SalesQuote = {
 };
 export type QuoteItem = {
   id: string; quote_id: string; price_item_id: string | null; name: string; sku: string | null; category: string | null; description: string | null; unit: string | null;
-  unit_cents: number; qty: number; min_qty: number; adjustable: boolean; billing: "once" | "monthly" | "invoiced"; sort: number; excluded?: boolean; cost_cents?: number | null;
+  unit_cents: number; qty: number; min_qty: number; adjustable: boolean; billing: "once" | "monthly" | "invoiced"; sort: number; excluded?: boolean; cost_cents?: number | null; drugs?: string | null;
 };
 export type PriceRow = { id: string; category: string; name: string; sku: string | null; description: string | null; unit: string | null; under100_cents: number | null; over100_cents: number | null; sort: number; active: boolean };
 
 export const money = (c: number) => (c / 100).toLocaleString("en-US", { style: "currency", currency: "USD", minimumFractionDigits: 2 });
 export const quoteUrl = (token: string) => absoluteUrl(`/quote/${token}`);
-export const quoteNumber = (q: { id: string | number; created_at: Date }) => `Q-${new Date(q.created_at).getFullYear()}-${String(q.id).padStart(4, "0")}`;
+// Numbers start at 201 so a client never sees they got quote 1.
+export const quoteNumber = (q: { id: string | number; created_at: Date }) => `Q-${new Date(q.created_at).getFullYear()}-${String(Number(q.id) + 200).padStart(4, "0")}`;
 const fmtDay = (d: Date | string) => new Date(d).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric", timeZone: "UTC" });
 
 export function priceFor(p: Pick<PriceRow, "under100_cents" | "over100_cents">, level: PriceLevel) {
@@ -123,6 +125,8 @@ export const PLACEHOLDERS: [string, string][] = [
   ["{{items_table}}", "Simple table of everything ordered: software, readers, kits, with quantities and prices"], ["{{invoiced_table}}", "Simple table of lab and MRO services billed as used"],
   ["{{price_table}}", "Detailed pricing table (class=\"price\") of everything ordered, grouped by category"],
   ["{{price_table_software}}", "Detailed table: software, readers, stands and other items"], ["{{price_table_kits}}", "Detailed table: rapid test kits"],
+  ["{{price_table_mrc}}", "Detailed table: Set-up and MRC (monthly recurring fees)"], ["{{price_table_nrc}}", "Detailed table: Hardware and NRC"],
+  ["{{price_table_urine}}", "Detailed table: rapid urine tests"], ["{{price_table_oral}}", "Detailed table: rapid oral fluid tests"],
   ["{{lab_table}}", "Detailed table: lab and MRO services billed as used"],
   ["{{signature_block}}", "The lead's e-signature, name, title and date once signed"], ["{{client_signature}}", "Same, laid out for an agreement's client signature column"],
   ["{{effective_date}}", "Date the quote was signed (blank line until then)"],
@@ -234,18 +238,42 @@ function invoicedTable(items: QuoteItem[]) {
     `<tr><td><strong>${esc(i.name)}</strong>${i.description ? `<br><span class="muted">${esc(i.description)}</span>` : ""}</td><td class="num">${money(i.unit_cents)}${i.unit ? ` per ${esc(i.unit.replace(/^per\s+/i, ""))}` : ""}</td></tr>`).join("")}</tbody></table>`;
 }
 
-const CAT_LABEL: Record<string, string> = { saas: "Software", services: "Setup and services", readers: "Hardware", stands: "Hardware", "rapid-kits": "Rapid tests", "lab-mro": "Laboratory testing and MRO" };
+// Quote sections, in order. Software and set-up are monthly recurring (MRC); hardware is non-recurring (NRC).
+export const QUOTE_SECTIONS = [
+  { key: "mrc", title: "Set-up and MRC: Monthly Recurring Fees" },
+  { key: "nrc", title: "Hardware and NRC" },
+  { key: "urine", title: "Rapid Urine Tests (Bundled with Confirmation and MRO)" },
+  { key: "oral", title: "Rapid Oral Fluid Tests (Bundled with Confirmation and MRO)" },
+  { key: "lab", title: "Laboratory and MRO Services" },
+] as const;
+export type QuoteSection = (typeof QUOTE_SECTIONS)[number]["key"];
+export function sectionOf(i: { category?: string | null; billing: string; sku?: string | null; name: string }): QuoteSection {
+  if (i.billing === "invoiced" || i.category === "lab-mro") return "lab";
+  if (i.category === "rapid-kits") return /^UA/i.test(i.sku || "") || /urine|cup/i.test(i.name) ? "urine" : "oral";
+  if (i.category === "saas" || i.category === "services" || i.billing === "monthly") return "mrc";
+  return "nrc";
+}
+// Drug abbreviations for a line: the price list's own list, or the kit's panel from the product data.
+export function drugsFor(i: { drugs?: string | null; sku?: string | null; category?: string | null }) {
+  if (i.drugs && i.drugs.trim()) return i.drugs.trim();
+  if (i.category !== "rapid-kits" || !i.sku) return "";
+  const k = kits.find((x) => x.code.toLowerCase() === String(i.sku).toLowerCase());
+  return k ? k.drugs.map((d) => d.code).join(", ") : "";
+}
+// Placeholder descriptions like "Contact Labb sales for pricing" aren't shown once a line has a price.
+export const shownDescription = (i: { description: string | null; unit_cents: number }) => (i.description && !(i.unit_cents > 0 && /contact labb sales/i.test(i.description)) ? i.description : "");
 // Detailed table with the same columns as the Labb Station proposal (class="price", section rows by category).
 function priceTable(items: QuoteItem[], empty: string) {
   if (!items.length) return `<p class="muted note">${esc(empty)}</p>`;
   let last = "";
+  const single = new Set(items.map((i) => sectionOf(i))).size === 1; // the card title already names the section
   const rows = items.map((i) => {
-    const sect = CAT_LABEL[i.category || ""] || "Other";
-    const head = sect !== last ? `<tr class="sect"><td colspan="5">${esc((last = sect))}</td></tr>` : "";
+    const sect = QUOTE_SECTIONS.find((x) => x.key === sectionOf(i))!.title;
+    const head = !single && sect !== last ? `<tr class="sect"><td colspan="5">${esc((last = sect))}</td></tr>` : "";
     const unit = i.unit ? i.unit.replace(/^per\s+/i, "") : "";
     const box = packOf(i) > 1;
     const billing = box ? `One time, per box of ${KIT_BOX}` : i.billing === "monthly" ? `Monthly${unit ? `, per ${esc(unit)}` : ""}` : i.billing === "invoiced" ? `Per ${esc(unit || "test")}, billed as used` : `One time${unit ? `, per ${esc(unit)}` : ""}`;
-    return `${head}<tr><td><span class="sku">${esc(i.name)}</span>${i.description ? `<br><span class="desc">${esc(i.description)}</span>` : ""}</td><td>${billing}</td>
+    return `${head}<tr><td><span class="sku">${esc(i.name)}</span>${shownDescription(i) ? `<br><span class="desc">${esc(shownDescription(i))}</span>` : ""}${drugsFor(i) ? `<br><span class="desc" style="font-size:6.4pt;letter-spacing:.2pt">${esc(drugsFor(i))}</span>` : ""}</td><td>${billing}</td>
       <td class="num">${i.billing === "invoiced" ? "" : i.qty ? `${i.qty.toLocaleString()}${box ? (i.qty === 1 ? " box" : " boxes") : ""}` : i.billing === "monthly" ? "Not included" : "Optional"}</td><td class="num">${box && i.unit_cents ? `${money(i.unit_cents * KIT_BOX)} per box<br><span class="desc">${money(i.unit_cents)} per test</span>` : i.unit_cents ? `${money(i.unit_cents)}${i.billing === "monthly" ? "/mo" : ""}` : i.billing === "invoiced" ? "Contact Labb sales" : "Included"}</td>
       <td class="num">${i.billing === "invoiced" ? "As used" : !i.qty ? "" : i.unit_cents ? `${money(lineCents(i))}${i.billing === "monthly" ? "/mo" : ""}` : "Included"}</td></tr>`;
   }).join("");
@@ -293,6 +321,10 @@ export function renderQuote(q: SalesQuote, allItems: QuoteItem[], lead: LeadRow,
     "{{price_table}}": priceTable(items.filter((i) => i.billing !== "invoiced"), "No items yet."),
     "{{price_table_software}}": priceTable(items.filter((i) => i.billing !== "invoiced" && i.category !== "rapid-kits"), "No software or hardware in this quote."),
     "{{price_table_kits}}": priceTable(items.filter((i) => i.billing !== "invoiced" && i.category === "rapid-kits"), "No rapid tests in this quote yet."),
+    "{{price_table_mrc}}": priceTable(items.filter((i) => sectionOf(i) === "mrc"), "No set-up or monthly fees in this quote."),
+    "{{price_table_nrc}}": priceTable(items.filter((i) => sectionOf(i) === "nrc"), "No hardware in this quote."),
+    "{{price_table_urine}}": priceTable(items.filter((i) => sectionOf(i) === "urine"), "No rapid urine tests in this quote."),
+    "{{price_table_oral}}": priceTable(items.filter((i) => sectionOf(i) === "oral"), "No rapid oral fluid tests in this quote."),
     "{{lab_table}}": priceTable(items.filter((i) => i.billing === "invoiced"), "No lab services in this quote."),
     "{{signature_block}}": signature(q, false), "{{client_signature}}": signature(q, true),
     "{{effective_date}}": q.signed_at ? fmtSigned(q.signed_at) : "Date of acceptance",
@@ -312,7 +344,7 @@ export async function getQuote(id: string) {
   const db = sql();
   const [q] = await db<SalesQuote[]>`select * from sales_quotes where id = ${/^\d+$/.test(id) ? id : "0"}`;
   if (!q) return null;
-  const items = await db<QuoteItem[]>`select i.*, coalesce(i.category, p.category) as category from sales_quote_items i left join quote_price_items p on p.id = i.price_item_id where i.quote_id = ${q.id}
+  const items = await db<QuoteItem[]>`select i.*, coalesce(i.category, p.category) as category, p.drugs from sales_quote_items i left join quote_price_items p on p.id = i.price_item_id where i.quote_id = ${q.id}
     order by coalesce(array_position(array['saas','services','readers','stands','rapid-kits','lab-mro'], coalesce(i.category, p.category)), 7), i.sort, i.id`;
   return { q, items };
 }
@@ -321,7 +353,7 @@ export async function getQuoteByToken(token: string) {
   const db = sql();
   const [q] = await db<SalesQuote[]>`select * from sales_quotes where token = ${token}`;
   if (!q) return null;
-  const items = await db<QuoteItem[]>`select i.*, coalesce(i.category, p.category) as category from sales_quote_items i left join quote_price_items p on p.id = i.price_item_id where i.quote_id = ${q.id} and not i.excluded order by i.sort, i.id`;
+  const items = await db<QuoteItem[]>`select i.*, coalesce(i.category, p.category) as category, p.drugs from sales_quote_items i left join quote_price_items p on p.id = i.price_item_id where i.quote_id = ${q.id} and not i.excluded order by i.sort, i.id`;
   const [lead] = await db<LeadRow[]>`select * from leads where id = ${q.lead_id}`;
   const [rep] = q.rep_id ? await db<NonNullable<Rep>[]>`select name, email, phone, clinic, logo_png from members where id = ${q.rep_id}` : [];
   return lead ? { q, items, lead, rep: rep ?? null } : null;

@@ -40,6 +40,7 @@ export default async function QuotePrices() {
                         <input type="hidden" name="ids" value={r.id} />
                         <input name={`name_${r.id}`} defaultValue={r.name} maxLength={200} aria-label="Name" />
                         <input name={`desc_${r.id}`} defaultValue={r.description || ""} maxLength={500} placeholder="Description shown on quotes" aria-label="Description" className="qb-desc" />
+                        <input name={`drugs_${r.id}`} defaultValue={(r as { drugs?: string | null }).drugs || ""} maxLength={300} placeholder={r.category === "rapid-kits" ? "Drugs (blank uses the kit data sheet)" : "Drugs tested, e.g. AMP, COC, THC"} aria-label="Drug abbreviations" className="qb-desc" />
                       </td>
                       <td><select name={`cat_${r.id}`} defaultValue={r.category} aria-label="Category">{QUOTE_PRICE_CATEGORIES.map((c) => <option key={c.value} value={c.value}>{c.label}</option>)}</select></td>
                       <td><input name={`sku_${r.id}`} defaultValue={r.sku || ""} maxLength={60} aria-label="SKU" className="qb-num" /></td>

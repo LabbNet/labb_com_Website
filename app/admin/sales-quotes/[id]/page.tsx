@@ -7,7 +7,7 @@ import { fmtDate, readFlash, requireAdmin } from "@/lib/admin";
 import { sql } from "@/lib/db";
 import { leadName, type LeadRow } from "@/lib/leads";
 import {
-  aiReady, BILLING_LABEL, syncCatalogLines, KIT_BOX, leadCanEdit, lineCents, packOf, billingFor, priceFor, type PriceRow, getQuote, money, PRICE_LEVELS, QUOTE_KINDS, QUOTE_PRICE_CATEGORIES, QUOTE_STATUS, quoteNumber, quoteUrl, repFor, totals,
+  aiReady, BILLING_LABEL, QUOTE_SECTIONS, sectionOf, syncCatalogLines, KIT_BOX, leadCanEdit, lineCents, packOf, billingFor, priceFor, type PriceRow, getQuote, money, PRICE_LEVELS, QUOTE_KINDS, QUOTE_PRICE_CATEGORIES, QUOTE_STATUS, quoteNumber, quoteUrl, repFor, totals,
 } from "@/lib/salesQuotes";
 
 export const metadata: Metadata = { title: "Quote", robots: { index: false, follow: false } };
@@ -36,7 +36,8 @@ export default async function QuoteEditor({ params }: { params: Promise<{ id: st
   if (!lead) notFound();
   const t = totals(items);
   type Row = { kind: "item"; i: (typeof items)[number]; cat: string | null };
-  const rows: Row[] = items.map((i) => ({ kind: "item" as const, i, cat: i.category }));
+  const secOrder = (k: string) => QUOTE_SECTIONS.findIndex((x) => x.key === k);
+  const rows: Row[] = items.map((i, n) => ({ kind: "item" as const, i, cat: sectionOf(i) as string, n })).sort((a, b) => secOrder(a.cat) - secOrder(b.cat) || a.n - b.n);
   const locked = q.status === "signed" || q.status === "paid";
   const kind = QUOTE_KINDS.find((k) => k.value === q.kind)!;
   const expires = new Date(q.expires_on).toISOString().slice(0, 10);
@@ -46,7 +47,7 @@ export default async function QuoteEditor({ params }: { params: Promise<{ id: st
       {children}
     </form>
   );
-  const catLabel = (c: string | null) => QUOTE_PRICE_CATEGORIES.find((x) => x.value === c)?.label ?? "Other";
+  const catLabel = (c: string | null) => QUOTE_SECTIONS.find((x) => x.key === c)?.title ?? QUOTE_PRICE_CATEGORIES.find((x) => x.value === c)?.label ?? "Other";
 
   return (
     <>
