@@ -79,8 +79,8 @@ export default async function AdminLead({ params, searchParams }: { params: Prom
   ]);
   const opened = new Map(opens.map((o) => [o.m, o]));
   const [quotes, qItems, qTemplates] = await Promise.all([
-    db<{ id: string; title: string; status: string; kind: string; created_at: Date; sent_at: Date | null; open_count: number; last_opened_at: Date | null; paid_cents: number | null; signed_name: string | null }[]>`
-      select id::text, title, status, kind, created_at, sent_at, open_count, last_opened_at, paid_cents, signed_name from sales_quotes where lead_id = ${id} order by created_at desc`.catch(() => []),
+    db<{ id: string; title: string; status: string; kind: string; created_at: Date; member_id: string | null; sent_at: Date | null; open_count: number; last_opened_at: Date | null; paid_cents: number | null; signed_name: string | null }[]>`
+      select id::text, title, status, kind, created_at, member_id::text, sent_at, open_count, last_opened_at, paid_cents, signed_name from sales_quotes where lead_id = ${id} order by created_at desc`.catch(() => []),
     db<(QuoteItem & { quote_id: string })[]>`select i.* from sales_quote_items i join sales_quotes q on q.id = i.quote_id where q.lead_id = ${id}`.catch(() => []),
     db<{ id: string; name: string; kind: string }[]>`select id::text, name, kind from quote_templates where active order by name`.catch(() => []),
   ]);

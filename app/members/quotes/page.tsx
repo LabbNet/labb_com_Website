@@ -21,8 +21,8 @@ export default async function MemberQuotes() {
   const db = sql();
   const [quotes, flash, sent, myLeads, [me]] = await Promise.all([
     quotesFor({ memberId: m.id }), readFlash(),
-    db<{ id: string; title: string; status: string; created_at: Date; sent_at: Date | null; open_count: number; lead_name: string }[]>`
-      select q.id::text, q.title, q.status, q.created_at, q.sent_at, q.open_count, coalesce(nullif(l.company, ''), trim(concat(l.first_name, ' ', l.last_name)), l.email) as lead_name
+    db<{ id: string; title: string; status: string; created_at: Date; member_id: string; sent_at: Date | null; open_count: number; lead_name: string }[]>`
+      select q.id::text, q.title, q.status, q.created_at, q.member_id::text, q.sent_at, q.open_count, coalesce(nullif(l.company, ''), trim(concat(l.first_name, ' ', l.last_name)), l.email) as lead_name
       from sales_quotes q join leads l on l.id = q.lead_id where q.member_id = ${m.id} order by q.created_at desc`,
     db<LeadRow[]>`select * from leads where partner_id = ${m.id} and owner = 'partner' and not archived order by coalesce(company, first_name, email)`,
     db<{ logo_png: string | null; clinic: string | null }[]>`select logo_png, clinic from members where id = ${m.id}`,

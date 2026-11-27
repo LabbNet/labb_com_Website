@@ -76,7 +76,8 @@ export type PriceRow = { id: string; category: string; name: string; sku: string
 export const money = (c: number) => (c / 100).toLocaleString("en-US", { style: "currency", currency: "USD", minimumFractionDigits: 2 });
 export const quoteUrl = (token: string) => absoluteUrl(`/quote/${token}`);
 // Numbers start at 201 so a client never sees they got quote 1.
-export const quoteNumber = (q: { id: string | number; created_at: Date }) => `Q-${new Date(q.created_at).getFullYear()}-${String(Number(q.id) + 200).padStart(4, "0")}`;
+// CPP member quotes carry CPP in the number: Q-CPP-2026-0206.
+export const quoteNumber = (q: { id: string | number; created_at: Date; member_id?: string | null }) => `Q-${q.member_id ? "CPP-" : ""}${new Date(q.created_at).getFullYear()}-${String(Number(q.id) + 200).padStart(4, "0")}`;
 const fmtDay = (d: Date | string) => new Date(d).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric", timeZone: "UTC" });
 
 export function priceFor(p: Pick<PriceRow, "under100_cents" | "over100_cents">, level: PriceLevel) {
