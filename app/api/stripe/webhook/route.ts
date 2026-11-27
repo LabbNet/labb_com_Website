@@ -35,6 +35,11 @@ export async function POST(req: Request) {
     // Sales quote: signed quote paid at checkout -> accepted and finalized.
     if (s.metadata?.kind === "sales-quote" && s.metadata.quoteId) {
       const { markPaid } = await import("@/lib/salesQuotes");
+      if (s.subscription) {
+        const sub = typeof s.subscription === "string" ? s.subscription : s.subscription.id;
+        const cust = typeof s.customer === "string" ? s.customer : s.customer?.id ?? null;
+        await sql()`update sales_quotes set stripe_subscription = ${sub}, stripe_customer = ${cust}, subscription_status = 'active' where id = ${s.metadata.quoteId}`;
+      }
       await markPaid(s.metadata.quoteId, s.amount_total ?? 0, s.id);
     }
 
@@ -52,6 +57,22 @@ export async function POST(req: Request) {
         await deliverLead(leadFromRow(fresh), id);
       }
     }
+  }
+  // Quote software subscriptions: renewals, failed payments and cancellations.
+  if (event.type === "invoice.paid" || event.type === "invoice.payment_failed") {
+    const inv = event.data.object as unknown as { subscription?: string | { id: string } | null; parent?: { subscription_details?: { subscription?: string | { id: string } | null } | null } | null; billing_reason?: string | null; amount_paid?: number; amount_due?: number };
+    const raw = inv.subscription ?? inv.parent?.subscription_details?.subscription ?? null;
+    const sub = typeof raw === "string" ? raw : raw?.id;
+    if (sub) {
+      const { quoteSubscriptionEvent } = await import("@/lib/salesQuotes");
+      if (event.type === "invoice.payment_failed") await quoteSubscriptionEvent(sub, "failed", { cents: inv.amount_due ?? 0 });
+      else if (inv.billing_reason === "subscription_cycle") await quoteSubscriptionEvent(sub, "renewed", { cents: inv.amount_paid ?? 0 });
+    }
+  }
+  if (event.type === "customer.subscription.deleted" || event.type === "customer.subscription.updated") {
+    const sub = event.data.object as unknown as { id: string; status: string };
+    const { quoteSubscriptionEvent } = await import("@/lib/salesQuotes");
+    await quoteSubscriptionEvent(sub.id, event.type === "customer.subscription.deleted" ? "canceled" : "status", { status: sub.status });
   }
   return NextResponse.json({ received: true });
 }

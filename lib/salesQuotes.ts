@@ -721,23 +721,67 @@ export async function setQuantities(q: SalesQuote, items: QuoteItem[], qty: Reco
 export async function quoteCheckout(q: SalesQuote, items: QuoteItem[], lead: LeadRow) {
   const { stripe } = await import("@/lib/commerce");
   const term = termInfo(q.saas_term);
-  const lines = items.filter((i) => !i.excluded && i.billing !== "invoiced" && i.qty > 0 && i.unit_cents > 0).map((i) => ({
+  const live = items.filter((i) => !i.excluded && i.billing !== "invoiced" && i.qty > 0 && i.unit_cents > 0);
+  const saas = live.filter((i) => i.billing === "monthly");
+  const desc = `Labb quote ${quoteNumber(q)}: ${q.title}`.slice(0, 500);
+  const meta = { kind: "sales-quote", quoteId: String(q.id), leadId: String(q.lead_id) };
+  const oneTime = live.filter((i) => i.billing !== "monthly").map((i) => ({
     quantity: i.qty,
-    price_data: { currency: "usd", unit_amount: i.billing === "monthly" ? Math.round(i.unit_cents * term.months * (1 - term.discount)) : i.unit_cents * packOf(i),
-      product_data: { name: `${i.name}${i.billing === "monthly" ? (term.months > 1 ? ` (first ${term.period}, ${Math.round(term.discount * 100)}% off)` : " (first month)") : packOf(i) > 1 ? ` (box of ${KIT_BOX})` : ""}`.slice(0, 250), ...(i.sku ? { description: i.sku } : {}) } },
+    price_data: { currency: "usd", unit_amount: i.unit_cents * packOf(i), product_data: { name: `${i.name}${packOf(i) > 1 ? ` (box of ${KIT_BOX})` : ""}`.slice(0, 250), ...(i.sku ? { description: i.sku } : {}) } },
   }));
-  const session = await stripe().checkout.sessions.create({
-    mode: "payment",
-    line_items: lines,
+  const base = {
     customer_email: lead.email,
     automatic_tax: { enabled: process.env.STRIPE_AUTOMATIC_TAX === "true" },
-    metadata: { kind: "sales-quote", quoteId: String(q.id), leadId: String(q.lead_id) },
-    payment_intent_data: { description: `Labb quote ${quoteNumber(q)}: ${q.title}`.slice(0, 900) },
+    metadata: meta,
     success_url: absoluteUrl(`/quote/${q.token}?paid=1`),
     cancel_url: absoluteUrl(`/quote/${q.token}?open=1`),
-  });
+  };
+  // Software on the quote: a subscription that renews every month, quarter or year at the chosen (discounted) rate.
+  // The one-time items are charged on the first invoice with the first period of software.
+  const session = saas.length
+    ? await stripe().checkout.sessions.create({
+        ...base,
+        mode: "subscription",
+        line_items: [
+          ...saas.map((i) => ({
+            quantity: i.qty,
+            price_data: {
+              currency: "usd", unit_amount: Math.round(i.unit_cents * term.months * (1 - term.discount)),
+              recurring: { interval: "month" as const, interval_count: term.months },
+              product_data: { name: `${i.name}${term.months > 1 ? `, billed ${term.value} (${Math.round(term.discount * 100)}% off)` : ", billed monthly"}`.slice(0, 250) },
+            },
+          })),
+          ...oneTime,
+        ],
+        subscription_data: { metadata: meta, description: desc },
+      })
+    : await stripe().checkout.sessions.create({
+        ...base,
+        mode: "payment",
+        line_items: oneTime,
+        payment_intent_data: { description: desc },
+      });
   await sql()`update sales_quotes set stripe_session = ${session.id} where id = ${q.id}`;
   return session.url!;
+}
+
+// Stripe subscription events for a quote's software: renewals, failed payments, cancellations. Logged on the lead; the rep is told about problems.
+export async function quoteSubscriptionEvent(subscriptionId: string, kind: "renewed" | "failed" | "canceled" | "status", detail: { cents?: number; status?: string }) {
+  const db = sql();
+  const [q] = await db<SalesQuote[]>`select * from sales_quotes where stripe_subscription = ${subscriptionId}`;
+  if (!q) return;
+  if (kind === "status" && detail.status) { await db`update sales_quotes set subscription_status = ${detail.status} where id = ${q.id}`; return; }
+  const [lead] = await db<LeadRow[]>`select * from leads where id = ${q.lead_id}`;
+  if (kind === "renewed") {
+    await db`update sales_quotes set subscription_status = 'active' where id = ${q.id}`;
+    await logLeadEvent(q.lead_id, "paid", `Software renewal paid: ${money(detail.cents ?? 0)} (quote ${quoteNumber(q)}, billed ${termInfo(q.saas_term).value})`, null);
+    return;
+  }
+  if (kind === "canceled") await db`update sales_quotes set subscription_status = 'canceled' where id = ${q.id}`;
+  const what = kind === "failed" ? `A software payment of ${money(detail.cents ?? 0)} failed` : "The software subscription was canceled";
+  await logLeadEvent(q.lead_id, "quote", `${what} (quote ${quoteNumber(q)})`, null);
+  if (lead) await notifyRep(q, lead, `${kind === "failed" ? "Payment failed" : "Subscription canceled"}: ${lead.company || leadName(lead)}`,
+    `<p>${esc(what)} for <strong>${esc(lead.company || leadName(lead))}</strong> (${quoteNumber(q)}).</p><p>${kind === "failed" ? "Stripe retries automatically and emails the client. Reach out if it doesn't clear." : "Their software won't renew. Follow up if this wasn't expected."}</p><p><a href="https://dashboard.stripe.com/subscriptions/${encodeURIComponent(subscriptionId)}" style="color:#CF743C">Open it in Stripe</a></p>`);
 }
 
 // Stripe confirmed payment (webhook), or nothing was due: finalize.

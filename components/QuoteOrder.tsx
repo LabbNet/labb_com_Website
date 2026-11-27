@@ -144,7 +144,7 @@ export function QuoteOrder({ token, items, editable, preview = false, repLabel =
         <div className="qo-lines">
           <div><span>One-time items</span><strong>{money(t.once)}</strong></div>
           {t.monthly > 0 && <div><span>Software, first {tm.period}{tm.discount ? ` (${Math.round(tm.discount * 100)}% off)` : ""}</span><strong>{money(t.saas)}</strong></div>}
-          {t.monthly > 0 && <p>Software then bills {money(t.saas)} {tm.months > 1 ? `every ${tm.period}` : "a month"}. Taxes and shipping, if any, are added at checkout.</p>}
+          {t.monthly > 0 && <p>Software then renews automatically at {money(t.saas)} {tm.months > 1 ? `every ${tm.period}` : "a month"}. Taxes and shipping, if any, are added at checkout.</p>}
         </div>
         <div className="qo-due"><span>Due at acceptance</span><strong>{money(t.due)}</strong></div>
       </div>

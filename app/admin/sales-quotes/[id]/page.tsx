@@ -87,6 +87,7 @@ export default async function QuoteEditor({ params }: { params: Promise<{ id: st
               <p>Signed by <strong>{q.signed_name}</strong>{q.signed_title ? `, ${q.signed_title}` : ""} on {fmtDate(q.signed_at)} ET from {q.signed_ip || "unknown IP"}.</p>
               {q.signature_png && /^data:image\/png;base64,/.test(q.signature_png) && <img src={q.signature_png} alt={`Signature of ${q.signed_name}`} className="qb-sig" />}
               {q.paid_at && <p>Paid {money(q.paid_cents || 0)} on {fmtDate(q.paid_at)} ET{q.stripe_session ? ` (Stripe ${q.stripe_session.slice(0, 24)}…)` : ""}.</p>}
+              {q.stripe_subscription && <p>Software subscription: <strong>{q.subscription_status || "active"}</strong>, renews {termInfo(q.saas_term).value} at {money(t.saas)} per {termInfo(q.saas_term).period}. <a href={`https://dashboard.stripe.com/subscriptions/${q.stripe_subscription}`} target="_blank" rel="noreferrer">Open in Stripe</a></p>}
               <p className="fine" style={{ textAlign: "left" }}>Record of what was signed: {q.signed_hash?.slice(0, 16)}. This quote is locked; duplicate it to make changes.</p>
               {act("duplicate", <button className="btn btn-outline-dark btn-sm" type="submit">Duplicate into a new draft</button>)}
             </div>
