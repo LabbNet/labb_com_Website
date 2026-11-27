@@ -1562,6 +1562,14 @@ td.acts { white-space: nowrap; }
 .outlet input { accent-color: var(--orange); }
 .outlet.on { border-color: var(--orange); background: #fbf1ea; color: #9a4f1f; }
 .outlet.all { border-style: dashed; }
+.send-previews { display: grid; gap: 10px; margin: 4px 0 12px; }
+.send-preview { border: 1px solid var(--gray); border-radius: 10px; padding: 10px 12px; background: #fafafa; }
+.send-preview.skip { border-color: #e2b48f; background: #fbf1ea; }
+.send-preview-head { display: flex; justify-content: space-between; align-items: baseline; font-size: .85rem; margin-bottom: 6px; }
+.send-preview-head span { color: #6b6b6b; font-variant-numeric: tabular-nums; }
+.send-preview-head span.over { color: #b3261e; font-weight: 600; }
+.send-preview-text { white-space: pre-wrap; word-break: break-word; font: inherit; font-size: .88rem; margin: 0; max-height: 180px; overflow: auto; }
+.send-preview-warn { color: #9a4f1f; font-size: .88rem; margin: 0; }
 .send-when { display: flex; flex-wrap: wrap; gap: 10px 16px; align-items: center; margin: 12px 0 16px; }
 .send-when label { display: inline-flex; gap: 6px; align-items: center; }
 .article-danger { display: flex; gap: 18px; margin-top: 16px; padding-left: 4px; }

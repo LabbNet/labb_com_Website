@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import { AdminBar, Flash } from "@/components/AdminBar";
 import { SendPanel } from "@/components/SendPanel";
+import { absoluteUrl } from "@/lib/site";
 import { fmtDate, readFlash, requireAdmin } from "@/lib/admin";
 import { sql } from "@/lib/db";
 import { toEasternInput } from "@/lib/imageSize";
@@ -77,7 +78,7 @@ export default async function ArticleEditor({ params }: { params: Promise<{ id: 
               <div className="hero-card">
                 <h2 className="form-title">Share</h2>
                 {!a ? <p className="form-sub">Save the article first, then choose where to send it.</p> : (
-                  <SendPanel id={a.id} channels={CHANNELS.map((c) => ({ id: c.id, label: c.label }))} defaultMessage={defaultMessage(a)} live={live} socialReady={socialConfigured()} />
+                  <SendPanel id={a.id} channels={CHANNELS.map((c) => ({ id: c.id, label: c.label }))} defaultMessage={defaultMessage(a)} live={live} socialReady={socialConfigured()} hasImage={Boolean(a.cover_type || a.cover_url?.startsWith("/"))} articleUrl={absoluteUrl(`/news/${a.slug}`)} />
                 )}
               </div>
               {posts.length > 0 && (
