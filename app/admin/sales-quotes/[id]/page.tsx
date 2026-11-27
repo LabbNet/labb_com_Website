@@ -139,7 +139,7 @@ export default async function QuoteEditor({ params }: { params: Promise<{ id: st
                   <p className="fine" style={{ textAlign: "left", marginTop: -6 }}>Every product on the quote price list is listed here. Products marked Not in quote are added when you set a quantity (or check Add for lab and MRO) and select Save changes. Items with a quantity of 0 don&apos;t show on the quote unless the lead adds them. &ldquo;Lead edits&rdquo; lets the lead adjust the quantity (never below the minimum). Lab and MRO services are billed later, as used.</p>
                   <div style={{ overflowX: "auto" }}>
                     <table className="meet-table qb-items">
-                      <thead><tr><th>Item</th><th>Billing</th><th>Price</th><th>Qty</th><th>Min</th><th title="The lead can change the quantity">Lead edits</th><th>Total</th><th>Remove</th></tr></thead>
+                      <thead><tr><th>Item</th><th>Billing</th><th>Price</th><th>Qty</th><th>Min</th><th title="The lead can change the quantity">Lead edits</th><th>Total</th><th title="Takes the line off the quote but keeps it and its price here">Remove from quote</th></tr></thead>
                       <tbody>
                         {!rows.length && <tr><td colSpan={8}>No items yet. Add products in Quote prices.</td></tr>}
                         {rows.map((r, n) => {
@@ -160,7 +160,7 @@ export default async function QuoteEditor({ params }: { params: Promise<{ id: st
                           }
                           const i = r.i;
                           return (
-                          <tr key={i.id} className={i.qty === 0 && i.billing !== "invoiced" ? "qb-zero" : ""}>
+                          <tr key={i.id} className={i.excluded ? "qb-excl" : i.qty === 0 && i.billing !== "invoiced" ? "qb-zero" : ""}>
                             <td>
                               {head}
                               <input name={`name_${i.id}`} defaultValue={i.name} maxLength={200} aria-label="Item name" disabled={locked} />
@@ -171,8 +171,8 @@ export default async function QuoteEditor({ params }: { params: Promise<{ id: st
                             <td><input name={`qty_${i.id}`} type="number" min={0} defaultValue={i.qty} aria-label="Quantity" className="qb-qty" disabled={locked || i.billing === "invoiced"} /></td>
                             <td><input name={`min_${i.id}`} type="number" min={0} defaultValue={i.min_qty} aria-label="Minimum quantity" className="qb-qty" disabled={locked || i.billing === "invoiced"} /></td>
                             <td style={{ textAlign: "center" }}><input type="checkbox" name={`adj_${i.id}`} value="1" defaultChecked={i.adjustable} aria-label="Lead can change the quantity" disabled={locked} /></td>
-                            <td className="qb-line">{i.billing === "invoiced" ? <span className="fine">As used</span> : <>{money(i.unit_cents * i.qty)}{i.billing === "monthly" ? "/mo" : ""}</>}</td>
-                            <td style={{ textAlign: "center" }}><input type="checkbox" name={`del_${i.id}`} value="1" aria-label={`Remove ${i.name}`} disabled={locked} /></td>
+                            <td className="qb-line">{i.excluded ? <span className="fine">Not on quote</span> : i.billing === "invoiced" ? <span className="fine">As used</span> : <>{money(i.unit_cents * i.qty)}{i.billing === "monthly" ? "/mo" : ""}</>}</td>
+                            <td style={{ textAlign: "center" }}><input type="checkbox" name={`del_${i.id}`} value="1" defaultChecked={!!i.excluded} aria-label={`Remove ${i.name} from the quote`} disabled={locked} />{i.excluded && <span className="qb-exctag">Removed</span>}</td>
                           </tr>
                           );
                         })}
@@ -195,7 +195,7 @@ export default async function QuoteEditor({ params }: { params: Promise<{ id: st
                     <div className="field qb-wide"><label htmlFor="q-notes">Internal notes (not shown to the lead)</label><textarea id="q-notes" name="notes" rows={2} defaultValue={q.notes || ""} disabled={locked} /></div>
                   </div>
                 </div>
-                {!locked && <div className="qb-savebar"><button className="btn btn-primary" type="submit">Save changes</button><span className="fine">Checked items in the Remove column are deleted when you save.</span></div>}
+                {!locked && <div className="qb-savebar"><button className="btn btn-primary" type="submit">Save changes</button><span className="fine">Checked lines in Remove from quote come off the quote when you save. They stay here with their prices; uncheck to bring one back.</span></div>}
               </>)}
 
               {!locked && (

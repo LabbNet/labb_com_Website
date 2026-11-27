@@ -45,7 +45,7 @@ export type SalesQuote = {
 };
 export type QuoteItem = {
   id: string; quote_id: string; price_item_id: string | null; name: string; sku: string | null; category: string | null; description: string | null; unit: string | null;
-  unit_cents: number; qty: number; min_qty: number; adjustable: boolean; billing: "once" | "monthly" | "invoiced"; sort: number;
+  unit_cents: number; qty: number; min_qty: number; adjustable: boolean; billing: "once" | "monthly" | "invoiced"; sort: number; excluded?: boolean;
 };
 export type PriceRow = { id: string; category: string; name: string; sku: string | null; description: string | null; unit: string | null; under100_cents: number | null; over100_cents: number | null; sort: number; active: boolean };
 
@@ -72,9 +72,10 @@ async function starterItems(kind: QuoteKind) {
   return rows.filter(want).sort((a, b) => (catOrder[a.category] ?? 9) - (catOrder[b.category] ?? 9) || a.sort - b.sort).map((p, i) => ({ p, sort: i * 10 }));
 }
 
-export function totals(items: Pick<QuoteItem, "unit_cents" | "qty" | "billing">[]) {
+export function totals(items: (Pick<QuoteItem, "unit_cents" | "qty" | "billing"> & { excluded?: boolean })[]) {
   let once = 0, monthly = 0;
   for (const i of items) {
+    if (i.excluded) continue;
     if (i.billing === "once") once += i.unit_cents * i.qty;
     else if (i.billing === "monthly") monthly += i.unit_cents * i.qty;
   }
@@ -226,7 +227,8 @@ function signature(q: SalesQuote, agreement: boolean) {
 }
 
 // The quote as the lead sees it: the template with placeholders filled in.
-export function renderQuote(q: SalesQuote, items: QuoteItem[], lead: LeadRow, rep: Rep) {
+export function renderQuote(q: SalesQuote, allItems: QuoteItem[], lead: LeadRow, rep: Rep) {
+  const items = allItems.filter((i) => !i.excluded);
   const t = totals(items);
   const vals: Record<string, string> = {
     "{{client_name}}": esc(leadName(lead)), "{{client_company}}": esc(lead.company || leadName(lead)), "{{client_email}}": esc(lead.email),
@@ -261,7 +263,7 @@ export async function getQuoteByToken(token: string) {
   const db = sql();
   const [q] = await db<SalesQuote[]>`select * from sales_quotes where token = ${token}`;
   if (!q) return null;
-  const items = await db<QuoteItem[]>`select i.*, coalesce(i.category, p.category) as category from sales_quote_items i left join quote_price_items p on p.id = i.price_item_id where i.quote_id = ${q.id} order by i.sort, i.id`;
+  const items = await db<QuoteItem[]>`select i.*, coalesce(i.category, p.category) as category from sales_quote_items i left join quote_price_items p on p.id = i.price_item_id where i.quote_id = ${q.id} and not i.excluded order by i.sort, i.id`;
   const [lead] = await db<LeadRow[]>`select * from leads where id = ${q.lead_id}`;
   const [rep] = q.rep_id ? await db<{ name: string; email: string; phone: string | null }[]>`select name, email, phone from members where id = ${q.rep_id}` : [];
   return lead ? { q, items, lead, rep: rep ?? null } : null;
@@ -296,7 +298,7 @@ export async function createQuote(lead: LeadRow, kind: QuoteKind, templateId: st
 export async function snapshot(quoteId: string, by: string | null, prompt: string | null, summary: string | null) {
   const db = sql();
   const [q] = await db<{ html: string }[]>`select html from sales_quotes where id = ${quoteId}`;
-  const items = await db`select price_item_id, name, sku, category, description, unit, unit_cents, qty, min_qty, adjustable, billing, sort from sales_quote_items where quote_id = ${quoteId} order by sort, id`;
+  const items = await db`select price_item_id, name, sku, category, description, unit, unit_cents, qty, min_qty, adjustable, billing, sort, excluded from sales_quote_items where quote_id = ${quoteId} order by sort, id`;
   await db`insert into sales_quote_versions (quote_id, html, items, prompt, summary, created_by) values (${quoteId}, ${q.html}, ${db.json(items as never)}, ${prompt}, ${summary}, ${by})`;
 }
 
@@ -308,8 +310,8 @@ export async function restoreVersion(quoteId: string, versionId: string) {
     await tx`update sales_quotes set html = ${v.html}, updated_at = now() where id = ${quoteId}`;
     await tx`delete from sales_quote_items where quote_id = ${quoteId}`;
     for (const i of v.items) {
-      await tx`insert into sales_quote_items (quote_id, price_item_id, name, sku, category, description, unit, unit_cents, qty, min_qty, adjustable, billing, sort)
-        values (${quoteId}, ${i.price_item_id}, ${i.name}, ${i.sku}, ${i.category}, ${i.description}, ${i.unit}, ${i.unit_cents}, ${i.qty}, ${i.min_qty}, ${i.adjustable}, ${i.billing}, ${i.sort})`;
+      await tx`insert into sales_quote_items (quote_id, price_item_id, name, sku, category, description, unit, unit_cents, qty, min_qty, adjustable, billing, sort, excluded)
+        values (${quoteId}, ${i.price_item_id}, ${i.name}, ${i.sku}, ${i.category}, ${i.description}, ${i.unit}, ${i.unit_cents}, ${i.qty}, ${i.min_qty}, ${i.adjustable}, ${i.billing}, ${i.sort}, ${i.excluded ?? false})`;
     }
   });
   return true;
@@ -323,7 +325,7 @@ export async function aiEdit(quoteId: string, prompt: string, by: { id: string; 
   if (!key) throw new Error("AI editing needs ANTHROPIC_API_KEY set in Render.");
   const data = await getQuote(quoteId);
   if (!data) throw new Error("Quote not found.");
-  const { q, items } = data;
+  const { q } = data; const items = data.items.filter((x) => !x.excluded);
   const itemJson = items.map((i) => ({ id: i.id, name: i.name, sku: i.sku, description: i.description, unit: i.unit, price_dollars: i.unit_cents / 100, qty: i.qty, min_qty: i.min_qty, adjustable: i.adjustable, billing: i.billing }));
   const system = `You edit sales quotes for Labb (Ramsey Diagnostics Corporation d/b/a Labb), a drug testing software and supplies company.
 You get the quote's HTML template and its line items as JSON, plus the sales rep's request. Make only the change requested.

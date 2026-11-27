@@ -2370,3 +2370,6 @@ td.acts { white-space: nowrap; }
 .qb-newdesc { display: block; text-align: left; margin-top: 2px; }
 .qb-inc { display: inline-flex; gap: 6px; align-items: center; font-weight: 600; font-size: .9rem; }
 .qb-inc input { accent-color: #CF743C; width: 16px; height: 16px; }
+.qb-excl td { background: #f4f6f7; }
+.qb-excl td input:not([type=checkbox]), .qb-excl td select { opacity: .55; }
+.qb-exctag { display: block; font-size: .72rem; font-weight: 600; color: #8f4a1f; margin-top: 3px; }

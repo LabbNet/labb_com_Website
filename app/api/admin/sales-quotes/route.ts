@@ -108,13 +108,13 @@ export async function POST(req: Request) {
       for (const i of items) {
         const g = (k: string) => fd.get(`${k}_${i.id}`);
         if (g("name") === null) continue;
-        if (g("del") === "1") { await tx`delete from sales_quote_items where id = ${i.id}`; continue; }
+        const excluded = g("del") === "1";
         const cents = Math.round(Number(String(g("price") ?? "").replace(/[^0-9.]/g, "")) * 100);
         const qty = Math.max(0, Math.min(1_000_000, parseInt(String(g("qty") ?? "0"), 10) || 0));
         const min = Math.max(0, Math.min(qty, parseInt(String(g("min") ?? "0"), 10) || 0));
         const billing = ["once", "monthly", "invoiced"].includes(String(g("billing"))) ? String(g("billing")) : i.billing;
         await tx`update sales_quote_items set name = ${String(g("name")).slice(0, 200) || i.name}, description = ${String(g("desc") ?? "").slice(0, 500) || null},
-          unit_cents = ${Number.isFinite(cents) && cents >= 0 ? cents : i.unit_cents}, qty = ${qty}, min_qty = ${min}, adjustable = ${g("adj") === "1"}, billing = ${billing} where id = ${i.id}`;
+          unit_cents = ${Number.isFinite(cents) && cents >= 0 ? cents : i.unit_cents}, qty = ${qty}, min_qty = ${min}, adjustable = ${g("adj") === "1"}, billing = ${billing}, excluded = ${excluded} where id = ${i.id}`;
       }
       // Price-list products the rep added from Line items (quantity set, or Add checked for lab and MRO).
       let sort = Math.max(0, ...items.map((i) => i.sort)) + 10;
@@ -141,8 +141,8 @@ export async function POST(req: Request) {
     await flash("Item removed.");
   } else if (action === "remove-empty") {
     await snapshot(String(q.id), me.id, null, "Before removing empty items");
-    const r = await db`delete from sales_quote_items where quote_id = ${q.id} and qty = 0 and billing <> 'invoiced'`;
-    await flash(`Removed ${r.count} items with no quantity.`);
+    const r = await db`update sales_quote_items set excluded = true where quote_id = ${q.id} and qty = 0 and billing <> 'invoiced' and not excluded`;
+    await flash(`Removed ${r.count} items with no quantity from the quote. Their prices are kept; uncheck Remove to bring one back.`);
   } else if (action === "add-item") {
     const picks = [...fd.getAll("pick"), fd.get("price_item")].map((v) => String(v ?? "").replace(/\D/g, "").slice(0, 12)).filter(Boolean);
     let sort = Math.max(0, ...items.map((i) => i.sort)) + 10;
@@ -221,8 +221,8 @@ export async function POST(req: Request) {
     const [n] = await db<{ id: string }[]>`insert into sales_quotes (lead_id, kind, title, template_id, html, price_level, rep_id, created_by, token, notes)
       select lead_id, kind, title, template_id, html, price_level, rep_id, ${me.id}, ${crypto.randomUUID().replace(/-/g, "") + crypto.randomUUID().replace(/-/g, "").slice(0, 8)}, notes
       from sales_quotes where id = ${q.id} returning id::text`;
-    await db`insert into sales_quote_items (quote_id, price_item_id, name, sku, category, description, unit, unit_cents, qty, min_qty, adjustable, billing, sort)
-      select ${n.id}, price_item_id, name, sku, category, description, unit, unit_cents, qty, min_qty, adjustable, billing, sort from sales_quote_items where quote_id = ${q.id}`;
+    await db`insert into sales_quote_items (quote_id, price_item_id, name, sku, category, description, unit, unit_cents, qty, min_qty, adjustable, billing, sort, excluded)
+      select ${n.id}, price_item_id, name, sku, category, description, unit, unit_cents, qty, min_qty, adjustable, billing, sort, excluded from sales_quote_items where quote_id = ${q.id}`;
     await logLeadEvent(q.lead_id, "quote", `Copied quote ${quoteNumber(q)} into a new draft`, by);
     await flash("Copied into a new draft quote.");
     return go(req, `/admin/sales-quotes/${n.id}`);
