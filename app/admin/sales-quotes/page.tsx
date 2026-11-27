@@ -16,15 +16,15 @@ export default async function SalesQuotes({ searchParams }: { searchParams: Prom
   const mine = sp.mine === "1";
   const db = sql();
   const [rows, flash, counts] = await Promise.all([
-    db<{ id: string; title: string; status: string; kind: string; created_at: Date; sent_at: Date | null; last_opened_at: Date | null; open_count: number; expires_on: Date; lead_id: string; first_name: string | null; last_name: string | null; company: string | null; email: string; rep: string | null; paid_cents: number | null; member_id: string | null; clinic: string | null }[]>`
-      select q.id, q.title, q.status, q.kind, q.created_at, q.sent_at, q.last_opened_at, q.open_count, q.expires_on, q.paid_cents, l.id as lead_id, l.first_name, l.last_name, l.company, l.email, m.name as rep, q.member_id, m.clinic
+    db<{ id: string; title: string; status: string; kind: string; created_at: Date; sent_at: Date | null; last_opened_at: Date | null; open_count: number; expires_on: Date; lead_id: string; first_name: string | null; last_name: string | null; company: string | null; email: string; rep: string | null; paid_cents: number | null; member_id: string | null; clinic: string | null; saas_term: string }[]>`
+      select q.id, q.title, q.status, q.kind, q.created_at, q.sent_at, q.last_opened_at, q.open_count, q.expires_on, q.paid_cents, l.id as lead_id, l.first_name, l.last_name, l.company, l.email, m.name as rep, q.member_id, m.clinic, q.saas_term
       from sales_quotes q join leads l on l.id = q.lead_id left join members m on m.id = q.rep_id
       where (${status} = '' or q.status = ${status}) and (${mine} = false or q.rep_id = ${me.id}) order by q.updated_at desc limit 300`,
     readFlash(),
     db<{ status: string; n: number }[]>`select status, count(*)::int as n from sales_quotes group by status`,
   ]);
   const items = rows.length ? await db<(QuoteItem & { quote_id: string })[]>`select * from sales_quote_items where quote_id = any(${rows.map((r) => r.id)}::bigint[])` : [];
-  const due = (id: string) => totals(items.filter((i) => String(i.quote_id) === String(id))).dueToday;
+  const due = (id: string) => totals(items.filter((i) => String(i.quote_id) === String(id)), rows.find((r) => String(r.id) === String(id))?.saas_term).dueToday;
   const n = (s: string) => counts.find((c) => c.status === s)?.n ?? 0;
   return (
     <>

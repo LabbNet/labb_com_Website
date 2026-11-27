@@ -15,12 +15,12 @@ export async function POST(req: Request) {
   const isJson = (req.headers.get("content-type") || "").includes("application/json");
   if (!(await sameOrigin())) return isJson ? Response.json({ error: "forbidden" }, { status: 403 }) : go(req, "/");
   if (isJson) {
-    const b = (await req.json().catch(() => ({}))) as { token?: string; qty?: Record<string, number> };
+    const b = (await req.json().catch(() => ({}))) as { token?: string; qty?: Record<string, number>; term?: string };
     const data = await getQuoteByToken(String(b.token || ""));
     if (!data) return Response.json({ error: "Quote not found." }, { status: 404 });
-    const { q, items } = data;
+    const { q, items, lead: jl } = data;
     if (!["sent", "viewed"].includes(q.status) || new Date(q.expires_on) < new Date(new Date().toISOString().slice(0, 10))) return Response.json({ error: "This quote can't be changed." }, { status: 409 });
-    const n = await setQuantities(q, items, b.qty || {});
+    const n = await setQuantities(q, items, b.qty || {}, b.term, jl);
     if (n) await logLeadEvent(q.lead_id, "quote", `Changed quantities on quote ${quoteNumber(q)}`, null);
     return Response.json({ ok: true, changed: n });
   }
@@ -51,7 +51,7 @@ export async function POST(req: Request) {
     if (name.length < 3 || fd.get("agree") !== "1" || fd.get("esign") !== "1") return go(req, `${page}?open=1&e=sign#accept`);
     const png = /^data:image\/png;base64,[A-Za-z0-9+/=]+$/.test(sig) && sig.length < 300_000 ? sig : null;
     const h = await headers();
-    const t = totals(items);
+    const t = totals(items, q.saas_term);
     if (t.dueToday === 0 && !items.some((i) => i.billing === "invoiced")) return go(req, `${page}?open=1&e=empty#accept`);
     await sql()`update sales_quotes set status = 'signed', signed_at = now(), signed_name = ${name}, signed_title = ${title || null}, signature_png = ${png},
       signed_ip = ${clientIp(h)}, signed_agent = ${(h.get("user-agent") || "").slice(0, 300)}, signed_hash = ${signatureHash(q, items)}, updated_at = now()

@@ -2524,3 +2524,12 @@ details.sm-pick .sm-pickform { display: grid; grid-template-columns: 1fr 1fr; ga
 details.sm-pick .sm-wide { grid-column: 1 / -1; }
 details.sm-pick input, details.sm-pick textarea, details.sm-pick select { width: 100%; border: 1px solid #9aa4ad; border-radius: 8px; padding: 6px 10px; font: 400 .95rem/1.5 Poppins, sans-serif; }
 @media (max-width: 640px) { details.sm-pick .sm-pickform { grid-template-columns: 1fr; } }
+.qo-terms { padding: 14px 18px; border-top: 1px solid #e3e7ea; background: #fbfbfc; text-align: left; }
+.qo-terms > strong { display: block; color: #1f2a33; margin-bottom: 8px; }
+.qo-termopts { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+.qo-term { display: flex; gap: 10px; align-items: flex-start; border: 2px solid #d5dbe0; border-radius: 10px; padding: 10px 12px; cursor: pointer; background: #fff; }
+.qo-term.on { border-color: #CF743C; background: #fdf6f1; }
+.qo-term input { width: 18px; height: 18px; accent-color: #CF743C; margin-top: 2px; flex: 0 0 auto; }
+.qo-term b { display: block; color: #1f2a33; }
+.qo-term small { display: block; font-size: .85rem; color: #3d4852; }
+@media (max-width: 700px) { .qo-termopts { grid-template-columns: 1fr; } }

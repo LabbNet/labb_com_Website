@@ -8,7 +8,7 @@ import { fmtDate, readFlash, requireAdmin } from "@/lib/admin";
 import { sql } from "@/lib/db";
 import { leadName, type LeadRow } from "@/lib/leads";
 import {
-  aiReady, BILLING_LABEL, quoteEmailDraft, QUOTE_SECTIONS, sectionOf, syncCatalogLines, KIT_BOX, leadCanEdit, lineCents, packOf, billingFor, priceFor, type PriceRow, getQuote, money, PRICE_LEVELS, QUOTE_KINDS, QUOTE_PRICE_CATEGORIES, QUOTE_STATUS, quoteNumber, quoteUrl, repFor, totals,
+  aiReady, BILLING_LABEL, SAAS_TERMS, termChoice, termInfo, quoteEmailDraft, QUOTE_SECTIONS, sectionOf, syncCatalogLines, KIT_BOX, leadCanEdit, lineCents, packOf, billingFor, priceFor, type PriceRow, getQuote, money, PRICE_LEVELS, QUOTE_KINDS, QUOTE_PRICE_CATEGORIES, QUOTE_STATUS, quoteNumber, quoteUrl, repFor, totals,
 } from "@/lib/salesQuotes";
 
 export const metadata: Metadata = { title: "Quote", robots: { index: false, follow: false } };
@@ -35,7 +35,7 @@ export default async function QuoteEditor({ params }: { params: Promise<{ id: st
       where v.quote_id = ${q.id} order by v.created_at desc limit 5`,
   ]);
   if (!lead) notFound();
-  const t = totals(items);
+  const t = totals(items, q.saas_term);
   const emailDraft = await quoteEmailDraft(String(q.id));
   type Row = { kind: "item"; i: (typeof items)[number]; cat: string | null };
   const secOrder = (k: string) => QUOTE_SECTIONS.findIndex((x) => x.key === k);
@@ -70,7 +70,7 @@ export default async function QuoteEditor({ params }: { params: Promise<{ id: st
             </div>
             <div className="qb-due">
               <span>Due at acceptance</span><strong>{money(t.dueToday)}</strong>
-              <em>{money(t.once)} one time{t.monthly ? ` + ${money(t.monthly)} first month of software` : ""}</em>
+              <em>{money(t.once)} one time{t.monthly ? ` + ${money(t.saas)} first ${t.term.period} of software${t.term.discount ? ` (${Math.round(t.term.discount * 100)}% off)` : ""}` : ""}</em>
               <div className="qb-acts">
                 <a href={`/quote/${q.token}?preview=1`} target="_blank" rel="noreferrer" className="btn btn-outline-light btn-sm">View quote</a>
                 {!locked && <a href="#send" className="btn btn-primary btn-sm">{q.status === "draft" ? "Review email and send" : "Send again"}</a>}
@@ -102,6 +102,9 @@ export default async function QuoteEditor({ params }: { params: Promise<{ id: st
                     <div className="field"><label htmlFor="q-rep">Rep</label>
                       <select id="q-rep" name="rep" form="qb-form" defaultValue={q.rep_id || ""}>{admins.map((a) => <option key={a.id} value={a.id}>{a.name}</option>)}</select></div>
                   </div>
+                  {termChoice(q, lead) && <div className="field"><label htmlFor="q-term">Software billing</label>
+                    <select id="q-term" name="saas_term" form="qb-form" defaultValue={q.saas_term || "monthly"}>{SAAS_TERMS.map((x) => <option key={x.value} value={x.value}>{x.label}</option>)}</select>
+                    <span className="fine">The clinic can change this on the quote. The first {termInfo(q.saas_term).period} of software is due at acceptance.</span></div>}
                   <div className="field"><label htmlFor="q-notes">Internal notes</label><textarea id="q-notes" name="notes" form="qb-form" rows={2} defaultValue={q.notes || ""} placeholder="Only the team sees these" /></div>
                 </div>
               )}
@@ -181,7 +184,7 @@ export default async function QuoteEditor({ params }: { params: Promise<{ id: st
               </form>
               {!locked && (
                 <div className="qb-actionbar">
-                  <span className="qb-ab-tot"><span>Due at acceptance</span><strong>{money(t.dueToday)}</strong><em>{money(t.once)} one time{t.monthly ? ` + ${money(t.monthly)}/mo` : ""}</em></span>
+                  <span className="qb-ab-tot"><span>Due at acceptance</span><strong>{money(t.dueToday)}</strong><em>{money(t.once)} one time{t.monthly ? ` + ${money(t.saas)} ${t.term.months > 1 ? `per ${t.term.period}` : "first month"}` : ""}</em></span>
                   <span className="fine qb-ab-note">Save after changing lines or details. Totals update when you save.</span>
                   <div className="qb-acts">
                     <a href={`/quote/${q.token}?preview=1`} target="_blank" rel="noreferrer" className="btn btn-outline-dark btn-sm">View quote</a>

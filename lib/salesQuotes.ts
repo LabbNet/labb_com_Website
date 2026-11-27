@@ -89,7 +89,7 @@ export type SalesQuote = {
   rep_id: string | null; token: string; expires_on: Date; notes: string | null; sent_at: Date | null; first_opened_at: Date | null; last_opened_at: Date | null;
   open_count: number; signed_at: Date | null; signed_name: string | null; signed_title: string | null; signature_png: string | null; signed_ip: string | null;
   signed_hash: string | null; paid_at: Date | null; paid_cents: number | null; stripe_session: string | null; created_at: Date; updated_at: Date;
-  member_id: string | null; payment_mode: PaymentMode; service_level: ServiceLevel;
+  member_id: string | null; payment_mode: PaymentMode; service_level: ServiceLevel; saas_term?: SaasTerm;
   expires_manual?: boolean; countersigned_at?: Date | null; countersign_png?: string | null; countersign_name?: string | null; countersign_title?: string | null;
 };
 export type QuoteItem = {
@@ -132,14 +132,29 @@ export const lineCents = (i: { category?: string | null; unit_cents: number; qty
 
 export const leadCanEdit = (i: Pick<QuoteItem, "billing" | "unit_cents">) => i.billing === "once" && i.unit_cents > 0;
 
-export function totals(items: (Pick<QuoteItem, "unit_cents" | "qty" | "billing"> & { excluded?: boolean; category?: string | null })[]) {
+// SaaS billing terms a clinic can choose on a Labb quote. The first period is due at acceptance.
+export const SAAS_TERMS = [
+  { value: "monthly", label: "Monthly", months: 1, discount: 0, period: "month" },
+  { value: "quarterly", label: "Quarterly (5% off)", months: 3, discount: 0.05, period: "quarter" },
+  { value: "yearly", label: "Yearly (15% off)", months: 12, discount: 0.15, period: "year" },
+] as const;
+export type SaasTerm = (typeof SAAS_TERMS)[number]["value"];
+export const isSaasTerm = (v: unknown): v is SaasTerm => SAAS_TERMS.some((t) => t.value === v);
+export const termInfo = (v: string | null | undefined) => SAAS_TERMS.find((t) => t.value === v) ?? SAAS_TERMS[0];
+// Only Labb's own clinic quotes offer a choice of SaaS billing.
+export const termChoice = (q: { member_id?: string | null; kind?: string }, lead?: { segment?: string | null } | null) =>
+  !q.member_id && (q.kind === "clinic" || lead?.segment === "collection-site");
+
+export function totals(items: (Pick<QuoteItem, "unit_cents" | "qty" | "billing"> & { excluded?: boolean; category?: string | null })[], term: string = "monthly") {
   let once = 0, monthly = 0;
   for (const i of items) {
     if (i.excluded) continue;
     if (i.billing === "once") once += lineCents(i);
     else if (i.billing === "monthly") monthly += lineCents(i);
   }
-  return { once, monthly, dueToday: once + monthly };
+  const t = termInfo(term);
+  const saas = Math.round(monthly * t.months * (1 - t.discount)); // software due now: the first month, quarter or year
+  return { once, monthly, saas, term: t, saving: monthly * t.months - saas, dueToday: once + saas };
 }
 
 // ---- Templates ----
@@ -391,10 +406,17 @@ export function clientTypePhrase(segment: string, kind?: string) {
   return bySeg[segment] || (kind === "employer" ? "employers" : kind === "clinic" ? "clinics and collection sites" : "organizations like yours");
 }
 
+// Under the Set-up and MRC table: the SaaS billing term chosen, or the choice on offer.
+function termNote(q: SalesQuote, lead: LeadRow, t: ReturnType<typeof totals>) {
+  if (!t.monthly) return "";
+  if (t.term.months > 1) return `<p class="note" style="margin-top:5pt"><b>Software billed ${t.term.value}:</b> ${money(t.saas)} per ${t.term.period} (${Math.round(t.term.discount * 100)}% off ${money(t.monthly)}/mo, a saving of ${money(t.saving)} each ${t.term.period}).</p>`;
+  return termChoice(q, lead) ? `<p class="note" style="margin-top:5pt">Software bills monthly. Choose quarterly billing for 5% off or yearly billing for 15% off when you accept this quote.</p>` : "";
+}
+
 // The quote as the lead sees it: the template with placeholders filled in.
 export function renderQuote(q: SalesQuote, allItems: QuoteItem[], lead: LeadRow, rep: Rep) {
   const items = allItems.filter((i) => !i.excluded);
-  const t = totals(items);
+  const t = totals(items, q.saas_term);
   const vals: Record<string, string> = {
     "{{client_name}}": esc(leadName(lead)), "{{client_company}}": esc(lead.company || leadName(lead)), "{{client_email}}": esc(lead.email),
     "{{client_location}}": esc([lead.city, lead.state].filter(Boolean).join(", ")), "{{quote_title}}": esc(q.title), "{{quote_number}}": quoteNumber(q),
@@ -409,7 +431,7 @@ export function renderQuote(q: SalesQuote, allItems: QuoteItem[], lead: LeadRow,
     "{{price_table}}": priceTable(items.filter((i) => i.billing !== "invoiced"), "No items yet."),
     "{{price_table_software}}": priceTable(items.filter((i) => i.billing !== "invoiced" && i.category !== "rapid-kits"), "No software or hardware in this quote."),
     "{{price_table_kits}}": priceTable(items.filter((i) => i.billing !== "invoiced" && i.category === "rapid-kits"), "No rapid tests in this quote yet."),
-    "{{price_table_mrc}}": priceTable(items.filter((i) => sectionOf(i) === "mrc"), "No set-up or monthly fees in this quote."),
+    "{{price_table_mrc}}": priceTable(items.filter((i) => sectionOf(i) === "mrc"), "No set-up or monthly fees in this quote.") + termNote(q, lead, t),
     "{{price_table_nrc}}": priceTable(items.filter((i) => sectionOf(i) === "nrc"), "No hardware in this quote."),
     "{{price_table_urine}}": priceTable(items.filter((i) => sectionOf(i) === "urine"), "No rapid urine tests in this quote."),
     "{{price_table_oral}}": priceTable(items.filter((i) => sectionOf(i) === "oral"), "No rapid oral fluid tests in this quote."),
@@ -421,7 +443,9 @@ export function renderQuote(q: SalesQuote, allItems: QuoteItem[], lead: LeadRow,
   const seg = String(lead.segment || "");
   const type = ({ employer: "Workplace", tpa: "Workplace", laboratory: "Workplace", "drug-testing-business": "Workplace", "collection-site": "Clinic", corrections: "Forensic", treatment: "Treatment" } as Record<string, string>)[seg]
     || (q.kind === "employer" ? "Workplace" : q.kind === "clinic" ? "Clinic" : "");
-  let out = cleanHtml(q.html).replace(/\{\{\s*[a-z_]+\s*\}\}/g, (m) => vals[m.replace(/\s/g, "")] ?? m);
+  let out = cleanHtml(q.html);
+  if (t.term.months > 1 && t.monthly) out = out.replace("(includes the first month of software)", `(includes the first ${t.term.period} of software, billed ${t.term.value}, ${Math.round(t.term.discount * 100)}% off)`);
+  out = out.replace(/\{\{\s*[a-z_]+\s*\}\}/g, (m) => vals[m.replace(/\s/g, "")] ?? m);
   // A pricing section with nothing in it disappears entirely: its card, and the pricing note under it.
   out = out.replace(/<div class="card pricecard">(?:(?!<div class="card pricecard">)[\s\S])*?<!--empty-section-->[\s\S]*?<\/div>(\s*<div class="banner">\s*<div class="micro">All-inclusive rapid test pricing<\/div>[\s\S]*?<\/div>)?/g, "");
   out = fillLabbSignature(out, q);
@@ -604,7 +628,7 @@ export async function quoteEmailDraft(quoteId: string) {
   const [lead] = await sql()<LeadRow[]>`select * from leads where id = ${q.lead_id}`;
   if (!lead) return null;
   const rep = (await repFor(q)) ?? { name: "The Labb team", email: "info@labb.com", phone: null, clinic: null };
-  const t = totals(items);
+  const t = totals(items, q.saas_term);
   const from = q.member_id ? rep.clinic || rep.name : "Labb";
   const expires = q.status === "draft" && !q.expires_manual ? new Date(Date.now() + 30 * 86400000) : new Date(q.expires_on);
   const subject = q.member_id ? `Your quote from ${from}: ${q.title}` : `Your Labb quote: ${q.title}`;
@@ -637,7 +661,7 @@ export async function sendQuote(quoteId: string, by: { id: string; name: string 
     if (r) q.expires_on = r.expires_on;
   }
   const url = quoteUrl(q.token);
-  const t = totals(items);
+  const t = totals(items, q.saas_term);
   const from = draft?.from || "Labb";
   const subject = (custom?.subject || "").trim().slice(0, 200) || draft?.subject || `Your Labb quote: ${q.title}`;
   const message = (custom?.message || "").trim().slice(0, 5000) || draft?.message || "";
@@ -680,9 +704,10 @@ export async function notifyRep(q: SalesQuote, lead: LeadRow, subject: string, b
 
 // ---- Lead actions ----
 // Quantities the lead chose. Only adjustable, non-invoiced items change, never below the minimum.
-export async function setQuantities(q: SalesQuote, items: QuoteItem[], qty: Record<string, number>) {
+export async function setQuantities(q: SalesQuote, items: QuoteItem[], qty: Record<string, number>, term?: string, lead?: LeadRow) {
   const db = sql();
   let changed = 0;
+  if (term && isSaasTerm(term) && term !== (q.saas_term || "monthly") && termChoice(q, lead)) { await db`update sales_quotes set saas_term = ${term} where id = ${q.id}`; changed++; }
   for (const i of items) {
     if (!leadCanEdit(i) || !(String(i.id) in qty)) continue;
     const n = Math.max(i.min_qty, Math.min(100_000, Math.floor(Number(qty[String(i.id)]) || 0)));
@@ -695,9 +720,11 @@ export async function setQuantities(q: SalesQuote, items: QuoteItem[], qty: Reco
 // Stripe Checkout for what's due at acceptance (one-time items plus the first month of software).
 export async function quoteCheckout(q: SalesQuote, items: QuoteItem[], lead: LeadRow) {
   const { stripe } = await import("@/lib/commerce");
-  const lines = items.filter((i) => i.billing !== "invoiced" && i.qty > 0 && i.unit_cents > 0).map((i) => ({
+  const term = termInfo(q.saas_term);
+  const lines = items.filter((i) => !i.excluded && i.billing !== "invoiced" && i.qty > 0 && i.unit_cents > 0).map((i) => ({
     quantity: i.qty,
-    price_data: { currency: "usd", unit_amount: i.unit_cents * packOf(i), product_data: { name: `${i.name}${i.billing === "monthly" ? " (first month)" : packOf(i) > 1 ? ` (box of ${KIT_BOX})` : ""}`.slice(0, 250), ...(i.sku ? { description: i.sku } : {}) } },
+    price_data: { currency: "usd", unit_amount: i.billing === "monthly" ? Math.round(i.unit_cents * term.months * (1 - term.discount)) : i.unit_cents * packOf(i),
+      product_data: { name: `${i.name}${i.billing === "monthly" ? (term.months > 1 ? ` (first ${term.period}, ${Math.round(term.discount * 100)}% off)` : " (first month)") : packOf(i) > 1 ? ` (box of ${KIT_BOX})` : ""}`.slice(0, 250), ...(i.sku ? { description: i.sku } : {}) } },
   }));
   const session = await stripe().checkout.sessions.create({
     mode: "payment",

@@ -27,26 +27,35 @@ function groupOf(i: Item): GroupKey {
 }
 
 // The lead's order: change quantities of the items Labb made adjustable, see totals update, save.
-export function QuoteOrder({ token, items, editable, preview = false, repLabel = "your Labb rep" }: { token: string; items: Item[]; editable: boolean; preview?: boolean; repLabel?: string }) {
+const TERMS = [
+  { value: "monthly", label: "Monthly", months: 1, discount: 0, period: "month" },
+  { value: "quarterly", label: "Quarterly", months: 3, discount: 0.05, period: "quarter" },
+  { value: "yearly", label: "Yearly", months: 12, discount: 0.15, period: "year" },
+] as const;
+
+export function QuoteOrder({ token, items, editable, preview = false, repLabel = "your Labb rep", termChoice = false, term: term0 = "monthly" }: { token: string; items: Item[]; editable: boolean; preview?: boolean; repLabel?: string; termChoice?: boolean; term?: string }) {
   const router = useRouter();
   const [qty, setQty] = useState<Record<string, number>>(Object.fromEntries(items.map((i) => [i.id, i.qty])));
   const [state, setState] = useState<"idle" | "saving" | "saved" | "error">("idle");
   // Every line the rep put on the quote is shown, ordered or not, so the client sees their pricing.
   const visible = items;
-  const dirty = items.some((i) => qty[i.id] !== i.qty);
+  const [term, setTerm] = useState(term0);
+  const tm = TERMS.find((x) => x.value === term) ?? TERMS[0];
+  const dirty = items.some((i) => qty[i.id] !== i.qty) || term !== term0;
   // The Labb Station tablet and stand, if it's on the quote: the client can pick it here or in its line, and both stay in step.
   const reader = items.find((i) => i.category === "readers" && i.billing === "once" && i.unit_cents > 0) ?? null;
   const t = useMemo(() => {
     let once = 0, monthly = 0;
     for (const i of items) { const n = qty[i.id] ?? 0; if (i.billing === "once") once += n * i.unit_cents * packOf(i); else if (i.billing === "monthly") monthly += n * i.unit_cents; }
-    return { once, monthly, due: once + monthly };
-  }, [qty, items]);
+    const saas = Math.round(monthly * tm.months * (1 - tm.discount));
+    return { once, monthly, saas, due: once + saas };
+  }, [qty, items, tm]);
   const set = (i: Item, v: number) => setQty((p) => ({ ...p, [i.id]: Math.max(i.min_qty, Math.min(100000, Math.floor(Number.isFinite(v) ? v : 0))) }));
   const save = async () => {
     if (preview) { setState("saved"); return; }
     setState("saving");
     try {
-      const r = await fetch("/api/quote", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ token, qty }) });
+      const r = await fetch("/api/quote", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ token, qty, term }) });
       if (!r.ok) throw new Error();
       setState("saved");
       router.refresh();
@@ -94,6 +103,22 @@ export function QuoteOrder({ token, items, editable, preview = false, repLabel =
                 </div>
               );
             })}
+            {g.key === "mrc" && termChoice && t.monthly > 0 && (
+              <div className="qo-terms">
+                <strong>How would you like to pay for software?</strong>
+                <div className="qo-termopts">
+                  {TERMS.map((x) => {
+                    const amt = Math.round(t.monthly * x.months * (1 - x.discount));
+                    return (
+                      <label key={x.value} className={`qo-term${term === x.value ? " on" : ""}`}>
+                        <input type="radio" name="saas_term" value={x.value} checked={term === x.value} onChange={() => setTerm(x.value)} disabled={!editable} />
+                        <span><b>{x.label}{x.discount ? ` · ${Math.round(x.discount * 100)}% off` : ""}</b><small>{money(amt)} per {x.period}{x.discount ? `, save ${money(t.monthly * x.months - amt)}` : ""}</small></span>
+                      </label>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
             {(g.key === "urine" || g.key === "oral") && <p className="qo-bundle"><strong>All-inclusive rapid test pricing.</strong> {BUNDLE.replace("All-inclusive rapid test pricing. ", "")}</p>}
           </section>
         );
@@ -118,8 +143,8 @@ export function QuoteOrder({ token, items, editable, preview = false, repLabel =
       <div className="qo-summary">
         <div className="qo-lines">
           <div><span>One-time items</span><strong>{money(t.once)}</strong></div>
-          {t.monthly > 0 && <div><span>Software, first month</span><strong>{money(t.monthly)}</strong></div>}
-          {t.monthly > 0 && <p>Software then bills {money(t.monthly)} a month. Taxes and shipping, if any, are added at checkout.</p>}
+          {t.monthly > 0 && <div><span>Software, first {tm.period}{tm.discount ? ` (${Math.round(tm.discount * 100)}% off)` : ""}</span><strong>{money(t.saas)}</strong></div>}
+          {t.monthly > 0 && <p>Software then bills {money(t.saas)} {tm.months > 1 ? `every ${tm.period}` : "a month"}. Taxes and shipping, if any, are added at checkout.</p>}
         </div>
         <div className="qo-due"><span>Due at acceptance</span><strong>{money(t.due)}</strong></div>
       </div>

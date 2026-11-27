@@ -5,7 +5,7 @@ import { field, go } from "@/lib/http";
 import type { PriceRow } from "@/lib/salesQuotes";
 import { logLeadEvent, type LeadRow } from "@/lib/leads";
 import {
-  aiEdit, billingFor, cleanHtml, createQuote, extractImages, getQuote, isPriceLevel, isQuoteKind, priceFor, quoteNumber, restoreVersion, sendQuote, snapshot,
+  aiEdit, billingFor, isSaasTerm, cleanHtml, createQuote, extractImages, getQuote, isPriceLevel, isQuoteKind, priceFor, quoteNumber, restoreVersion, sendQuote, snapshot,
 } from "@/lib/salesQuotes";
 
 // Labb admin actions for sales quotes and quote templates.
@@ -104,6 +104,7 @@ export async function POST(req: Request) {
     const rep = repOk ? repIn : q.rep_id;
     await db.begin(async (tx) => {
       await tx`update sales_quotes set title = ${title}, expires_on = ${/^\d{4}-\d{2}-\d{2}$/.test(expires) ? expires : q.expires_on},
+        saas_term = ${isSaasTerm(field(fd, "saas_term", 10)) ? field(fd, "saas_term", 10) : q.saas_term || "monthly"},
         expires_manual = ${q.expires_manual || (/^\d{4}-\d{2}-\d{2}$/.test(expires) && expires !== new Date(q.expires_on).toISOString().slice(0, 10))}, notes = ${String(fd.get("notes") ?? "").slice(0, 4000) || null},
         rep_id = ${rep},
         status = case when status = 'expired' and ${expires}::text > current_date::text then 'sent' else status end, updated_at = now() where id = ${q.id}`;
