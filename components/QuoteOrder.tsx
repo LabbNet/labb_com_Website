@@ -34,6 +34,8 @@ export function QuoteOrder({ token, items, editable, preview = false }: { token:
   // Every line the rep put on the quote is shown, ordered or not, so the client sees their pricing.
   const visible = items;
   const dirty = items.some((i) => qty[i.id] !== i.qty);
+  // The Labb Station tablet and stand, if it's on the quote: the client can pick it here or in its line, and both stay in step.
+  const reader = items.find((i) => i.category === "readers" && i.billing === "once" && i.unit_cents > 0) ?? null;
   const t = useMemo(() => {
     let once = 0, monthly = 0;
     for (const i of items) { const n = qty[i.id] ?? 0; if (i.billing === "once") once += n * i.unit_cents * packOf(i); else if (i.billing === "monthly") monthly += n * i.unit_cents; }
@@ -96,6 +98,22 @@ export function QuoteOrder({ token, items, editable, preview = false }: { token:
           </section>
         );
       })}
+
+      {reader && (
+        <section className="qo-group qo-readerpick">
+          <header className="qo-ghead"><h3>How will you read your tests?</h3><p>Choose one. This matches the {reader.name} line above.</p></header>
+          <div className="qo-picks">
+            <label className={`qo-pick${(qty[reader.id] ?? 0) === 0 ? " on" : ""}`}>
+              <input type="radio" name={`reader_${reader.id}`} checked={(qty[reader.id] ?? 0) === 0} onChange={() => set(reader, 0)} disabled={!editable || !reader.adjustable} />
+              <span><strong>Use our own phones and tablets</strong><small>Install the Labb app on the devices you already have. No hardware cost.</small></span>
+            </label>
+            <label className={`qo-pick${(qty[reader.id] ?? 0) > 0 ? " on" : ""}`}>
+              <input type="radio" name={`reader_${reader.id}`} checked={(qty[reader.id] ?? 0) > 0} onChange={() => set(reader, Math.max(1, qty[reader.id] ?? 0))} disabled={!editable || !reader.adjustable} />
+              <span><strong>Order the {reader.name}{reader.description ? ` (${reader.description.toLowerCase()})` : ""}</strong><small>{money(reader.unit_cents)} each, one time.{(qty[reader.id] ?? 0) > 0 ? ` ${qty[reader.id]} on this order; change the number in the line above.` : ""}</small></span>
+            </label>
+          </div>
+        </section>
+      )}
 
       <div className="qo-summary">
         <div className="qo-lines">
