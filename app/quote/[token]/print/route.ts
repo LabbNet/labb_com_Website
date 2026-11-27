@@ -6,7 +6,8 @@ export async function GET(_req: Request, { params }: { params: Promise<{ token: 
   const { token } = await params;
   const data = await getQuoteByToken(token);
   if (!data) return new Response("Not found", { status: 404 });
-  if (data.q.status === "draft" && (await currentMember())?.role !== "admin") return new Response("Not found", { status: 404 });
+  const me = await currentMember();
+  if (data.q.status === "draft" && me?.role !== "admin" && !(data.q.member_id && me?.id === data.q.member_id)) return new Response("Not found", { status: 404 });
   const html = renderQuote(data.q, data.items, data.lead, data.rep);
   const full = /<html[\s>]/i.test(html) ? html : `<!DOCTYPE html><html><head><meta charset="utf-8"><title>Labb quote</title></head><body>${html}</body></html>`;
   // Links open in a new tab, so the quote page stays put when it's shown inside labb.com.

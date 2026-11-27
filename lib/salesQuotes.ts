@@ -37,15 +37,37 @@ export const QUOTE_STATUS: Record<string, string> = {
 };
 export const BILLING_LABEL: Record<string, string> = { once: "One time", monthly: "Monthly", invoiced: "Billed as used" };
 
+// CPP member quotes: who collects the amount due at acceptance, and which CPP service level sets the member's cost.
+export const PAYMENT_MODES = [
+  { value: "labb-card", label: "Client pays Labb by credit card", short: "Labb, by card" },
+  { value: "labb-invoice", label: "Client pays Labb by invoice", short: "Labb, by invoice" },
+  { value: "partner", label: "Client pays me (the CPP member)", short: "CPP member" },
+] as const;
+export type PaymentMode = (typeof PAYMENT_MODES)[number]["value"];
+export const isPaymentMode = (v: unknown): v is PaymentMode => PAYMENT_MODES.some((m) => m.value === v);
+export const SERVICE_LEVELS = [{ value: "sl1", label: "Service Level 1" }, { value: "sl3", label: "Service Level 3" }] as const;
+export type ServiceLevel = (typeof SERVICE_LEVELS)[number]["value"];
+export const isServiceLevel = (v: unknown): v is ServiceLevel => SERVICE_LEVELS.some((m) => m.value === v);
+// Where staff or the CPP member who owns a quote edit it.
+export const quoteEditPath = (q: { id: string; member_id?: string | null }) => (q.member_id ? `/members/sales-quotes/${q.id}` : `/admin/sales-quotes/${q.id}`);
+
+// A member's cost per unit for each quote product, from the linked CPP price item at the chosen service level (cents, or null).
+export async function memberCosts(level: ServiceLevel): Promise<Map<string, number | null>> {
+  const rows = await sql()<{ id: string; sl1: number | null; sl3: number | null }[]>`
+    select q.id::text, c.sl1_cents as sl1, c.sl3_cents as sl3 from quote_price_items q left join cpp_price_items c on c.id = q.cpp_item_id`;
+  return new Map(rows.map((r) => [r.id, level === "sl3" ? r.sl3 ?? r.sl1 : r.sl1 ?? r.sl3]));
+}
+
 export type SalesQuote = {
   id: string; lead_id: string; kind: QuoteKind; title: string; status: string; template_id: string | null; html: string; price_level: PriceLevel;
   rep_id: string | null; token: string; expires_on: Date; notes: string | null; sent_at: Date | null; first_opened_at: Date | null; last_opened_at: Date | null;
   open_count: number; signed_at: Date | null; signed_name: string | null; signed_title: string | null; signature_png: string | null; signed_ip: string | null;
   signed_hash: string | null; paid_at: Date | null; paid_cents: number | null; stripe_session: string | null; created_at: Date; updated_at: Date;
+  member_id: string | null; payment_mode: PaymentMode; service_level: ServiceLevel;
 };
 export type QuoteItem = {
   id: string; quote_id: string; price_item_id: string | null; name: string; sku: string | null; category: string | null; description: string | null; unit: string | null;
-  unit_cents: number; qty: number; min_qty: number; adjustable: boolean; billing: "once" | "monthly" | "invoiced"; sort: number; excluded?: boolean;
+  unit_cents: number; qty: number; min_qty: number; adjustable: boolean; billing: "once" | "monthly" | "invoiced"; sort: number; excluded?: boolean; cost_cents?: number | null;
 };
 export type PriceRow = { id: string; category: string; name: string; sku: string | null; description: string | null; unit: string | null; under100_cents: number | null; over100_cents: number | null; sort: number; active: boolean };
 
@@ -96,7 +118,7 @@ export function totals(items: (Pick<QuoteItem, "unit_cents" | "qty" | "billing">
 export const PLACEHOLDERS: [string, string][] = [
   ["{{client_name}}", "Lead's name"], ["{{client_company}}", "Organization"], ["{{client_email}}", "Lead's email"], ["{{client_location}}", "City and state"],
   ["{{quote_title}}", "Quote title"], ["{{quote_number}}", "Quote number, like Q-2026-0012"], ["{{quote_date}}", "Date sent"], ["{{expires_on}}", "Valid until"],
-  ["{{rep_name}}", "Rep's name"], ["{{rep_email}}", "Rep's email"], ["{{rep_phone}}", "Rep's phone"],
+  ["{{rep_name}}", "Rep's name (the CPP member on partner quotes)"], ["{{partner_company}}", "CPP member's company (partner quotes only)"], ["{{rep_email}}", "Rep's email"], ["{{rep_phone}}", "Rep's phone"],
   ["{{client_phone}}", "Lead's phone"], ["{{locations}}", "Number of locations (from the software quantity)"],
   ["{{items_table}}", "Simple table of everything ordered: software, readers, kits, with quantities and prices"], ["{{invoiced_table}}", "Simple table of lab and MRO services billed as used"],
   ["{{price_table}}", "Detailed pricing table (class=\"price\") of everything ordered, grouped by category"],
@@ -196,7 +218,7 @@ export async function ensureDefaultTemplate() {
   return n.id;
 }
 
-type Rep = { name: string; email: string; phone: string | null } | null;
+type Rep = { name: string; email: string; phone: string | null; clinic?: string | null; logo_png?: string | null } | null;
 
 function itemsTable(items: QuoteItem[]) {
   const rows = items.filter((i) => i.billing !== "invoiced" && i.qty > 0);
@@ -236,6 +258,25 @@ function signature(q: SalesQuote, agreement: boolean) {
   return `<div class="esig">${img}<div class="who"><strong>${esc(q.signed_name || "")}</strong>${q.signed_title ? `, ${esc(q.signed_title)}` : ""}<br>Signed electronically ${fmtSigned(q.signed_at)}</div></div>`;
 }
 
+// CPP member quotes: Labb's logo stays primary; the member's logo (dark grey) and "Labb Authorized Channel Partner" sit beside it.
+const LABB_LOGO = '<img src="/quote-assets/b089670f3facbe293fa1.png"';
+function partnerBrand(html: string, rep: NonNullable<Rep>) {
+  const mark = (h: string) => rep.logo_png && /^data:image\/png;base64,[A-Za-z0-9+/=]+$/.test(rep.logo_png)
+    ? `<img src="${rep.logo_png}" alt="${esc(rep.clinic || rep.name)}" style="max-height:${h};max-width:2.4in;display:block">`
+    : `<span style="font-weight:700;font-size:${h === "0.6in" ? "15pt" : "10pt"};color:#404951;line-height:1.1">${esc(rep.clinic || rep.name)}</span>`;
+  const block = (h: string, gap: string) => `<div class="cpp-brand" style="display:inline-flex;align-items:center;gap:${gap};margin-left:${gap};padding-left:${gap};border-left:1pt solid #c8d3d3;vertical-align:middle">
+    <div>${mark(h)}<div style="font-size:6pt;letter-spacing:1pt;text-transform:uppercase;color:#CF743C;font-weight:600;margin-top:3pt;white-space:nowrap">Labb Authorized Channel Partner</div></div></div>`;
+  let out = html;
+  let hit = false;
+  // Cover and divider logos: wrap Labb's logo so the partner sits to its right.
+  out = out.replace(/(<img src="\/quote-assets\/b089670f3facbe293fa1\.png"[^>]*class="(?:cover-logo|dlogo)"[^>]*>)/g, (m0) => { hit = true; return `<div style="display:flex;align-items:center">${m0}${block("0.6in", "0.25in")}</div>`; });
+  // Page headers (smaller Labb logo).
+  out = out.replace(/(<div class="header">\s*<img src="\/quote-assets\/b089670f3facbe293fa1\.png"[^>]*>)/g, (m0) => { hit = true; return m0.replace(/(<img[^>]*>)$/, `<div style="display:flex;align-items:center">$1${block("0.38in", "10pt")}</div>`); });
+  out = out.replace(/>Labb contact</g, ">Your contact<").replace(/>Prepared by</g, ">Prepared by<");
+  if (!hit) out = out.replace(/<body([^>]*)>/i, `<body$1><div style="display:flex;align-items:center;padding:12pt 0">${LABB_LOGO} style="height:0.5in" alt="Labb">${block("0.5in", "12pt")}</div>`);
+  return out;
+}
+
 // The quote as the lead sees it: the template with placeholders filled in.
 export function renderQuote(q: SalesQuote, allItems: QuoteItem[], lead: LeadRow, rep: Rep) {
   const items = allItems.filter((i) => !i.excluded);
@@ -244,7 +285,7 @@ export function renderQuote(q: SalesQuote, allItems: QuoteItem[], lead: LeadRow,
     "{{client_name}}": esc(leadName(lead)), "{{client_company}}": esc(lead.company || leadName(lead)), "{{client_email}}": esc(lead.email),
     "{{client_location}}": esc([lead.city, lead.state].filter(Boolean).join(", ")), "{{quote_title}}": esc(q.title), "{{quote_number}}": quoteNumber(q),
     "{{quote_date}}": fmtDay(q.sent_at || q.created_at), "{{expires_on}}": fmtDay(q.expires_on), "{{rep_name}}": esc(rep?.name || "The Labb team"),
-    "{{rep_email}}": esc(rep?.email || "info@labb.com"), "{{rep_phone}}": esc(rep?.phone || "(877) 868-9967"),
+    "{{partner_company}}": esc(q.member_id ? rep?.clinic || rep?.name || "" : ""), "{{rep_email}}": esc(rep?.email || "info@labb.com"), "{{rep_phone}}": esc(rep?.phone || "(877) 868-9967"),
     "{{items_table}}": itemsTable(items), "{{invoiced_table}}": invoicedTable(items),
     "{{one_time_total}}": money(t.once), "{{monthly_total}}": money(t.monthly), "{{due_today}}": money(t.dueToday),
     "{{client_phone}}": esc(lead.phone || ""),
@@ -261,6 +302,7 @@ export function renderQuote(q: SalesQuote, allItems: QuoteItem[], lead: LeadRow,
   const type = ({ employer: "Workplace", tpa: "Workplace", laboratory: "Workplace", "drug-testing-business": "Workplace", "collection-site": "Clinic", corrections: "Forensic", treatment: "Treatment" } as Record<string, string>)[seg]
     || (q.kind === "employer" ? "Workplace" : q.kind === "clinic" ? "Clinic" : "");
   let out = cleanHtml(q.html).replace(/\{\{\s*[a-z_]+\s*\}\}/g, (m) => vals[m.replace(/\s/g, "")] ?? m);
+  if (q.member_id && rep) out = partnerBrand(out, rep);
   if (type) out = out.replace(new RegExp(`<span class="check"></span>(\\s*)${type}\\b`), `<span class="check" style="background:#CF743C;border-color:#CF743C;box-shadow:inset 0 0 0 1.5pt #fff"></span>$1<b>${type}</b>`);
   return out;
 }
@@ -281,16 +323,16 @@ export async function getQuoteByToken(token: string) {
   if (!q) return null;
   const items = await db<QuoteItem[]>`select i.*, coalesce(i.category, p.category) as category from sales_quote_items i left join quote_price_items p on p.id = i.price_item_id where i.quote_id = ${q.id} and not i.excluded order by i.sort, i.id`;
   const [lead] = await db<LeadRow[]>`select * from leads where id = ${q.lead_id}`;
-  const [rep] = q.rep_id ? await db<{ name: string; email: string; phone: string | null }[]>`select name, email, phone from members where id = ${q.rep_id}` : [];
+  const [rep] = q.rep_id ? await db<NonNullable<Rep>[]>`select name, email, phone, clinic, logo_png from members where id = ${q.rep_id}` : [];
   return lead ? { q, items, lead, rep: rep ?? null } : null;
 }
 export async function repFor(q: SalesQuote): Promise<Rep> {
   if (!q.rep_id) return null;
-  const [r] = await sql()<{ name: string; email: string; phone: string | null }[]>`select name, email, phone from members where id = ${q.rep_id}`;
+  const [r] = await sql()<NonNullable<Rep>[]>`select name, email, phone, clinic, logo_png from members where id = ${q.rep_id}`;
   return r ?? null;
 }
 
-export async function createQuote(lead: LeadRow, kind: QuoteKind, templateId: string | null, by: { id: string; name: string }) {
+export async function createQuote(lead: LeadRow, kind: QuoteKind, templateId: string | null, by: { id: string; name: string }, opts: { memberId?: string } = {}) {
   const db = sql();
   await ensureDefaultTemplate();
   const [byKind] = await db<{ id: string }[]>`select id::text from quote_templates where active and kind = ${kind} order by updated_at desc limit 1`;
@@ -301,8 +343,8 @@ export async function createQuote(lead: LeadRow, kind: QuoteKind, templateId: st
   const title = kind === "clinic" ? `Labb Station quote for ${lead.company || leadName(lead)}` : kind === "employer" ? `LabbHR drug testing program for ${lead.company || leadName(lead)}` : `Labb quote for ${lead.company || leadName(lead)}`;
   const starters = await starterItems(kind);
   return db.begin(async (tx) => {
-    const [q] = await tx<{ id: string }[]>`insert into sales_quotes (lead_id, kind, title, template_id, html, price_level, rep_id, created_by, token)
-      values (${lead.id}, ${kind}, ${title}, ${t?.id ?? null}, ${html}, ${level}, ${by.id}, ${by.id}, ${randomBytes(24).toString("base64url")}) returning id::text`;
+    const [q] = await tx<{ id: string }[]>`insert into sales_quotes (lead_id, kind, title, template_id, html, price_level, rep_id, created_by, token, member_id, payment_mode)
+      values (${lead.id}, ${kind}, ${title}, ${t?.id ?? null}, ${html}, ${level}, ${by.id}, ${by.id}, ${randomBytes(24).toString("base64url")}, ${opts.memberId ?? null}, ${opts.memberId ? "partner" : "labb-card"}) returning id::text`;
     for (const { p, sort } of starters) {
       await tx`insert into sales_quote_items (quote_id, price_item_id, name, sku, category, description, unit, unit_cents, qty, min_qty, adjustable, billing, sort)
         values (${q.id}, ${p.id}, ${p.name}, ${p.sku}, ${p.category}, ${p.description}, ${p.unit}, ${priceFor(p, level)}, ${p.category === "services" ? 1 : 0}, 0, ${p.category !== "lab-mro" && p.category !== "services"}, ${billingFor(p.category)}, ${sort})`;
@@ -437,14 +479,15 @@ export async function sendQuote(quoteId: string, by: { id: string; name: string 
   const rep = (await repFor(q)) ?? { name: by.name, email: "info@labb.com", phone: null };
   const url = quoteUrl(q.token);
   const t = totals(items);
-  const html = emailLayout(`Your quote from Labb`,
+  const from = q.member_id ? rep.clinic || rep.name : "Labb";
+  const html = emailLayout(`Your quote from ${from}`,
     `<p>Hi ${esc(lead.first_name || "there")},</p>
      <p>${esc(rep.name)} has prepared your quote: <strong>${esc(q.title)}</strong> (${quoteNumber(q)}).</p>
-     <p>Open it to review the details. You can change the number of test kits, readers and other items before you accept, then sign and complete your order online. Due at acceptance: <strong>${money(t.dueToday)}</strong>${t.monthly ? `, including the first month of software` : ""}. Lab services are billed later, only as used.</p>
+     <p>Open it to review the details. You can change the number of test kits, readers and other items before you accept, then sign and complete your order online. Due at acceptance: <strong>${money(t.dueToday)}</strong>${t.monthly ? `, including the first month of software` : ""}. Lab services are billed later, only as used.</p>${q.member_id ? `<p>${esc(from)} is a Labb Authorized Channel Partner.${rep.phone ? ` Reach ${esc(rep.name)} at ${esc(rep.phone)}.` : ""}</p>` : ""}
      <p>This quote is valid until ${fmtDay(q.expires_on)}. Questions? Just reply to this email.</p>`,
     { href: url, label: "Open your quote" });
-  const text = `Hi ${lead.first_name || "there"},\n\n${rep.name} has prepared your quote: ${q.title} (${quoteNumber(q)}).\n\nOpen it here: ${url}\n\nYou can change quantities, then sign and complete your order online. Due at acceptance: ${money(t.dueToday)}. Valid until ${fmtDay(q.expires_on)}.\n\n${rep.name}\nLabb`;
-  const sent = await sendMail(lead.email, `Your Labb quote: ${q.title}`, html, text, { replyTo: rep.email, track: { sales_quote: String(q.id) } });
+  const text = `Hi ${lead.first_name || "there"},\n\n${rep.name} has prepared your quote: ${q.title} (${quoteNumber(q)}).\n\nOpen it here: ${url}\n\nYou can change quantities, then sign and complete your order online. Due at acceptance: ${money(t.dueToday)}. Valid until ${fmtDay(q.expires_on)}.\n\n${rep.name}\n${from}`;
+  const sent = await sendMail(lead.email, q.member_id ? `Your quote from ${from}: ${q.title}` : `Your Labb quote: ${q.title}`, html, text, { replyTo: rep.email, track: { sales_quote: String(q.id) } });
   if (!sent) throw new Error("The email didn't send. Check the email settings.");
   await db`update sales_quotes set status = case when status = 'draft' then 'sent' else status end, sent_at = coalesce(sent_at, now()), approved_by = ${by.id}, updated_at = now() where id = ${q.id}`;
   // Sending a quote moves the lead to Quote sent, unless it's already further along or closed.
@@ -465,7 +508,7 @@ export async function recordOpen(q: SalesQuote, lead: LeadRow) {
   if (r?.notify && rep) {
     await sendMail(rep.email, `${leadName(lead)} opened quote ${quoteNumber(q)}`,
       emailLayout("Your quote was opened", `<p><strong>${esc(leadName(lead))}</strong>${lead.company ? `, ${esc(lead.company)}` : ""} just opened <strong>${esc(q.title)}</strong> (${quoteNumber(q)}).</p><p>Opened ${q.open_count + 1} ${q.open_count + 1 === 1 ? "time" : "times"} so far. A good moment to follow up: ${esc(lead.email)}${lead.phone ? ` · ${esc(lead.phone)}` : ""}.</p>`,
-        { href: absoluteUrl(`/admin/sales-quotes/${q.id}`), label: "Open the quote" }),
+        { href: absoluteUrl(quoteEditPath(q)), label: "Open the quote" }),
       `${leadName(lead)} opened quote ${quoteNumber(q)} (${q.title}). ${lead.email}${lead.phone ? ` ${lead.phone}` : ""}`, { replyTo: lead.email });
   }
 }
@@ -476,7 +519,7 @@ export const signatureHash = (q: SalesQuote, items: QuoteItem[]) =>
 export async function notifyRep(q: SalesQuote, lead: LeadRow, subject: string, body: string) {
   const rep = await repFor(q);
   const to = rep?.email || "info@labb.com";
-  await sendMail(to, subject, emailLayout(subject, body, { href: absoluteUrl(`/admin/sales-quotes/${q.id}`), label: "Open the quote" }), body.replace(/<[^>]+>/g, ""), { replyTo: lead.email });
+  await sendMail(to, subject, emailLayout(subject, body, { href: absoluteUrl(quoteEditPath(q)), label: "Open the quote" }), body.replace(/<[^>]+>/g, ""), { replyTo: lead.email });
 }
 
 // ---- Lead actions ----

@@ -16,8 +16,8 @@ export default async function SalesQuotes({ searchParams }: { searchParams: Prom
   const mine = sp.mine === "1";
   const db = sql();
   const [rows, flash, counts] = await Promise.all([
-    db<{ id: string; title: string; status: string; kind: string; created_at: Date; sent_at: Date | null; last_opened_at: Date | null; open_count: number; expires_on: Date; lead_id: string; first_name: string | null; last_name: string | null; company: string | null; email: string; rep: string | null; paid_cents: number | null }[]>`
-      select q.id, q.title, q.status, q.kind, q.created_at, q.sent_at, q.last_opened_at, q.open_count, q.expires_on, q.paid_cents, l.id as lead_id, l.first_name, l.last_name, l.company, l.email, m.name as rep
+    db<{ id: string; title: string; status: string; kind: string; created_at: Date; sent_at: Date | null; last_opened_at: Date | null; open_count: number; expires_on: Date; lead_id: string; first_name: string | null; last_name: string | null; company: string | null; email: string; rep: string | null; paid_cents: number | null; member_id: string | null; clinic: string | null }[]>`
+      select q.id, q.title, q.status, q.kind, q.created_at, q.sent_at, q.last_opened_at, q.open_count, q.expires_on, q.paid_cents, l.id as lead_id, l.first_name, l.last_name, l.company, l.email, m.name as rep, q.member_id, m.clinic
       from sales_quotes q join leads l on l.id = q.lead_id left join members m on m.id = q.rep_id
       where (${status} = '' or q.status = ${status}) and (${mine} = false or q.rep_id = ${me.id}) order by q.updated_at desc limit 300`,
     readFlash(),
@@ -62,7 +62,7 @@ export default async function SalesQuotes({ searchParams }: { searchParams: Prom
                     <td><span className={`qs qs-${r.status}`}>{QUOTE_STATUS[r.status]}</span>{r.sent_at && <><br /><span className="fine">Sent {fmtDate(r.sent_at)}</span></>}</td>
                     <td>{r.paid_cents != null ? <>{money(r.paid_cents)} <span className="fine">paid</span></> : money(due(r.id))}</td>
                     <td>{r.open_count ? <>{r.open_count}× <br /><span className="fine">last {fmtDate(r.last_opened_at)}</span></> : <span className="fine">Not yet</span>}</td>
-                    <td>{r.rep}</td>
+                    <td>{r.rep}{r.member_id && <><br /><span className="tag plain">CPP{r.clinic ? `: ${r.clinic}` : ""}</span></>}</td>
                   </tr>
                 ))}
               </tbody>

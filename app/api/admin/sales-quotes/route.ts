@@ -32,7 +32,8 @@ export async function POST(req: Request) {
         if (!g("name").trim()) continue;
         await db`update quote_price_items set name = ${g("name").trim().slice(0, 200)}, sku = ${g("sku").trim().slice(0, 60) || null}, description = ${g("desc").trim().slice(0, 500) || null},
           unit = ${g("unit").trim().slice(0, 40) || null}, under100_cents = ${cents(g("u100"))}, over100_cents = ${cents(g("o100"))},
-          category = ${cats.includes(g("cat")) ? g("cat") : "services"}, active = ${g("active") === "1"}, updated_at = now(), updated_by = ${me.id} where id = ${id}`;
+          category = ${cats.includes(g("cat")) ? g("cat") : "services"}, active = ${g("active") === "1"},
+          cpp_item_id = ${/^\d+$/.test(g("cpp")) ? g("cpp") : null}, updated_at = now(), updated_by = ${me.id} where id = ${id}`;
       }
       await flash("Quote prices saved. New quotes use them; quotes already started keep their prices until you reapply a tier.");
     } else if (action === "price-add") {

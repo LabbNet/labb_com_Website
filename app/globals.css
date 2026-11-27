@@ -2377,3 +2377,19 @@ td.acts { white-space: nowrap; }
 .mc-form label { font-weight: 600; color: #1f2a33; }
 .mc-form textarea { width: 100%; border: 1px solid #9aa4ad; border-radius: 8px; padding: 10px 12px; font: 400 1rem/1.5 Poppins, sans-serif; color: #1f2a33; resize: vertical; }
 .mc-bar { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
+.mq-new h2, .mq-brand h2 { margin-bottom: 6px; }
+.mq-newform { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin-top: 10px; }
+.mq-newform select { min-height: 44px; border: 1px solid #9aa4ad; border-radius: 8px; padding: 6px 10px; max-width: 100%; }
+.mq-logo { margin: 10px 0; min-height: 40px; display: flex; align-items: center; }
+.mq-logo img { max-height: 70px; max-width: 280px; background: #fff; padding: 8px; border: 1px solid #e3e7ea; border-radius: 8px; }
+.mq-items .mq-name { display: block; color: #1f2a33; text-align: left; }
+.mq-items .mq-desc { display: block; text-align: left; max-width: 300px; }
+.mq-cost b { display: block; color: #1f2a33; }
+.mq-m { font-weight: 700; color: #2f6b45; white-space: nowrap; }
+.mq-m.neg, .mq-sum .neg { color: #b42318; }
+.mq-sum { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px 18px; background: #404951; color: #fff; border-radius: 12px; padding: 16px 20px; margin-top: 14px; text-align: left; }
+.mq-sum > div { display: grid; gap: 2px; }
+.mq-sum span { font-size: .82rem; color: #e3e7ea; }
+.mq-sum strong { font-size: 1.3rem; color: #fff; }
+.mq-sum p { grid-column: 1 / -1; margin: 4px 0 0; color: #e3e7ea !important; }
+@media (max-width: 760px) { .mq-sum { grid-template-columns: 1fr 1fr; } }
