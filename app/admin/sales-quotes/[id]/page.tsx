@@ -7,7 +7,7 @@ import { fmtDate, readFlash, requireAdmin } from "@/lib/admin";
 import { sql } from "@/lib/db";
 import { leadName, type LeadRow } from "@/lib/leads";
 import {
-  aiReady, BILLING_LABEL, priceFor, type PriceRow, getQuote, money, PRICE_LEVELS, QUOTE_KINDS, QUOTE_PRICE_CATEGORIES, QUOTE_STATUS, quoteNumber, quoteUrl, repFor, totals,
+  aiReady, BILLING_LABEL, billingFor, priceFor, type PriceRow, getQuote, money, PRICE_LEVELS, QUOTE_KINDS, QUOTE_PRICE_CATEGORIES, QUOTE_STATUS, quoteNumber, quoteUrl, repFor, totals,
 } from "@/lib/salesQuotes";
 
 export const metadata: Metadata = { title: "Quote", robots: { index: false, follow: false } };
@@ -34,6 +34,14 @@ export default async function QuoteEditor({ params }: { params: Promise<{ id: st
   ]);
   if (!lead) notFound();
   const t = totals(items);
+  // Every price-list product not already on this quote, shown in Line items so the rep can add it by setting a quantity.
+  const level = q.price_level === "over100" ? "over100" : "under100";
+  const norm = (x: string | null | undefined) => (x || "").trim().toLowerCase();
+  const missing = catalog.filter((p) => !items.some((i) => String(i.price_item_id ?? "") === String(p.id) || norm(i.name) === norm(p.name) || (!!p.sku && norm(i.sku) === norm(p.sku))));
+  const catOrder = (c: string | null) => { const n = QUOTE_PRICE_CATEGORIES.findIndex((x) => x.value === c); return n < 0 ? 99 : n; };
+  type Row = { kind: "item"; i: (typeof items)[number]; cat: string | null } | { kind: "new"; p: (typeof catalog)[number]; cat: string };
+  const rows: Row[] = [...items.map((i) => ({ kind: "item" as const, i, cat: i.category })), ...missing.map((p) => ({ kind: "new" as const, p, cat: p.category }))]
+    .map((r, n) => ({ r, n })).sort((a, b) => catOrder(a.r.cat) - catOrder(b.r.cat) || a.n - b.n).map((x) => x.r);
   const locked = q.status === "signed" || q.status === "paid";
   const kind = QUOTE_KINDS.find((k) => k.value === q.kind)!;
   const expires = new Date(q.expires_on).toISOString().slice(0, 10);
@@ -128,16 +136,33 @@ export default async function QuoteEditor({ params }: { params: Promise<{ id: st
                 <input type="hidden" name="back" value={`/admin/sales-quotes/${q.id}`} />
                 <div className="hero-card">
                   <h2>Line items</h2>
-                  <p className="fine" style={{ textAlign: "left", marginTop: -6 }}>Items with a quantity of 0 don&apos;t show on the quote unless the lead adds them. &ldquo;Lead edits&rdquo; lets the lead adjust the quantity (never below the minimum). Lab and MRO services are billed later, as used.</p>
+                  <p className="fine" style={{ textAlign: "left", marginTop: -6 }}>Every product on the quote price list is listed here. Products marked Not in quote are added when you set a quantity (or check Add for lab and MRO) and select Save changes. Items with a quantity of 0 don&apos;t show on the quote unless the lead adds them. &ldquo;Lead edits&rdquo; lets the lead adjust the quantity (never below the minimum). Lab and MRO services are billed later, as used.</p>
                   <div style={{ overflowX: "auto" }}>
                     <table className="meet-table qb-items">
                       <thead><tr><th>Item</th><th>Billing</th><th>Price</th><th>Qty</th><th>Min</th><th title="The lead can change the quantity">Lead edits</th><th>Total</th><th>Remove</th></tr></thead>
                       <tbody>
-                        {!items.length && <tr><td colSpan={8}>No items yet. Add some below.</td></tr>}
-                        {items.map((i, n) => (
+                        {!rows.length && <tr><td colSpan={8}>No items yet. Add products in Quote prices.</td></tr>}
+                        {rows.map((r, n) => {
+                          const head = (n === 0 || rows[n - 1].cat !== r.cat) && <span className="qb-cat">{catLabel(r.cat)}</span>;
+                          if (r.kind === "new") {
+                            const p = r.p; const lab = p.category === "lab-mro"; const cents = priceFor(p, level);
+                            const priced = p.under100_cents != null || p.over100_cents != null;
+                            return (
+                              <tr key={`p${p.id}`} className="qb-new">
+                                <td>{head}<div className="qb-newname"><strong>{p.name}</strong><span className="qb-notin">Not in quote</span></div>{p.description && <span className="fine qb-newdesc">{p.description}</span>}</td>
+                                <td><span className="fine">{BILLING_LABEL[billingFor(p.category)]}</span></td>
+                                <td><input name={`newprice_${p.id}`} defaultValue={priced ? (cents / 100).toFixed(2) : ""} placeholder="Set price" inputMode="decimal" aria-label={`Price for ${p.name}`} className="qb-num" disabled={locked} />{p.unit && <span className="fine"> /{p.unit.replace(/^per\s+/i, "")}</span>}</td>
+                                <td>{lab ? <label className="qb-inc"><input type="checkbox" name={`newadd_${p.id}`} value="1" disabled={locked} /> Add</label>
+                                  : <input name={`newqty_${p.id}`} type="number" min={0} defaultValue={0} aria-label={`Quantity of ${p.name}`} className="qb-qty" disabled={locked} />}</td>
+                                <td colSpan={4}><span className="fine">{lab ? "Check Add, then Save changes" : "Set a quantity, then Save changes"}</span></td>
+                              </tr>
+                            );
+                          }
+                          const i = r.i;
+                          return (
                           <tr key={i.id} className={i.qty === 0 && i.billing !== "invoiced" ? "qb-zero" : ""}>
                             <td>
-                              {(n === 0 || items[n - 1].category !== i.category) && <span className="qb-cat">{catLabel(i.category)}</span>}
+                              {head}
                               <input name={`name_${i.id}`} defaultValue={i.name} maxLength={200} aria-label="Item name" disabled={locked} />
                               <input name={`desc_${i.id}`} defaultValue={i.description || ""} maxLength={500} placeholder="Description (optional)" aria-label="Description" className="qb-desc" disabled={locked} />
                             </td>
@@ -149,7 +174,8 @@ export default async function QuoteEditor({ params }: { params: Promise<{ id: st
                             <td className="qb-line">{i.billing === "invoiced" ? <span className="fine">As used</span> : <>{money(i.unit_cents * i.qty)}{i.billing === "monthly" ? "/mo" : ""}</>}</td>
                             <td style={{ textAlign: "center" }}><input type="checkbox" name={`del_${i.id}`} value="1" aria-label={`Remove ${i.name}`} disabled={locked} /></td>
                           </tr>
-                        ))}
+                          );
+                        })}
                       </tbody>
                     </table>
                   </div>

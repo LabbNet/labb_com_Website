@@ -94,6 +94,7 @@ export async function POST(req: Request) {
   if (locked && !["duplicate"].includes(action)) { await flash("This quote has been signed, so it can't be changed. Duplicate it to make a new version.", "error"); return go(req, back); }
 
   if (action === "save") {
+    const unpriced: string[] = [];
     await snapshot(String(q.id), me.id, null, "Before manual edit");
     const title = field(fd, "title", 200) || q.title;
     const expires = field(fd, "expires", 10);
@@ -115,9 +116,25 @@ export async function POST(req: Request) {
         await tx`update sales_quote_items set name = ${String(g("name")).slice(0, 200) || i.name}, description = ${String(g("desc") ?? "").slice(0, 500) || null},
           unit_cents = ${Number.isFinite(cents) && cents >= 0 ? cents : i.unit_cents}, qty = ${qty}, min_qty = ${min}, adjustable = ${g("adj") === "1"}, billing = ${billing} where id = ${i.id}`;
       }
+      // Price-list products the rep added from Line items (quantity set, or Add checked for lab and MRO).
+      let sort = Math.max(0, ...items.map((i) => i.sort)) + 10;
+      const plist = await tx<PriceRow[]>`select * from quote_price_items where active`;
+      unpriced.length = 0;
+      for (const p of plist) {
+        const qtyIn = parseInt(String(fd.get(`newqty_${p.id}`) ?? "0"), 10) || 0;
+        const lab = p.category === "lab-mro";
+        if (lab ? fd.get(`newadd_${p.id}`) !== "1" : qtyIn <= 0) continue;
+        const raw = String(fd.get(`newprice_${p.id}`) ?? "").replace(/[^0-9.]/g, "");
+        if (!raw && p.under100_cents == null && p.over100_cents == null && !lab) { unpriced.push(p.name); continue; }
+        const cents = raw ? Math.round(Number(raw) * 100) : priceFor(p, isPriceLevel(q.price_level) ? q.price_level : "under100");
+        if (!Number.isFinite(cents) || cents < 0) continue;
+        await tx`insert into sales_quote_items (quote_id, price_item_id, name, sku, category, description, unit, unit_cents, qty, adjustable, billing, sort)
+          values (${q.id}, ${p.id}, ${p.name}, ${p.sku}, ${p.category}, ${p.description}, ${p.unit}, ${cents}, ${lab ? 0 : Math.min(1_000_000, qtyIn)}, ${!lab && p.category !== "services"}, ${billingFor(p.category)}, ${sort})`;
+        sort += 10;
+      }
     });
     await snapshot(String(q.id), me.id, null, "Manual edit");
-    await flash("Quote saved.");
+    await flash(unpriced.length ? `Quote saved. Not added, because they have no price: ${unpriced.join(", ")}. Enter a price on the line, or set it in Quote prices.` : "Quote saved.", unpriced.length ? "error" : "ok");
   } else if (action === "remove-item") {
     await snapshot(String(q.id), me.id, null, "Before removing an item");
     await db`delete from sales_quote_items where quote_id = ${q.id} and id = ${field(fd, "item", 20).replace(/\D/g, "") || "0"}`;

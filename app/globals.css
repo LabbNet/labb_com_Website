@@ -2364,3 +2364,9 @@ td.acts { white-space: nowrap; }
 .qb-custom summary { cursor: pointer; font-weight: 600; color: #404951; margin-bottom: 8px; }
 @media (max-width: 1000px) { .qb-pick { grid-template-columns: 1fr 1fr; } }
 @media (max-width: 640px) { .qb-pick { grid-template-columns: 1fr; } }
+.qb-new td { background: #fbfbfc; }
+.qb-newname { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; color: #1f2a33; }
+.qb-notin { font-size: .72rem; font-weight: 600; background: #fdf0e6; color: #8f4a1f; border-radius: 999px; padding: 1px 8px; }
+.qb-newdesc { display: block; text-align: left; margin-top: 2px; }
+.qb-inc { display: inline-flex; gap: 6px; align-items: center; font-weight: 600; font-size: .9rem; }
+.qb-inc input { accent-color: #CF743C; width: 16px; height: 16px; }

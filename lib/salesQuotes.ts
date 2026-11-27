@@ -252,7 +252,8 @@ export async function getQuote(id: string) {
   const db = sql();
   const [q] = await db<SalesQuote[]>`select * from sales_quotes where id = ${/^\d+$/.test(id) ? id : "0"}`;
   if (!q) return null;
-  const items = await db<QuoteItem[]>`select * from sales_quote_items where quote_id = ${q.id} order by sort, id`;
+  const items = await db<QuoteItem[]>`select i.*, coalesce(i.category, p.category) as category from sales_quote_items i left join quote_price_items p on p.id = i.price_item_id where i.quote_id = ${q.id}
+    order by coalesce(array_position(array['saas','services','readers','stands','rapid-kits','lab-mro'], coalesce(i.category, p.category)), 7), i.sort, i.id`;
   return { q, items };
 }
 export async function getQuoteByToken(token: string) {
