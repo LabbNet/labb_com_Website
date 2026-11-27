@@ -2480,3 +2480,10 @@ td.acts { white-space: nowrap; }
 .mq-clientform input, .mq-clientform select { width: 100%; min-height: 42px; border: 1px solid #9aa4ad; border-radius: 8px; padding: 6px 10px; }
 @media (max-width: 640px) { .mq-clientform { grid-template-columns: 1fr; } }
 .sig-upload input[type=file] { min-height: 0; border: 0; padding: 4px 0; }
+.lp-warn { background: #fdf6f1; border: 1px solid #f0c9ad; border-radius: 8px; padding: 8px 12px; font-size: .9rem; color: #8f4a1f; margin: 8px 0; }
+.lp-edit { margin: 6px 0 10px; text-align: left; }
+.lp-edit summary { cursor: pointer; font-weight: 600; font-size: .9rem; color: #404951; }
+.lp-editform { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px 12px; margin-top: 8px; max-width: 760px; }
+.lp-editform .lp-wide { grid-column: 1 / -1; }
+.lp-editform input { width: 100%; min-height: 38px; border: 1px solid #9aa4ad; border-radius: 8px; padding: 6px 10px; }
+@media (max-width: 640px) { .lp-editform { grid-template-columns: 1fr; } }

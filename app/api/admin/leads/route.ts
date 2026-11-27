@@ -36,6 +36,17 @@ export async function POST(req: Request) {
       await logLeadEvent(id, "status", `${statusLabel(lead.status)} to ${statusLabel(status)}`, actor);
       await flash(`Status set to ${statusLabel(status)}.`);
     }
+  } else if (action === "contact") {
+    const company = field(fd, "company", 160), first = field(fd, "first_name", 80), last = field(fd, "last_name", 80);
+    const phone = field(fd, "phone", 40), city = field(fd, "city", 80), state = field(fd, "state", 80);
+    if (!first && !company) { await flash("Enter a contact name or a company.", "error"); return go(req, back); }
+    const changes = ([["Company", lead.company, company], ["First name", lead.first_name, first], ["Last name", lead.last_name, last], ["Phone", lead.phone, phone], ["City", lead.city, city], ["State", lead.state, state]] as const)
+      .filter(([, a, b]) => (a || "") !== b).map(([k, a, b]) => `${k}: ${a || "(blank)"} to ${b || "(blank)"}`);
+    if (changes.length) {
+      await db`update leads set company = ${company || null}, first_name = ${first || null}, last_name = ${last || null}, phone = ${phone || null}, city = ${city || null}, state = ${state || null}, updated_at = now() where id = ${id}`;
+      await logLeadEvent(id, "note", `Contact details edited. ${changes.join("; ")}`, actor);
+    }
+    await flash(changes.length ? "Saved." : "Nothing changed.");
   } else if (action === "note") {
     const note = field(fd, "note", 4000);
     if (note) {

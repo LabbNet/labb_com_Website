@@ -175,6 +175,19 @@ export default async function AdminLead({ params, searchParams }: { params: Prom
               <span className="lp-eyebrow">Lead #{lead.id} · {segmentLabel(lead.segment)} · received {fmtDate(lead.created_at)} ET</span>
               <h1>{leadName(lead)}{formCount > 1 && <span className="form-count lg" title={`${formCount} forms completed by this person`} aria-label={`${formCount} forms completed`}>{formCount}</span>}</h1>
               {(lead.company || lead.city || lead.state) && lead.company !== leadName(lead) && <p className="lp-org">{[lead.company, [lead.city, lead.state].filter(Boolean).join(", ")].filter(Boolean).join(" · ")}</p>}
+              {(!lead.company || [lead.first_name, lead.last_name].filter(Boolean).join(" ").trim().toLowerCase() === lead.company.trim().toLowerCase()) && <p className="lp-warn">{lead.company ? "The company name matches the contact's name." : "No company name."} Quotes show the company as &ldquo;Prepared for&rdquo;, so add the real organization name below.</p>}
+              <details className="lp-edit" open={(!lead.company || [lead.first_name, lead.last_name].filter(Boolean).join(" ").trim().toLowerCase() === lead.company.trim().toLowerCase())}>
+                <summary>Edit company and contact</summary>
+                {post("contact", <div className="lp-editform">
+                  <div className="field lp-wide"><label htmlFor="e-co">Company or organization</label><input id="e-co" name="company" defaultValue={lead.company || ""} maxLength={160} placeholder="Acme Logistics LLC" /></div>
+                  <div className="field"><label htmlFor="e-fn">First name</label><input id="e-fn" name="first_name" defaultValue={lead.first_name || ""} maxLength={80} /></div>
+                  <div className="field"><label htmlFor="e-ln">Last name</label><input id="e-ln" name="last_name" defaultValue={lead.last_name || ""} maxLength={80} /></div>
+                  <div className="field"><label htmlFor="e-ph">Phone</label><input id="e-ph" name="phone" defaultValue={lead.phone || ""} maxLength={40} /></div>
+                  <div className="field"><label htmlFor="e-ci">City</label><input id="e-ci" name="city" defaultValue={lead.city || ""} maxLength={80} /></div>
+                  <div className="field"><label htmlFor="e-st">State</label><input id="e-st" name="state" defaultValue={lead.state || ""} maxLength={80} /></div>
+                  <div className="lp-wide"><button className="btn btn-primary btn-sm" type="submit">Save</button> <span className="fine">Open quotes pick up the new company name.</span></div>
+                </div>)}
+              </details>
               <p className="lp-contact">
                 <a href={`mailto:${lead.email}`}>{lead.email}</a>
                 {lead.phone && <a href={`tel:${lead.phone.replace(/[^\d+]/g, "")}`}>{lead.phone}</a>}
