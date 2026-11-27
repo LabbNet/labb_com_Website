@@ -2403,3 +2403,44 @@ td.acts { white-space: nowrap; }
 .qo-pick strong { display: block; font-size: 1rem; }
 .qo-pick small { display: block; font-size: .88rem; color: #3d4852; margin-top: 3px; }
 @media (max-width: 640px) { .qo-picks { grid-template-columns: 1fr; } }
+.sm-check { display: flex; gap: 8px; align-items: center; font-weight: 600; }
+.sm-check input { width: 18px; height: 18px; accent-color: #CF743C; }
+/* Admin calendar */
+.cal-head { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 14px; align-items: flex-end; margin-bottom: 14px; }
+.cal-head h1 { font-size: 1.7rem; margin: 0 0 4px; }
+.cal-nav { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.cal-who { display: flex; gap: 6px; }
+.cal-who select { min-height: 38px; border: 1px solid #9aa4ad; border-radius: 8px; padding: 4px 8px; }
+.cal-legend { display: flex; flex-wrap: wrap; gap: 14px; font-size: .82rem; color: #2b353e; margin: 8px 0 10px; }
+.cal-legend span::before { content: ""; display: inline-block; width: 12px; height: 12px; border-radius: 3px; margin-right: 6px; vertical-align: -1px; }
+.lg-open::before { background: #fff; border: 1px solid #b9cdbf; }
+.lg-mtg::before { background: #CF743C; }
+.lg-busy::before { background: #404951; }
+.lg-block::before { background: repeating-linear-gradient(45deg, #c8ced3 0 4px, #e3e7ea 4px 8px); }
+.lg-off::before { background: #eef1f3; }
+.cal-grid { display: grid; grid-template-columns: 52px repeat(7, minmax(110px, 1fr)); border: 1px solid #d5dbe0; border-radius: 12px; overflow-x: auto; background: #fff; }
+.cal-times { position: relative; margin-top: 34px; height: 780px; border-right: 1px solid #e3e7ea; }
+.cal-times span { position: absolute; right: 6px; transform: translateY(-50%); font-size: .7rem; color: #5f6a74; }
+.cal-day { border-right: 1px solid #e3e7ea; min-width: 110px; }
+.cal-day:last-child { border-right: 0; }
+.cal-dh { height: 34px; display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: .85rem; color: #1f2a33; border-bottom: 1px solid #e3e7ea; }
+.cal-day.today .cal-dh { color: #CF743C; }
+.cal-day.past .cal-col { opacity: .6; }
+.cal-col { position: relative; height: 780px; background: #eef1f3; background-image: repeating-linear-gradient(to bottom, transparent 0 59px, #e3e7ea 59px 60px); }
+.cal-open { position: absolute; left: 0; right: 0; background: #fff; border-left: 3px solid #b9cdbf; }
+.cal-ev { position: absolute; left: 4px; right: 4px; border-radius: 6px; padding: 3px 6px; font-size: .72rem; line-height: 1.25; overflow: hidden; z-index: 1; text-decoration: none; }
+.cal-ev span { display: block; }
+.cal-mtg { background: #CF743C; color: #fff !important; z-index: 3; }
+.cal-mtg.cal-completed { background: #2f6b45; }
+.cal-mtg.cal-no-show { background: #8a95a0; }
+.cal-busy { background: #404951; color: #fff; z-index: 2; }
+.cal-block { background: repeating-linear-gradient(45deg, #c8ced3 0 6px, #e3e7ea 6px 12px); color: #1f2a33; z-index: 2; font-weight: 600; }
+.cal-cards { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; margin-top: 18px; }
+.cal-cards .hero-card { text-align: left; }
+.cal-form { display: grid; grid-template-columns: 1fr 1fr; gap: 10px 12px; align-items: end; }
+.cal-form .cal-wide { grid-column: 1 / -1; }
+.cal-form input:not([type=checkbox]), .cal-form select { width: 100%; min-height: 40px; border: 1px solid #9aa4ad; border-radius: 8px; padding: 6px 10px; }
+.cal-blocks { list-style: none; padding: 0; margin: 14px 0 0; display: grid; gap: 6px; }
+.cal-blocks li { display: flex; justify-content: space-between; gap: 10px; align-items: center; border-top: 1px solid #eef1f3; padding-top: 6px; font-size: .9rem; }
+.cal-how { padding-left: 18px; text-align: left; }
+@media (max-width: 900px) { .cal-cards { grid-template-columns: 1fr; } }

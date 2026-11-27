@@ -11,6 +11,7 @@ const SECTIONS = [
       { href: "/admin/crm", label: "CRM" },
       { href: "/admin/leads", label: "Leads" },
       { href: "/admin/meetings", label: "Meetings" },
+      { href: "/admin/calendar", label: "Calendar" },
       { href: "/admin/sales-quotes", label: "Quotes" },
       { href: "/admin/quotes", label: "CPP quotes" },
     ],

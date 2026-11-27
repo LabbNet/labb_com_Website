@@ -36,13 +36,18 @@ export function etToUtc(date: string, min: number) {
 export function etDate(d: Date) {
   return new Intl.DateTimeFormat("en-CA", { timeZone: TZ, year: "numeric", month: "2-digit", day: "2-digit" }).format(d);
 }
-const addDays = (date: string, n: number) => {
+export const addDays = (date: string, n: number) => {
   const d = new Date(`${date}T12:00:00Z`);
   d.setUTCDate(d.getUTCDate() + n);
   return d.toISOString().slice(0, 10);
 };
 export const fmtWhen = (d: Date) =>
   `${new Date(d).toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric", timeZone: TZ })} at ${new Date(d).toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", timeZone: TZ })} ET`;
+// Minutes after midnight, Eastern, for an instant.
+export function etMinutes(d: Date) {
+  const p = Object.fromEntries(new Intl.DateTimeFormat("en-US", { timeZone: TZ, hourCycle: "h23", hour: "2-digit", minute: "2-digit" }).formatToParts(d).map((x) => [x.type, x.value]));
+  return (+p.hour % 24) * 60 + +p.minute;
+}
 export const fmtClock = (d: Date) => new Date(d).toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", timeZone: TZ });
 export const fmtDayLabel = (date: string) =>
   new Date(`${date}T12:00:00Z`).toLocaleDateString("en-US", { weekday: "long", month: "short", day: "numeric", timeZone: "UTC" });
@@ -88,7 +93,11 @@ export async function openSlots(hostId: string | null): Promise<{ start: Date; h
   // Outlook busy times (see lib/calsync.ts).
   const outlook = await db<{ host_id: string; starts_at: Date; ends_at: Date }[]>`
     select host_id, starts_at, ends_at from host_busy where ends_at > now() and starts_at < now() + ${`${WINDOW_DAYS + 1} days`}::interval`.catch(() => []);
-  const blocks = [...busy, ...outlook].map((b) => ({ host: b.host_id, s: new Date(b.starts_at).getTime() - BUFFER_MIN * 60000, e: new Date(b.ends_at).getTime() + BUFFER_MIN * 60000 }));
+  // Times blocked by hand on the admin calendar (no buffer: the block is the exact time off).
+  const manual = await db<{ host_id: string; starts_at: Date; ends_at: Date }[]>`
+    select host_id, starts_at, ends_at from host_blocks where ends_at > now() and starts_at < now() + ${`${WINDOW_DAYS + 1} days`}::interval`.catch(() => []);
+  const blocks = [...busy, ...outlook].map((b) => ({ host: b.host_id, s: new Date(b.starts_at).getTime() - BUFFER_MIN * 60000, e: new Date(b.ends_at).getTime() + BUFFER_MIN * 60000 }))
+    .concat(manual.map((b) => ({ host: b.host_id, s: new Date(b.starts_at).getTime(), e: new Date(b.ends_at).getTime() })));
   const today = etDate(new Date());
   const first = firstBookableDate(today);
   const out: { start: Date; hostId: string }[] = [];
@@ -142,6 +151,15 @@ export async function testLead(adminId: string): Promise<(LeadRow & { meeting_ho
 }
 
 export const newToken = () => randomBytes(18).toString("base64url");
+// Where a meeting happens: the Labb video room (Jitsi, no account needed), Microsoft Teams, or any other link.
+export const PLATFORMS = [
+  { value: "labb", label: "Labb video room (Jitsi)" },
+  { value: "teams", label: "Microsoft Teams" },
+  { value: "link", label: "Other link (Zoom, Google Meet...)" },
+] as const;
+export type Platform = (typeof PLATFORMS)[number]["value"];
+export const isPlatform = (v: string): v is Platform => PLATFORMS.some((p) => p.value === v);
+export const labbRoom = () => `https://meet.jit.si/Labb-${randomBytes(9).toString("base64url").replace(/[^A-Za-z0-9]/g, "")}`;
 // The host's own Microsoft Teams link, until a Teams meeting is created for this meeting (see attachTeams).
 export const roomFor = (host: { meeting_url: string | null }) => host.meeting_url || "";
 
@@ -328,22 +346,37 @@ export const hostSlug = (name: string) => name.split(" ")[0].toLowerCase();
 export async function runMeetingJobs() {
   try {
     const db = sql();
-    const due = await db<(Mtg & { lead_id: string; host_name: string; host_email: string })[]>`
-      select g.id, g.starts_at, g.ends_at, g.room_url, g.lead_id, m.name as host_name, m.email as host_email
+    const due = await db<(Mtg & { lead_id: string; host_name: string; host_email: string; notify_lead: boolean })[]>`
+      select g.id, g.starts_at, g.ends_at, g.room_url, g.lead_id, g.notify_lead, m.name as host_name, m.email as host_email
       from lead_meetings g join members m on m.id = g.host_id
-      where g.status = 'booked' and not g.reminded and g.starts_at > now() and g.starts_at <= now() + interval '65 minutes'`;
+      where g.status = 'booked' and not g.reminded and g.starts_at > now() + interval '12 minutes' and g.starts_at <= now() + interval '62 minutes'`;
     for (const g of due) {
       const claimed = await db`update lead_meetings set reminded = true where id = ${g.id} and not reminded returning id`;
       if (!claimed.length) continue;
       const [lead] = await db<LeadRow[]>`select * from leads where id = ${g.lead_id}`;
       if (!lead) continue;
       const when = fmtClock(g.starts_at) + " ET";
-      await sendMail(lead.email, `Reminder: your call with Labb at ${when}`,
+      if (g.notify_lead) await sendMail(lead.email, `Reminder: your call with Labb at ${when}`,
         emailLayout("Your call with Labb starts soon", `<p>Hi ${first(lead)},</p><p>This is a reminder that your video call with ${esc(g.host_name)} from Labb starts at <strong>${esc(when)}</strong>.</p>`, joinCta(g.room_url)),
         `Hi ${lead.first_name || "there"},\n\nYour video call with ${g.host_name} from Labb starts at ${when}.\n\n${joinText(g.room_url)}\n\n${footer}`, { replyTo: g.host_email });
       await sendMail(g.host_email, `Reminder: call with ${leadName(lead)} at ${when}`,
         emailLayout("Meeting starts soon", `<p>Your call with ${esc(leadName(lead))}${lead.company ? `, ${esc(lead.company)}` : ""} starts at <strong>${esc(when)}</strong>.</p><p><a href="${absoluteUrl(`/admin/leads/${lead.id}`)}" style="color:#CF743C">Open the lead</a></p>`, joinCta(g.room_url)),
         `Your call with ${leadName(lead)} starts at ${when}. ${joinText(g.room_url)}`);
+    }
+    // Ten minutes before: the link once more, to the lead.
+    const soon = await db<(Mtg & { lead_id: string; host_name: string; host_email: string })[]>`
+      select g.id, g.starts_at, g.ends_at, g.room_url, g.lead_id, m.name as host_name, m.email as host_email
+      from lead_meetings g join members m on m.id = g.host_id
+      where g.status = 'booked' and g.notify_lead and not g.reminded10 and g.starts_at > now() and g.starts_at <= now() + interval '11 minutes'`;
+    for (const g of soon) {
+      const claimed = await db`update lead_meetings set reminded10 = true, reminded = true where id = ${g.id} and not reminded10 returning id`;
+      if (!claimed.length) continue;
+      const [lead] = await db<LeadRow[]>`select * from leads where id = ${g.lead_id}`;
+      if (!lead) continue;
+      const when = fmtClock(g.starts_at) + " ET";
+      await sendMail(lead.email, `Starting in 10 minutes: your call with ${g.host_name} from Labb`,
+        emailLayout("Your call starts in 10 minutes", `<p>Hi ${first(lead)},</p><p>Your video call with ${esc(g.host_name)} from Labb starts at <strong>${esc(when)}</strong>. Use the button below to join from your computer or phone.</p><p style="font-size:13px">${joinLine(g.room_url)}</p>`, joinCta(g.room_url)),
+        `Hi ${lead.first_name || "there"},\n\nYour video call with ${g.host_name} from Labb starts at ${when}.\n\n${joinText(g.room_url)}\n\n${footer}`, { replyTo: g.host_email });
     }
   } catch (e) {
     console.error("[meetings] job failed", e);
@@ -397,12 +430,16 @@ function inviteEmail(lead: LeadRow, m: SalesMtg, host: Host2, updated: boolean, 
 }
 
 // Admin schedules (or reschedules) a sales meeting: saves it, emails the prospect and the host a calendar invite, logs it.
-export async function scheduleSalesMeeting(lead: LeadRow, o: { kind: MeetingKind; start: Date; minutes: number; hostId: string; room?: string; agenda?: string; by: { id: string; name: string }; replace?: string }) {
+export async function scheduleSalesMeeting(lead: LeadRow, o: { kind: MeetingKind; start: Date; minutes: number; hostId: string; room?: string; agenda?: string; by: { id: string; name: string }; replace?: string; platform?: Platform; notify?: boolean }) {
+  const notify = o.notify !== false;
+  const platform: Platform = o.platform ?? "teams";
   const db = sql();
   const [host] = await db<Host2[]>`select id, name, email, meeting_url from members where id = ${o.hostId} and role = 'admin'`;
   if (!host) throw new Error("Choose who the meeting is with.");
   const end = new Date(o.start.getTime() + o.minutes * 60000);
-  const room = o.room && /^https:\/\/\S+$/.test(o.room) ? o.room : roomFor(host);
+  const given = o.room && /^https:\/\/\S+$/.test(o.room) ? o.room : "";
+  if (platform === "link" && !given) throw new Error("Enter the meeting link (it must start with https://).");
+  const room = platform === "labb" ? (given && /meet\.jit\.si\//.test(given) ? given : labbRoom()) : given || roomFor(host);
   let m: SalesMtg | undefined;
   let updated = false;
   const [prev] = o.replace && /^\d+$/.test(o.replace)
@@ -411,13 +448,13 @@ export async function scheduleSalesMeeting(lead: LeadRow, o: { kind: MeetingKind
   try {
     if (o.replace && /^\d+$/.test(o.replace)) {
       [m] = await db<SalesMtg[]>`update lead_meetings set starts_at = ${o.start}, ends_at = ${end}, host_id = ${host.id}, kind = ${o.kind}, room_url = ${room},
-          notes = ${o.agenda || null}, reminded = false where id = ${o.replace} and lead_id = ${lead.id} and status = 'booked'
+          notes = ${o.agenda || null}, reminded = false, reminded10 = false, platform = ${platform}, notify_lead = ${notify} where id = ${o.replace} and lead_id = ${lead.id} and status = 'booked'
         returning id, starts_at, ends_at, room_url, kind, notes as agenda`;
       updated = !!m;
     }
     if (!m) {
-      [m] = await db<SalesMtg[]>`insert into lead_meetings (lead_id, host_id, starts_at, ends_at, room_url, notes, kind, scheduled_by)
-        values (${lead.id}, ${host.id}, ${o.start}, ${end}, ${room}, ${o.agenda || null}, ${o.kind}, ${o.by.id})
+      [m] = await db<SalesMtg[]>`insert into lead_meetings (lead_id, host_id, starts_at, ends_at, room_url, notes, kind, scheduled_by, platform, notify_lead)
+        values (${lead.id}, ${host.id}, ${o.start}, ${end}, ${room}, ${o.agenda || null}, ${o.kind}, ${o.by.id}, ${platform}, ${notify})
         returning id, starts_at, ends_at, room_url, kind, notes as agenda`;
     }
   } catch {
@@ -428,7 +465,8 @@ export async function scheduleSalesMeeting(lead: LeadRow, o: { kind: MeetingKind
   const seq = updated ? seqNow() : 0;
   // Microsoft Teams: move the existing Outlook meeting, or create one (a new host gets a new meeting).
   let outlook = false;
-  if (graphOn()) {
+  // Teams meetings come from Outlook, which emails the prospect itself, so a silent meeting never creates one.
+  if (graphOn() && platform === "teams" && notify && !given) {
     if (updated && prev?.graph_event_id && prev.graph_mailbox?.toLowerCase() === host.email.toLowerCase()) {
       try { await moveTeamsMeeting(host.email, prev.graph_event_id, m.starts_at, m.ends_at, `${k.title}`); outlook = true; }
       catch (err) { console.error("[teams] move failed", err instanceof Error ? err.message : err); }
@@ -439,7 +477,7 @@ export async function scheduleSalesMeeting(lead: LeadRow, o: { kind: MeetingKind
     }
   }
   const e = inviteEmail(lead, m, host, updated, outlook);
-  const sent = await sendMail(lead.email, e.subject, e.html, e.text, {
+  const sent = !notify ? false : await sendMail(lead.email, e.subject, e.html, e.text, {
     replyTo: host.email, track: { lead_meeting: String(m.id) },
     attachments: outlook ? [] : [{ filename: "labb-meeting.ics", content: ics(m, k.title, `${k.blurb}\n${m.agenda ? `\nAgenda:\n${m.agenda}\n` : ""}\nVideo meeting: ${m.room_url}`, { name: `${host.name}, Labb`, email: host.email }, lead.email, false, seq), type: "text/calendar; method=REQUEST" }],
   });
@@ -449,8 +487,26 @@ export async function scheduleSalesMeeting(lead: LeadRow, o: { kind: MeetingKind
     `${k.label} with ${leadName(lead)}: ${fmtWhen(m.starts_at)}\n${joinText(m.room_url)}\nLead: ${rec}`,
     { replyTo: lead.email, attachments: outlook ? [] : [{ filename: "labb-meeting.ics", content: ics(m, `${k.label}: ${leadName(lead)}`, `Video meeting: ${m.room_url}\nLead: ${rec}`, { name: "Labb", email: "info@labb.com" }, host.email, false, seq), type: "text/calendar; method=REQUEST" }] });
   await db`update leads set status = case when status = 'new' then 'contacted' else status end, updated_at = now() where id = ${lead.id}`;
-  await logLeadEvent(lead.id, "meeting", `${k.label} ${updated ? "moved to" : "scheduled for"} ${fmtWhen(m.starts_at)} with ${host.name}${sent ? "; invite emailed to " + lead.email : "; the invite email did not send"}`, o.by);
-  return { sent, updated };
+  await logLeadEvent(lead.id, "meeting", `${k.label} ${updated ? "moved to" : "scheduled for"} ${fmtWhen(m.starts_at)} with ${host.name}${!notify ? "; added without emailing the lead" : sent ? "; invite emailed to " + lead.email : "; the invite email did not send"}`, o.by);
+  return { sent, updated, notify };
+}
+
+// The lead didn't show: mark the meeting a no-show and email them a link to pick a new time.
+export async function noShowReschedule(lead: LeadRow, meetingId: string, by: { id: string; name: string }) {
+  const db = sql();
+  const [g] = await db<{ kind: string; starts_at: Date; host_id: string; host_name: string; host_email: string }[]>`
+    update lead_meetings g set status = 'no-show', done_at = now(), outcome = coalesce(outcome, 'Lead did not join; reschedule link sent') from members m
+    where g.id = ${meetingId} and g.lead_id = ${lead.id} and g.status in ('booked', 'no-show') and m.id = g.host_id
+    returning g.kind, g.starts_at, g.host_id, m.name as host_name, m.email as host_email`;
+  if (!g) return false;
+  const token = lead.book_token || newToken();
+  await db`update leads set book_token = ${token}, meeting_host = coalesce(meeting_host, ${g.host_id}), updated_at = now() where id = ${lead.id}`;
+  const link = absoluteUrl(`/meet/${token}`);
+  await sendMail(lead.email, "Sorry we missed you. Pick a new time",
+    emailLayout("Let's find a new time", `<p>Hi ${first(lead)},</p><p>We were sorry to miss you on our call at ${esc(fmtWhen(g.starts_at))}. No problem: choose a new time that works for you below. It takes less than a minute, and you'll get the meeting link as soon as you book.</p><p>${esc(g.host_name)}, Labb</p>`, { href: link, label: "Choose a new time" }),
+    `Hi ${lead.first_name || "there"},\n\nWe were sorry to miss you on our call at ${fmtWhen(g.starts_at)}. Choose a new time here: ${link}\n\n${g.host_name}\nLabb\n\n${footer}`, { replyTo: g.host_email });
+  await logLeadEvent(lead.id, "meeting", `${kindInfo(g.kind).label} on ${fmtWhen(g.starts_at)}: lead didn't show; reschedule link emailed to ${lead.email}`, by);
+  return true;
 }
 
 // Record how a meeting went.
@@ -465,8 +521,8 @@ export async function finishMeeting(leadId: string, meetingId: string, status: "
 }
 
 export async function leadMeetings(leadId: string) {
-  return sql()<{ id: string; kind: string; status: string; starts_at: Date; ends_at: Date; room_url: string; host_id: string; host_name: string; notes: string | null; outcome: string | null }[]>`
-    select g.id, g.kind, g.status, g.starts_at, g.ends_at, g.room_url, g.host_id, m.name as host_name, g.notes, g.outcome
+  return sql()<{ id: string; kind: string; status: string; starts_at: Date; ends_at: Date; room_url: string; host_id: string; host_name: string; notes: string | null; outcome: string | null; platform: string; notify_lead: boolean }[]>`
+    select g.id, g.kind, g.status, g.starts_at, g.ends_at, g.room_url, g.host_id, m.name as host_name, g.notes, g.outcome, g.platform, g.notify_lead
     from lead_meetings g join members m on m.id = g.host_id where g.lead_id = ${leadId} order by g.starts_at desc`;
 }
 

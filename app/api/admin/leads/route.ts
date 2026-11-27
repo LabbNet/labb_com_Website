@@ -4,7 +4,7 @@ import { sql } from "@/lib/db";
 import { field, go } from "@/lib/http";
 import { esc, sendMail } from "@/lib/mail";
 import { linkToken, tagLinks } from "@/lib/visitors";
-import { emailBookingInvite, emailCancelled, etToUtc, finishMeeting, isKind, newToken, scheduleSalesMeeting, testLead, testToken } from "@/lib/meetings";
+import { emailBookingInvite, emailCancelled, etToUtc, finishMeeting, isKind, isPlatform, newToken, noShowReschedule, scheduleSalesMeeting, testLead, testToken, type Platform } from "@/lib/meetings";
 import { upsertPerson } from "@/lib/crm";
 import { outlookConflicts } from "@/lib/calsync";
 import { emailPartner, logLeadEvent, mergeLeads, type LeadRow } from "@/lib/leads";
@@ -172,14 +172,18 @@ export async function POST(req: Request) {
       const r = await scheduleSalesMeeting(lead, {
         kind, start, minutes, hostId: field(fd, "host", 40) || admin.id, room: field(fd, "room", 300),
         agenda: String(fd.get("agenda") ?? "").slice(0, 2000).trim(), by: actor, replace: field(fd, "replace", 20) || undefined,
+        platform: isPlatform(field(fd, "platform", 10)) ? (field(fd, "platform", 10) as Platform) : "teams", notify: fd.get("notify") === "1",
       });
       const hostId = field(fd, "host", 40) || admin.id;
       const clash = await outlookConflicts(hostId, start, new Date(start.getTime() + minutes * 60000));
       const warn = clash.length ? ` Heads up: this is within 15 minutes of ${clash.length === 1 ? "an Outlook appointment" : `${clash.length} Outlook appointments`} on that calendar.` : "";
-      await flash((r.sent ? `${r.updated ? "Meeting moved" : "Meeting scheduled"}. The calendar invite was emailed to ${lead.email} and the host.` : "Meeting saved, but the invite email didn't send. Check email settings.") + warn, r.sent && !warn ? "ok" : "error");
+      await flash((!r.notify ? `${r.updated ? "Meeting moved" : "Meeting added"}. Nothing was sent to ${lead.email}; the host got the details.` : r.sent ? `${r.updated ? "Meeting moved" : "Meeting scheduled"}. The invite was emailed to ${lead.email} and the host. Reminders go out 1 hour and 10 minutes before.` : "Meeting saved, but the invite email didn't send. Check email settings.") + warn, (r.sent || !r.notify) && !warn ? "ok" : "error");
     } catch (e) {
       await flash(e instanceof Error ? e.message : "The meeting wasn't scheduled.", "error");
     }
+  } else if (action === "meeting-noshow-resched") {
+    const ok = await noShowReschedule(lead, field(fd, "meeting", 20).replace(/\D/g, "") || "0", actor);
+    await flash(ok ? `Marked as a no-show. ${lead.email} was emailed a link to pick a new time.` : "That meeting wasn't found.", ok ? "ok" : "error");
   } else if (action === "meeting-done" || action === "meeting-noshow") {
     const ok = await finishMeeting(id, field(fd, "meeting", 20).replace(/\D/g, "") || "0", action === "meeting-done" ? "completed" : "no-show", field(fd, "outcome", 1000), actor);
     await flash(ok ? (action === "meeting-done" ? "Meeting marked completed." : "Marked as a no-show.") : "That meeting wasn't found.", ok ? "ok" : "error");

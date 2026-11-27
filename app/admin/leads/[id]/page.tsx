@@ -8,7 +8,7 @@ import { partnerOptions } from "@/lib/leadQuery";
 import { detailRows, duplicateLeads, leadName, type LeadRow } from "@/lib/leads";
 import { leadActivity } from "@/lib/analytics";
 import { runsForLeads, SEQUENCES, sequenceName, STEP_DAYS } from "@/lib/sequences";
-import { etDate, fmtWhen, kindInfo, leadMeetings, MEETING_KINDS, MEETING_STATUS, meetingHosts, nextKind } from "@/lib/meetings";
+import { etDate, fmtWhen, kindInfo, leadMeetings, MEETING_KINDS, MEETING_STATUS, meetingHosts, nextKind, PLATFORMS } from "@/lib/meetings";
 import { dupesFor } from "@/lib/dupes";
 import { money as qMoney, QUOTE_KINDS, QUOTE_STATUS, quoteNumber, totals as qTotals, type QuoteItem } from "@/lib/salesQuotes";
 import { absoluteUrl } from "@/lib/site";
@@ -313,7 +313,7 @@ export default async function AdminLead({ params, searchParams }: { params: Prom
                 <div className="hero-card sales-mtgs">
                   <div className="sm-head">
                     <h2>Sales meetings</h2>
-                    <span className="fine">Invites go to {lead.email} with a calendar file. Times are Eastern.</span>
+                    <span className="fine">Invites go to {lead.email} with a calendar file, then a reminder 1 hour before and the link 10 minutes before. Times are Eastern.</span>
                   </div>
             {sales.length > 0 && (
               <ul className="sm-list">
@@ -325,7 +325,7 @@ export default async function AdminLead({ params, searchParams }: { params: Prom
                       <div className="sm-row">
                         <span><strong>{k.label}</strong> · {fmtWhen(g.starts_at)} · {g.host_name} <span className={`sm-badge sm-${g.status}`}>{MEETING_STATUS[g.status]}</span>
                           {opened.get(g.id) && <span className="fine"> · invite {opened.get(g.id)!.clicked ? "opened and link clicked" : opened.get(g.id)!.opened ? "opened" : "delivered"}</span>}</span>
-                        {live && g.room_url && <a href={g.room_url} target="_blank" rel="noreferrer" className="fine">Join Teams</a>}
+                        {live && g.room_url && <a href={g.room_url} target="_blank" rel="noreferrer" className="fine">Join {/teams\.(microsoft|live)\.com/.test(g.room_url) ? "Teams" : "meeting"}</a>}{g.notify_lead === false && <span className="fine"> · lead not emailed</span>}
                       </div>
                       {g.notes && <p className="fine sm-note">Agenda: {g.notes}</p>}
                       {g.outcome && <p className="fine sm-note">Outcome: {g.outcome}</p>}
@@ -346,6 +346,8 @@ export default async function AdminLead({ params, searchParams }: { params: Prom
                             <input type="hidden" name="kind" value={g.kind} />
                             <input type="hidden" name="host" value={g.host_id} />
                             <input type="hidden" name="room" value={g.room_url} />
+                            <input type="hidden" name="platform" value={g.platform || "teams"} />
+                            <input type="hidden" name="notify" value={g.notify_lead === false ? "0" : "1"} />
                             <input type="hidden" name="agenda" value={g.notes || ""} />
                             <input type="hidden" name="minutes" value={Math.round((new Date(g.ends_at).getTime() - new Date(g.starts_at).getTime()) / 60000)} />
                             <div className="sm-btns">
@@ -356,6 +358,7 @@ export default async function AdminLead({ params, searchParams }: { params: Prom
                               <button className="btn btn-outline-dark btn-sm" type="submit">Move and send updated invite</button>
                             </div>
                           </>)}
+                          {live && post("meeting-noshow-resched", <><input type="hidden" name="meeting" value={g.id} /><button className="btn btn-outline-dark btn-sm" type="submit">Lead never showed: send a reschedule link</button></>)}
                           {live && post("meeting-cancel", <><input type="hidden" name="meeting" value={g.id} /><button className="linkish" type="submit">Cancel the meeting and email {lead.first_name || "them"}</button></>)}
                         </details>
                       )}
@@ -378,9 +381,13 @@ export default async function AdminLead({ params, searchParams }: { params: Prom
                   <select id="sm-min" name="minutes" defaultValue={String(kindInfo(next).minutes)}>{[15, 30, 45, 60, 90].map((n) => <option key={n} value={n}>{n} minutes</option>)}</select></div>
                 <div className="field"><label htmlFor="sm-host">With</label>
                   <select id="sm-host" name="host" defaultValue={lead.meeting_host || me.id}>{hosts.map((h) => <option key={h.id} value={h.id}>{h.id === me.id ? `Me (${h.name})` : h.name}</option>)}</select></div>
-                <div className="field"><label htmlFor="sm-room">Teams link (optional)</label><input id="sm-room" name="room" type="url" placeholder="Leave blank for a new Teams meeting" /></div>
+                <div className="field"><label htmlFor="sm-plat">Where</label>
+                  <select id="sm-plat" name="platform" defaultValue="labb">{PLATFORMS.map((p) => <option key={p.value} value={p.value}>{p.label}</option>)}</select></div>
+                <div className="field"><label htmlFor="sm-room">Meeting link (for Other link, or your own Teams link)</label><input id="sm-room" name="room" type="url" placeholder="https://" /></div>
+                <div className="field sm-wide"><label className="sm-check"><input type="checkbox" name="notify" value="1" defaultChecked /> Email the lead the invite now, a reminder 1 hour before and the link 10 minutes before</label>
+                  <span className="fine">Uncheck to add a meeting you arranged another way. Nothing is sent to the lead.</span></div>
                 <div className="field sm-wide"><label htmlFor="sm-agenda">Agenda (included in the invite)</label><textarea id="sm-agenda" name="agenda" rows={2} maxLength={2000} /></div>
-                <div className="sm-wide"><button className="btn btn-primary" type="submit">Schedule and send invite</button></div>
+                <div className="sm-wide"><button className="btn btn-primary" type="submit">Schedule meeting</button></div>
               </div>)}
             </details>
                 </div>
