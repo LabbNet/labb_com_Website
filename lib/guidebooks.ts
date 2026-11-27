@@ -7,20 +7,22 @@ export const GUIDEBOOKS_LIVE = false;
 export type Audience = "clinic" | "employer";
 export type Guidebook = { slug: string; file: string; title: string; blurb: string; cover: string; for: Audience[] };
 
-const pick = (slug: string, file: string, forWho: Audience[]): Guidebook => {
+const pick = (slug: string, file: string, forWho: Audience[], title?: string): Guidebook => {
   const r = resources.find((x) => x.slug === slug)!;
-  return { slug, file, title: r.shortTitle, blurb: r.lede, cover: r.cover, for: forWho };
+  return { slug, file, title: title || r.shortTitle, blurb: r.lede, cover: r.cover, for: forWho };
 };
+// Industry guidebooks are editions of the Employers Guidebook.
+const edition = (industry: string) => `Employers Guidebook: ${industry} Edition`;
 
 export const GUIDEBOOKS: Guidebook[] = [
   pick("clinic-owners-guidebook", "clinic-owners-guidebook", ["clinic"]),
   pick("background-screening-guidebook", "background-screening", ["clinic"]),
   pick("employers-guidebook", "employer-guidebook", ["employer"]),
-  pick("construction-screening-guidebook", "employer-construction", ["employer"]),
-  pick("manufacturing-screening-guidebook", "employer-manufacturing", ["employer"]),
-  pick("logistics-screening-guidebook", "employer-logistics", ["employer"]),
-  pick("healthcare-screening-guidebook", "employer-healthcare", ["employer"]),
-  pick("hospitality-screening-guidebook", "employer-hospitality", ["employer"]),
+  pick("construction-screening-guidebook", "employer-construction", ["employer"], edition("Construction")),
+  pick("manufacturing-screening-guidebook", "employer-manufacturing", ["employer"], edition("Manufacturing")),
+  pick("logistics-screening-guidebook", "employer-logistics", ["employer"], edition("Logistics")),
+  pick("healthcare-screening-guidebook", "employer-healthcare", ["employer"], edition("Healthcare")),
+  pick("hospitality-screening-guidebook", "employer-hospitality", ["employer"], edition("Hospitality")),
   pick("drug-testing-cost-guidebook", "cost-guidebook", ["clinic", "employer"]),
 ];
 export const guidebook = (slug: string) => GUIDEBOOKS.find((g) => g.slug === slug);
