@@ -2444,3 +2444,10 @@ td.acts { white-space: nowrap; }
 .cal-blocks li { display: flex; justify-content: space-between; gap: 10px; align-items: center; border-top: 1px solid #eef1f3; padding-top: 6px; font-size: .9rem; }
 .cal-how { padding-left: 18px; text-align: left; }
 @media (max-width: 900px) { .cal-cards { grid-template-columns: 1fr; } }
+.sig-settings { text-align: left; }
+.sig-current { display: grid; gap: 2px; margin: 8px 0 16px; max-width: 360px; }
+.sig-current img { max-width: 320px; max-height: 110px; border-bottom: 1px solid #404951; background: #fff; }
+.sig-form { display: grid; grid-template-columns: 1fr 1fr; gap: 10px 14px; }
+.sig-form .sig-wide { grid-column: 1 / -1; }
+.sig-form input { width: 100%; min-height: 42px; border: 1px solid #9aa4ad; border-radius: 8px; padding: 6px 10px; }
+@media (max-width: 640px) { .sig-form { grid-template-columns: 1fr; } }

@@ -65,6 +65,7 @@ export type SalesQuote = {
   open_count: number; signed_at: Date | null; signed_name: string | null; signed_title: string | null; signature_png: string | null; signed_ip: string | null;
   signed_hash: string | null; paid_at: Date | null; paid_cents: number | null; stripe_session: string | null; created_at: Date; updated_at: Date;
   member_id: string | null; payment_mode: PaymentMode; service_level: ServiceLevel;
+  countersigned_at?: Date | null; countersign_png?: string | null; countersign_name?: string | null; countersign_title?: string | null;
 };
 export type QuoteItem = {
   id: string; quote_id: string; price_item_id: string | null; name: string; sku: string | null; category: string | null; description: string | null; unit: string | null;
@@ -128,7 +129,7 @@ export const PLACEHOLDERS: [string, string][] = [
   ["{{price_table_mrc}}", "Detailed table: Set-up and MRC (monthly recurring fees)"], ["{{price_table_nrc}}", "Detailed table: Hardware and NRC"],
   ["{{price_table_urine}}", "Detailed table: rapid urine tests"], ["{{price_table_oral}}", "Detailed table: rapid oral fluid tests"],
   ["{{lab_table}}", "Detailed table: lab and MRO services billed as used"],
-  ["{{signature_block}}", "The lead's e-signature, name, title and date once signed"], ["{{client_signature}}", "Same, laid out for an agreement's client signature column"],
+  ["{{labb_signature}}", "Labb's countersignature (the rep's saved signature, once the client signs)"], ["{{signature_block}}", "The lead's e-signature, name, title and date once signed"], ["{{client_signature}}", "Same, laid out for an agreement's client signature column"],
   ["{{effective_date}}", "Date the quote was signed (blank line until then)"],
   ["{{one_time_total}}", "One-time total"], ["{{monthly_total}}", "Monthly total"], ["{{due_today}}", "Due at acceptance"],
 ];
@@ -286,6 +287,49 @@ function signature(q: SalesQuote, agreement: boolean) {
   return `<div class="esig">${img}<div class="who"><strong>${esc(q.signed_name || "")}</strong>${q.signed_title ? `, ${esc(q.signed_title)}` : ""}<br>Signed electronically ${fmtSigned(q.signed_at)}</div></div>`;
 }
 
+// The countersignature: the rep's saved signature, printed once the client has signed.
+function counterBlock(q: SalesQuote) {
+  if (!q.countersigned_at) return `<div class="esig"><div class="pending">Countersigned when the client accepts.</div></div>`;
+  const img = q.countersign_png && /^data:image\/png;base64,[A-Za-z0-9+/=]+$/.test(q.countersign_png) ? `<img src="${q.countersign_png}" alt="Countersignature">` : "";
+  return `<div class="esig">${img}<div class="who"><strong>${esc(q.countersign_name || "")}</strong>${q.countersign_title ? `, ${esc(q.countersign_title)}` : ""}<br>Signed electronically ${fmtSigned(q.countersigned_at)}</div></div>`;
+}
+// The template's Labb signature column (a blank line, a fixed name, a date line) becomes the countersignature once it exists.
+function fillLabbSignature(html: string, q: SalesQuote) {
+  if (!q.countersigned_at) return html;
+  const who = `${esc(q.countersign_name || "")}${q.countersign_title ? `<br>${esc(q.countersign_title)}` : ""}${q.member_id ? "<br>Labb Authorized Channel Partner" : ""}`;
+  return html.replace(/<b>LABB<\/b>\s*<div class="line"><\/div>\s*<div class="cap">Authorized Signature<\/div>\s*<div style="margin-top:4pt">[\s\S]*?<\/div>\s*<div class="line" style="height:16pt"><\/div>/,
+    `<b>LABB</b><div class="esig" style="border-bottom:0.75pt solid #404951">${q.countersign_png && /^data:image\/png;base64,[A-Za-z0-9+/=]+$/.test(q.countersign_png) ? `<img src="${q.countersign_png}" alt="Countersignature">` : ""}</div><div class="cap">Authorized Signature, signed electronically</div><div style="margin-top:4pt">${who}</div><div style="height:16pt;border-bottom:0.75pt solid #404951;padding-top:4pt">${fmtSigned(q.countersigned_at)}</div>`);
+}
+
+// Countersign a quote the client just signed, with the rep's saved signature. Labb quotes whose rep has none use the
+// superadmin's. Returns false when there's no signature to use (the rep is asked to add one).
+export async function countersign(quoteId: string) {
+  const db = sql();
+  const [q] = await db<SalesQuote[]>`select * from sales_quotes where id = ${quoteId}`;
+  if (!q || !q.signed_at || q.countersigned_at) return !!q?.countersigned_at;
+  type Sig = { id: string; name: string; email: string; signature_png: string | null; signature_name: string | null; signature_title: string | null };
+  const [rep] = q.rep_id ? await db<Sig[]>`select id, name, email, signature_png, signature_name, signature_title from members where id = ${q.rep_id}` : [];
+  let s: Sig | undefined = rep?.signature_png ? rep : undefined;
+  if (!s && !q.member_id) [s] = await db<Sig[]>`select id, name, email, signature_png, signature_name, signature_title from members where superadmin and signature_png is not null order by created_at limit 1`;
+  if (!s?.signature_png) {
+    if (rep) await sendMail(rep.email, `Add your signature: quote ${quoteNumber(q)} was signed`,
+      emailLayout("Your countersignature is needed", `<p>${esc(q.signed_name || "Your client")} signed quote ${quoteNumber(q)} (${esc(q.title)}). The agreement is waiting for your countersignature because you haven't saved a signature yet.</p><p>Save one once and every agreement after this is countersigned automatically. Saving it now also countersigns this one.</p>`,
+        { href: absoluteUrl(q.member_id ? "/members/account#signature" : "/admin/signature"), label: "Add my signature" }),
+      `Quote ${quoteNumber(q)} was signed and needs your countersignature. Add your signature: ${absoluteUrl(q.member_id ? "/members/account#signature" : "/admin/signature")}`).catch(() => {});
+    return false;
+  }
+  await db`update sales_quotes set countersigned_at = now(), countersign_png = ${s.signature_png}, countersign_name = ${s.signature_name || s.name},
+    countersign_title = ${s.signature_title}, countersign_by = ${s.id}, updated_at = now() where id = ${q.id} and countersigned_at is null`;
+  await logLeadEvent(q.lead_id, "quote", `Agreement for quote ${quoteNumber(q)} countersigned by ${s.signature_name || s.name}`, null);
+  return true;
+}
+// After someone saves a signature: countersign their signed quotes that were waiting.
+export async function countersignWaiting(memberId: string) {
+  const rows = await sql()<{ id: string }[]>`select id::text from sales_quotes where rep_id = ${memberId} and signed_at is not null and countersigned_at is null`;
+  for (const r of rows) await countersign(r.id);
+  return rows.length;
+}
+
 // CPP member quotes: Labb's logo stays primary; the member's logo (dark grey) and "Labb Authorized Channel Partner" sit beside it.
 const LABB_LOGO = '<img src="/quote-assets/b089670f3facbe293fa1.png"';
 function partnerBrand(html: string, rep: NonNullable<Rep>) {
@@ -326,7 +370,7 @@ export function renderQuote(q: SalesQuote, allItems: QuoteItem[], lead: LeadRow,
     "{{price_table_urine}}": priceTable(items.filter((i) => sectionOf(i) === "urine"), "No rapid urine tests in this quote."),
     "{{price_table_oral}}": priceTable(items.filter((i) => sectionOf(i) === "oral"), "No rapid oral fluid tests in this quote."),
     "{{lab_table}}": priceTable(items.filter((i) => i.billing === "invoiced"), "No lab services in this quote."),
-    "{{signature_block}}": signature(q, false), "{{client_signature}}": signature(q, true),
+    "{{signature_block}}": signature(q, false), "{{client_signature}}": signature(q, true), "{{labb_signature}}": counterBlock(q),
     "{{effective_date}}": q.signed_at ? fmtSigned(q.signed_at) : "Date of acceptance",
   };
   // Client type check boxes in the template (Workplace, Clinic, Forensic, Treatment), from the lead's segment or the quote kind.
@@ -334,6 +378,7 @@ export function renderQuote(q: SalesQuote, allItems: QuoteItem[], lead: LeadRow,
   const type = ({ employer: "Workplace", tpa: "Workplace", laboratory: "Workplace", "drug-testing-business": "Workplace", "collection-site": "Clinic", corrections: "Forensic", treatment: "Treatment" } as Record<string, string>)[seg]
     || (q.kind === "employer" ? "Workplace" : q.kind === "clinic" ? "Clinic" : "");
   let out = cleanHtml(q.html).replace(/\{\{\s*[a-z_]+\s*\}\}/g, (m) => vals[m.replace(/\s/g, "")] ?? m);
+  out = fillLabbSignature(out, q);
   if (q.member_id && rep) out = partnerBrand(out, rep);
   if (type) out = out.replace(new RegExp(`<span class="check"></span>(\\s*)${type}\\b`), `<span class="check" style="background:#CF743C;border-color:#CF743C;box-shadow:inset 0 0 0 1.5pt #fff"></span>$1<b>${type}</b>`);
   return out;
@@ -413,6 +458,8 @@ export async function snapshot(quoteId: string, by: string | null, prompt: strin
   const [q] = await db<{ html: string }[]>`select html from sales_quotes where id = ${quoteId}`;
   const items = await db`select price_item_id, name, sku, category, description, unit, unit_cents, qty, min_qty, adjustable, billing, sort, excluded from sales_quote_items where quote_id = ${quoteId} order by sort, id`;
   await db`insert into sales_quote_versions (quote_id, html, items, prompt, summary, created_by) values (${quoteId}, ${q.html}, ${db.json(items as never)}, ${prompt}, ${summary}, ${by})`;
+  // Keep only the 5 most recent versions of each quote.
+  await db`delete from sales_quote_versions where quote_id = ${quoteId} and id not in (select id from sales_quote_versions where quote_id = ${quoteId} order by created_at desc, id desc limit 5)`;
 }
 
 export async function restoreVersion(quoteId: string, versionId: string) {

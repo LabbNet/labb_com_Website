@@ -1,5 +1,9 @@
 import { Alert } from "@/components/AuthCard";
 import { currentMember } from "@/lib/auth";
+import { Flash } from "@/components/AdminBar";
+import { SignatureSettings } from "@/components/SignatureSettings";
+import { readFlash } from "@/lib/admin";
+import { sql } from "@/lib/db";
 
 const errs: Record<string, string> = {
   current: "Your current password isn't right. Try again.",
@@ -25,6 +29,10 @@ export default async function AccountPage({ searchParams }: { searchParams: Prom
   const { error, changed, saved, perr } = await searchParams;
   const m = await currentMember();
   if (!m) return null; // layout redirects to sign in
+  const [[sig], flash] = await Promise.all([
+    sql()<{ signature_png: string | null; signature_name: string | null; signature_title: string | null; signature_at: Date | null }[]>`select signature_png, signature_name, signature_title, signature_at from members where id = ${m.id}`,
+    readFlash(),
+  ]);
   return (
     <section className="section" style={{ paddingTop: 40 }}>
       <div className="wrap split" style={{ alignItems: "start" }}>
@@ -69,6 +77,14 @@ export default async function AccountPage({ searchParams }: { searchParams: Prom
             </div>
             <button className="btn btn-primary btn-block" style={{ marginTop: 18 }} type="submit">Change password</button>
           </form>
+        </div>
+      </div>
+      <div className="wrap" style={{ marginTop: 24 }}>
+        <div className="hero-card">
+          <h2 className="form-title">My signature</h2>
+          <p className="form-sub">Saved once, used to countersign the agreement on your quotes automatically as soon as your client signs.</p>
+          <Flash flash={flash} />
+          <SignatureSettings back="/members/account" sig={{ ...sig, name: m.name, clinic: m.clinic }} />
         </div>
       </div>
     </section>

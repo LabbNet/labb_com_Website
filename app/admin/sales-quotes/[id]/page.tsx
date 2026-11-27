@@ -31,7 +31,7 @@ export default async function QuoteEditor({ params }: { params: Promise<{ id: st
     db<{ id: string; name: string }[]>`select id::text, name from quote_templates where active order by name`,
     db<{ id: string; summary: string | null; prompt: string | null; created_at: Date; by: string | null }[]>`
       select v.id::text, v.summary, v.prompt, v.created_at, m.name as by from sales_quote_versions v left join members m on m.id = v.created_by
-      where v.quote_id = ${q.id} order by v.created_at desc limit 30`,
+      where v.quote_id = ${q.id} order by v.created_at desc limit 5`,
   ]);
   if (!lead) notFound();
   const t = totals(items);
@@ -215,7 +215,7 @@ export default async function QuoteEditor({ params }: { params: Promise<{ id: st
 
             <div className="qb-extra">
               <div className="hero-card">
-                <h3>Versions</h3>
+                <h3>Versions <span className="fine">· the last 5 are kept</span></h3>
                 {!versions.length ? <p className="fine" style={{ textAlign: "left", margin: 0 }}>Saved changes show here.</p> : (
                   <ul className="qb-versions">
                     {versions.map((v) => (

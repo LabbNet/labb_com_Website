@@ -7,7 +7,7 @@ import { leadName, logLeadEvent } from "@/lib/leads";
 import { esc, emailLayout, sendMail } from "@/lib/mail";
 import { absoluteUrl, cppEmail } from "@/lib/site";
 import {
-  getQuoteByToken, markPaid, PAYMENT_MODES, money, notifyRep, quoteCheckout, quoteNumber, quoteUrl, recordOpen, setQuantities, signatureHash, totals,
+  countersign, getQuoteByToken, markPaid, PAYMENT_MODES, money, notifyRep, quoteCheckout, quoteNumber, quoteUrl, recordOpen, setQuantities, signatureHash, totals,
 } from "@/lib/salesQuotes";
 
 // A lead's actions on their quote page: open it, change quantities, sign and pay.
@@ -56,6 +56,7 @@ export async function POST(req: Request) {
     await sql()`update sales_quotes set status = 'signed', signed_at = now(), signed_name = ${name}, signed_title = ${title || null}, signature_png = ${png},
       signed_ip = ${clientIp(h)}, signed_agent = ${(h.get("user-agent") || "").slice(0, 300)}, signed_hash = ${signatureHash(q, items)}, updated_at = now()
       where id = ${q.id} and status in ('sent', 'viewed')`;
+    await countersign(String(q.id)).catch((e) => console.error("[quote] countersign", e));
     await logLeadEvent(q.lead_id, "quote", `Signed quote ${quoteNumber(q)} as ${name}${title ? `, ${title}` : ""} (due at acceptance ${money(t.dueToday)})`, null);
     await notifyRep(q, lead, `Quote ${quoteNumber(q)} signed`, `<p><strong>${esc(leadName(lead))}</strong>${lead.company ? `, ${esc(lead.company)}` : ""} signed <strong>${esc(q.title)}</strong> as ${esc(name)}${title ? `, ${esc(title)}` : ""}.</p><p>Due at acceptance: <strong>${money(t.dueToday)}</strong>. ${!t.dueToday ? "Nothing is due today." : cardPay ? "They're being sent to checkout now." : q.payment_mode === "partner" ? "You invoice the client for this amount." : "Labb will invoice the client for this amount."}</p>`);
     if (q.member_id) await sendMail(cppEmail, `CPP quote ${quoteNumber(q)} signed`, emailLayout(`CPP quote ${quoteNumber(q)} signed`, `<p><strong>${esc(leadName(lead))}</strong>${lead.company ? `, ${esc(lead.company)}` : ""} signed <strong>${esc(q.title)}</strong> from ${esc(rep?.clinic || rep?.name || "a CPP member")}.</p><p>Due at acceptance: <strong>${money(t.dueToday)}</strong>. Payment: ${esc(PAYMENT_MODES.find((m) => m.value === q.payment_mode)?.label || "")}.</p>`, { href: absoluteUrl(`/admin/sales-quotes/${q.id}`), label: "Open the quote" }), `CPP quote ${quoteNumber(q)} signed by ${leadName(lead)}. Due ${money(t.dueToday)}.`).catch(() => {});
