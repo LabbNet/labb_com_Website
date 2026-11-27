@@ -37,6 +37,8 @@ export const LEAD_STATUSES = [
   { value: "new", label: "New" },
   { value: "contacted", label: "Contacted" },
   { value: "qualified", label: "Qualified" },
+  { value: "quote-requested", label: "Quote requested" },
+  { value: "quote-sent", label: "Quote sent" },
   { value: "won", label: "Won" },
   { value: "lost", label: "Lost" },
   { value: "not-qualified", label: "Not qualified" },

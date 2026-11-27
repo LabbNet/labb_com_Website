@@ -2347,3 +2347,20 @@ td.acts { white-space: nowrap; }
   .qp-order.hero-card { padding: 16px 12px; }
   .qo-due { border-left: 0; border-top: 3px solid #CF743C; padding: 12px 0 0; }
 }
+.s-quote-requested { background: #fff4e0; color: #8a5a00; }
+.s-quote-sent { background: #fbeadf; color: #9a4f1f; }
+.qb-addp h2 { margin-bottom: 8px; }
+.qb-pick { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; text-align: left; }
+.qb-pick fieldset { border: 1px solid #d5dbe0; border-radius: 10px; padding: 10px 12px 8px; margin: 0; min-width: 0; }
+.qb-pick legend { font-weight: 700; font-size: .82rem; text-transform: uppercase; letter-spacing: .04em; color: #CF743C; padding: 0 6px; }
+.qb-pick label { display: grid; grid-template-columns: 18px minmax(0, 1fr) auto; gap: 8px; align-items: center; padding: 6px 0; border-top: 1px solid #eef1f3; font-size: .9rem; color: #1f2a33; cursor: pointer; }
+.qb-pick label:first-of-type { border-top: 0; }
+.qb-pick label.on { color: #8a95a0; cursor: default; }
+.qb-pick label em { font-style: normal; font-size: .75rem; background: #eef1f3; border-radius: 999px; padding: 1px 7px; margin-left: 4px; }
+.qb-pick label b { font-weight: 600; white-space: nowrap; font-size: .88rem; }
+.qb-pick input { width: 16px; height: 16px; accent-color: #CF743C; }
+.qb-pickbar { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; margin-top: 14px; }
+.qb-custom { margin-top: 14px; text-align: left; }
+.qb-custom summary { cursor: pointer; font-weight: 600; color: #404951; margin-bottom: 8px; }
+@media (max-width: 1000px) { .qb-pick { grid-template-columns: 1fr 1fr; } }
+@media (max-width: 640px) { .qb-pick { grid-template-columns: 1fr; } }

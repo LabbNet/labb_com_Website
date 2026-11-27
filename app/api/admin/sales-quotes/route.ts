@@ -127,12 +127,21 @@ export async function POST(req: Request) {
     const r = await db`delete from sales_quote_items where quote_id = ${q.id} and qty = 0 and billing <> 'invoiced'`;
     await flash(`Removed ${r.count} items with no quantity.`);
   } else if (action === "add-item") {
-    const pid = field(fd, "price_item", 20).replace(/\D/g, "");
-    const sort = Math.max(0, ...items.map((i) => i.sort)) + 10;
-    if (pid) {
-      const [p] = await db<PriceRow[]>`select * from quote_price_items where id = ${pid}`;
-      if (p) await db`insert into sales_quote_items (quote_id, price_item_id, name, sku, category, description, unit, unit_cents, qty, adjustable, billing, sort)
+    const picks = [...fd.getAll("pick"), fd.get("price_item")].map((v) => String(v ?? "").replace(/\D/g, "").slice(0, 12)).filter(Boolean);
+    let sort = Math.max(0, ...items.map((i) => i.sort)) + 10;
+    if (picks.length) {
+      const have = new Set(items.map((i) => String((i as { price_item_id?: unknown }).price_item_id ?? "")));
+      let added = 0;
+      for (const pid of picks) {
+        if (have.has(pid)) continue;
+        const [p] = await db<PriceRow[]>`select * from quote_price_items where id = ${pid}`;
+        if (!p) continue;
+        await db`insert into sales_quote_items (quote_id, price_item_id, name, sku, category, description, unit, unit_cents, qty, adjustable, billing, sort)
         values (${q.id}, ${p.id}, ${p.name}, ${p.sku}, ${p.category}, ${p.description}, ${p.unit}, ${priceFor(p, isPriceLevel(q.price_level) ? q.price_level : "under100")}, ${p.category === "lab-mro" ? 0 : 1}, ${p.category !== "lab-mro" && p.category !== "services"}, ${billingFor(p.category)}, ${sort})`;
+        sort += 10; added++; have.add(pid);
+      }
+      await flash(added ? `${added} item${added === 1 ? "" : "s"} added.` : "Those products are already in the quote.");
+      return go(req, back);
     } else {
       const name = field(fd, "custom_name", 200);
       const cents = Math.round(Number(field(fd, "custom_price", 20).replace(/[^0-9.]/g, "")) * 100);

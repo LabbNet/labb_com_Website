@@ -379,7 +379,7 @@ export async function duplicateLeads(lead: LeadRow) {
     order by l.created_at`;
 }
 
-const STATUS_RANK: Record<string, number> = { new: 0, contacted: 1, qualified: 2, won: 3, lost: -1, "not-qualified": -1, "existing-client": 4 };
+const STATUS_RANK: Record<string, number> = { new: 0, contacted: 1, qualified: 2, "quote-requested": 2.3, "quote-sent": 2.6, won: 3, lost: -1, "not-qualified": -1, "existing-client": 4 };
 
 // Fold duplicate leads into one record. History, meetings, quotes, guidebook emails and website visits move
 // to the primary; empty fields on the primary are filled from the duplicates; the duplicates are deleted.

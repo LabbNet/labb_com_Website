@@ -260,7 +260,7 @@ export async function getQuoteByToken(token: string) {
   const db = sql();
   const [q] = await db<SalesQuote[]>`select * from sales_quotes where token = ${token}`;
   if (!q) return null;
-  const items = await db<(QuoteItem & { category: string | null })[]>`select i.*, p.category from sales_quote_items i left join quote_price_items p on p.id = i.price_item_id where i.quote_id = ${q.id} order by i.sort, i.id`;
+  const items = await db<QuoteItem[]>`select i.*, coalesce(i.category, p.category) as category from sales_quote_items i left join quote_price_items p on p.id = i.price_item_id where i.quote_id = ${q.id} order by i.sort, i.id`;
   const [lead] = await db<LeadRow[]>`select * from leads where id = ${q.lead_id}`;
   const [rep] = q.rep_id ? await db<{ name: string; email: string; phone: string | null }[]>`select name, email, phone from members where id = ${q.rep_id}` : [];
   return lead ? { q, items, lead, rep: rep ?? null } : null;
@@ -405,6 +405,8 @@ export async function sendQuote(quoteId: string, by: { id: string; name: string 
   const sent = await sendMail(lead.email, `Your Labb quote: ${q.title}`, html, text, { replyTo: rep.email, track: { sales_quote: String(q.id) } });
   if (!sent) throw new Error("The email didn't send. Check the email settings.");
   await db`update sales_quotes set status = case when status = 'draft' then 'sent' else status end, sent_at = coalesce(sent_at, now()), approved_by = ${by.id}, updated_at = now() where id = ${q.id}`;
+  // Sending a quote moves the lead to Quote sent, unless it's already further along or closed.
+  await db`update leads set status = 'quote-sent', updated_at = now() where id = ${q.lead_id} and status in ('new', 'contacted', 'qualified', 'quote-requested')`;
   await snapshot(String(q.id), by.id, null, "Approved and sent");
   await logLeadEvent(q.lead_id, "quote", `Quote ${quoteNumber(q)} approved and emailed to ${lead.email} (due at acceptance ${money(t.dueToday)})`, by);
   return lead.email;

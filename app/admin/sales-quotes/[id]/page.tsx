@@ -7,7 +7,7 @@ import { fmtDate, readFlash, requireAdmin } from "@/lib/admin";
 import { sql } from "@/lib/db";
 import { leadName, type LeadRow } from "@/lib/leads";
 import {
-  aiReady, BILLING_LABEL, getQuote, money, PRICE_LEVELS, QUOTE_KINDS, QUOTE_PRICE_CATEGORIES, QUOTE_STATUS, quoteNumber, quoteUrl, repFor, totals,
+  aiReady, BILLING_LABEL, priceFor, type PriceRow, getQuote, money, PRICE_LEVELS, QUOTE_KINDS, QUOTE_PRICE_CATEGORIES, QUOTE_STATUS, quoteNumber, quoteUrl, repFor, totals,
 } from "@/lib/salesQuotes";
 
 export const metadata: Metadata = { title: "Quote", robots: { index: false, follow: false } };
@@ -26,7 +26,7 @@ export default async function QuoteEditor({ params }: { params: Promise<{ id: st
     repFor(q),
     readFlash(),
     db<{ id: string; name: string }[]>`select id, name from members where role = 'admin' and status <> 'disabled' order by name`,
-    db<{ id: string; category: string; name: string; sku: string | null }[]>`select id, category, name, sku from quote_price_items where active order by sort, name`,
+    db<(PriceRow & { id: string })[]>`select * from quote_price_items where active order by sort, name`,
     db<{ id: string; name: string }[]>`select id::text, name from quote_templates where active order by name`,
     db<{ id: string; summary: string | null; prompt: string | null; created_at: Date; by: string | null }[]>`
       select v.id::text, v.summary, v.prompt, v.created_at, m.name as by from sales_quote_versions v left join members m on m.id = v.created_by
@@ -173,26 +173,51 @@ export default async function QuoteEditor({ params }: { params: Promise<{ id: st
               </>)}
 
               {!locked && (
-                <div className="hero-card">
-                  <h2>Add an item</h2>
-                  {act("add-item", <div className="qb-add">
-                    <select name="price_item" aria-label="Product from the price list" defaultValue="">
-                      <option value="">Custom item (enter below)</option>
-                      {QUOTE_PRICE_CATEGORIES.map((c) => (
-                        <optgroup key={c.value} label={c.label}>
-                          {catalog.filter((p) => p.category === c.value).map((p) => <option key={p.id} value={p.id}>{p.name}{p.sku ? ` (${p.sku})` : ""}</option>)}
-                        </optgroup>
-                      ))}
-                    </select>
-                    <input name="custom_name" placeholder="Custom item name" maxLength={200} aria-label="Custom item name" />
-                    <input name="custom_price" placeholder="Price" inputMode="decimal" aria-label="Custom item price" className="qb-num" />
-                    <input name="custom_unit" placeholder="Unit (kit, month)" maxLength={40} aria-label="Unit" className="qb-num" />
-                    <select name="custom_billing" aria-label="Billing" defaultValue="once">{Object.entries(BILLING_LABEL).map(([k, v]) => <option key={k} value={k}>{v}</option>)}</select>
-                    <button className="btn btn-outline-dark btn-sm" type="submit">Add</button>
-                  </div>)}
+                <div className="hero-card qb-addp">
+                  <h2>Add products</h2>
+                  <p className="fine" style={{ textAlign: "left", marginTop: -6 }}>Check the products to add from the quote price list, then select Add selected. Prices use this quote&apos;s tier ({PRICE_LEVELS.find((l) => l.value === q.price_level)?.label ?? "Under 100 kits per month"}). To add or change products, use <a href="/admin/sales-quotes/prices">Quote prices</a>.</p>
+                  {act("add-item", <>
+                    <div className="qb-pick">
+                      {QUOTE_PRICE_CATEGORIES.map((c) => {
+                        const list = catalog.filter((p) => p.category === c.value);
+                        return (
+                          <fieldset key={c.value}>
+                            <legend>{c.label}</legend>
+                            {list.length === 0 && <p className="fine">None in the price list yet.</p>}
+                            {list.map((p) => {
+                              const has = items.some((i) => String(i.price_item_id ?? "") === String(p.id));
+                              const cents = priceFor(p, q.price_level === "over100" ? "over100" : "under100");
+                              return (
+                                <label key={p.id} className={has ? "on" : ""}>
+                                  <input type="checkbox" name="pick" value={p.id} disabled={has} />
+                                  <span>{p.name}{has && <em> in quote</em>}</span>
+                                  <b>{cents ? `${money(cents)}${c.value === "saas" ? "/mo" : ""}` : c.value === "lab-mro" ? "Contact sales" : "Included"}</b>
+                                </label>
+                              );
+                            })}
+                          </fieldset>
+                        );
+                      })}
+                    </div>
+                    <div className="qb-pickbar">
+                      <button className="btn btn-primary" type="submit">Add selected</button>
+                      <span className="fine">Lab and MRO lines are added as billed as used. Kits and equipment start at a quantity of 1.</span>
+                    </div>
+                  </>)}
+                  <details className="qb-custom">
+                    <summary>Add a custom item that isn&apos;t on the price list</summary>
+                    {act("add-item", <div className="qb-add">
+                      <input name="custom_name" placeholder="Custom item name" maxLength={200} aria-label="Custom item name" />
+                      <input name="custom_price" placeholder="Price" inputMode="decimal" aria-label="Custom item price" className="qb-num" />
+                      <input name="custom_unit" placeholder="Unit (kit, month)" maxLength={40} aria-label="Unit" className="qb-num" />
+                      <select name="custom_billing" aria-label="Billing" defaultValue="once">{Object.entries(BILLING_LABEL).map(([k, v]) => <option key={k} value={k}>{v}</option>)}</select>
+                      <button className="btn btn-outline-dark btn-sm" type="submit">Add</button>
+                    </div>)}
+                  </details>
                   {act("remove-empty", <button className="linkish" type="submit" style={{ marginTop: 10 }}>Remove every item with a quantity of 0</button>)}
                 </div>
               )}
+
 
               {!locked && (
                 <div className="hero-card qb-ai">
